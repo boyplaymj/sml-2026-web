@@ -1,0 +1,19 @@
+[Unit]
+Description=SML Discord <-> Claude Code bridge
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=smlbot
+WorkingDirectory=/opt/sml/repo
+Environment=HOME=/home/smlbot
+Environment=CLAUDE_WORKDIR=/opt/sml/repo
+# ALLOWED_CHANNELS 必填(私密頻道 ID);ALLOWED_USERS 選填(限定可下指令的人)
+Environment=ALLOWED_CHANNELS=REPLACE_CHANNEL_ID
+Environment=ALLOWED_USERS=
+ExecStart=/opt/sml/run.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
