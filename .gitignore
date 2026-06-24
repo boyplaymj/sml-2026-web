@@ -8,3 +8,6 @@ desktop.ini
 
 # 本機預覽設定(機器相關)
 .claude/launch.json
+
+# Claude 本機設定
+.claude/settings.local.json
