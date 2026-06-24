@@ -7,5 +7,7 @@ get() { aws ssm get-parameter --name "$1" --with-decryption --region "$REGION" -
 
 export DISCORD_TOKEN="$(get /sml/discord-bot/token)"
 export CLAUDE_CODE_OAUTH_TOKEN="$(get /sml/claude/oauth-token)"
+export ALLOWED_CHANNELS="$(get /sml/discord-bridge/allowed-channels)"
+export CHANNEL_WORKDIRS="$(get /sml/discord-bridge/channel-workdirs)"
 
 exec /opt/sml/bridge

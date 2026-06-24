@@ -12,9 +12,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -44,10 +47,29 @@ var (
 	allowedUsers    = csvSet(os.Getenv("ALLOWED_USERS"))
 	claudeBin       = env("CLAUDE_BIN", "claude")
 	workdir         = env("CLAUDE_WORKDIR", ".")
+	channelWorkdirs = parseChannelWorkdirs(os.Getenv("CHANNEL_WORKDIRS"))
 
 	mu       sync.Mutex
 	sessions = map[string]string{} // channelID -> claude session id
 )
+
+func parseChannelWorkdirs(s string) map[string]string {
+	m := map[string]string{}
+	for _, part := range strings.Split(s, ",") {
+		part = strings.TrimSpace(part)
+		if idx := strings.IndexByte(part, '='); idx > 0 {
+			m[part[:idx]] = part[idx+1:]
+		}
+	}
+	return m
+}
+
+func workdirFor(channelID string) string {
+	if d, ok := channelWorkdirs[channelID]; ok {
+		return d
+	}
+	return workdir
+}
 
 type claudeResult struct {
 	Result    string `json:"result"`
@@ -77,7 +99,7 @@ func runClaude(ctx context.Context, channelID, prompt string) string {
 		args = append(args, "--resume", sid)
 	}
 	cmd := exec.CommandContext(ctx, claudeBin, args...)
-	cmd.Dir = workdir
+	cmd.Dir = workdirFor(channelID)
 	cmd.Env = os.Environ()
 	var out, errb bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &out, &errb
@@ -100,14 +122,45 @@ func runClaude(ctx context.Context, channelID, prompt string) string {
 	return res.Result
 }
 
-func allowedMsg(m *discordgo.MessageCreate) bool {
+func allowedMsg(s *discordgo.Session, m *discordgo.MessageCreate) bool {
 	if len(allowedChannels) > 0 && !allowedChannels[m.ChannelID] {
 		return false
 	}
 	if len(allowedUsers) > 0 && !allowedUsers[m.Author.ID] {
 		return false
 	}
-	return true
+	// 只回應 mention bot 或回覆 bot 訊息的情況
+	botID := s.State.User.ID
+	if strings.Contains(m.Content, "<@"+botID+">") {
+		return true
+	}
+	if m.MessageReference != nil && m.MessageReference.MessageID != "" {
+		ref, err := s.ChannelMessage(m.ChannelID, m.MessageReference.MessageID)
+		if err == nil && ref.Author.ID == botID {
+			return true
+		}
+	}
+	return false
+}
+
+// downloadAttachment 把 Discord 附件下載到暫存檔,回傳路徑。
+func downloadAttachment(url, filename string) (string, error) {
+	resp, err := http.Get(url) //nolint:gosec
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	ext := filepath.Ext(filename)
+	tmp, err := os.CreateTemp("", "discord-att-*"+ext)
+	if err != nil {
+		return "", err
+	}
+	defer tmp.Close()
+	if _, err := io.Copy(tmp, resp.Body); err != nil {
+		os.Remove(tmp.Name())
+		return "", err
+	}
+	return tmp.Name(), nil
 }
 
 // sendChunked 因應 Discord 單則 2000 字上限,分段送出。
@@ -149,10 +202,38 @@ func main() {
 	dg.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
 		// 診斷:每則訊息都先記下來源頻道,再套用過濾
 		log.Printf("MSG ch=%s author=%s bot=%v content=%q", m.ChannelID, m.Author.Username, m.Author.Bot, m.Content)
-		if m.Author.Bot || strings.TrimSpace(m.Content) == "" || !allowedMsg(m) {
+		if m.Author.Bot || !allowedMsg(s, m) {
+			return
+		}
+		// 文字與附件都空白就忽略
+		if strings.TrimSpace(m.Content) == "" && len(m.Attachments) == 0 {
 			return
 		}
 		s.ChannelTyping(m.ChannelID)
+
+		// 下載圖片附件到暫存檔
+		var tmpFiles []string
+		var imageLines []string
+		for _, att := range m.Attachments {
+			ct := att.ContentType
+			if !strings.HasPrefix(ct, "image/") {
+				continue
+			}
+			path, err := downloadAttachment(att.URL, att.Filename)
+			if err != nil {
+				log.Printf("attachment download error %s: %v", att.Filename, err)
+				continue
+			}
+			tmpFiles = append(tmpFiles, path)
+			imageLines = append(imageLines, path)
+			log.Printf("downloaded attachment %s -> %s", att.Filename, path)
+		}
+
+		prompt := m.Content
+		if len(imageLines) > 0 {
+			prompt += "\n\n[使用者附上了以下圖片，請用 Read 工具查看後再回答：\n" +
+				strings.Join(imageLines, "\n") + "]"
+		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 		defer cancel()
@@ -170,8 +251,12 @@ func main() {
 				}
 			}
 		}()
-		reply := runClaude(ctx, m.ChannelID, m.Content)
+		reply := runClaude(ctx, m.ChannelID, prompt)
 		close(done)
+		// 清除暫存圖片
+		for _, p := range tmpFiles {
+			os.Remove(p)
+		}
 		sendChunked(s, m.ChannelID, reply)
 	})
 
