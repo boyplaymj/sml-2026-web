@@ -137,13 +137,21 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	dg.Identify.Intents = discordgo.IntentsGuildMessages | discordgo.IntentMessageContent
+	dg.Identify.Intents = discordgo.IntentsGuilds | discordgo.IntentsGuildMessages | discordgo.IntentMessageContent
+
+	dg.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
+		log.Printf("READY: 已登入為 %s,可見 %d 個伺服器", r.User.String(), len(r.Guilds))
+	})
+	dg.AddHandler(func(s *discordgo.Session, _ *discordgo.Disconnect) {
+		log.Println("DISCONNECT: gateway 連線中斷(會自動重連)")
+	})
 
 	dg.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
+		// 診斷:每則訊息都先記下來源頻道,再套用過濾
+		log.Printf("MSG ch=%s author=%s bot=%v content=%q", m.ChannelID, m.Author.Username, m.Author.Bot, m.Content)
 		if m.Author.Bot || strings.TrimSpace(m.Content) == "" || !allowedMsg(m) {
 			return
 		}
-		log.Printf("[ch %s] %s: %s", m.ChannelID, m.Author.Username, m.Content)
 		s.ChannelTyping(m.ChannelID)
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
