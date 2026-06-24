@@ -426,6 +426,23 @@ function applyLiveData(live){
   }catch(e){ console.warn('Firebase 初始化失敗:', e); }
 })();
 
+/* ====================================================================
+   賽程自動同步:讀取 EventBridge+Lambda 每小時從 Google Sheet 產生的
+   data/schedule.json。抓不到或格式異常 -> 維持上方內建賽程當後備,確保不會壞。
+   (依 max-age=300 走瀏覽器快取,不額外增加請求)
+   ==================================================================== */
+(function(){
+  const ok = g => Array.isArray(g) && g.length && g.every(x => x && Array.isArray(x.players) && x.players.length);
+  fetch('data/schedule.json')
+    .then(r => r.ok ? r.json() : Promise.reject('HTTP '+r.status))
+    .then(d => {
+      if(!d || !ok(d.men) || !ok(d.women)) throw '格式異常';
+      SCHEDULE.men = d.men; SCHEDULE.women = d.women;   // 以線上賽程覆蓋內建
+      renderFeatured(); renderCalendar();               // 重繪賽程相關區塊
+    })
+    .catch(e => console.warn('賽程線上同步未套用,沿用內建賽程:', e));
+})();
+
 /* 積分榜進場:捲到才播一次 */
 (function(){
   const men = document.getElementById('board-men');

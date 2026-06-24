@@ -13,7 +13,7 @@ $src = $PSScriptRoot
 
 Write-Host "[1/3] Sync to S3 ..." -ForegroundColor Cyan
 # Assets (images/logo) get a 1-day browser cache -> cuts repeat CloudFront requests during streams
-& $aws s3 sync "$src" "$b/" --exclude ".claude/*" --exclude "*.psd" --exclude "deploy.ps1" --exclude ".git/*" --exclude ".gitignore" --cache-control "public, max-age=86400"
+& $aws s3 sync "$src" "$b/" --exclude ".claude/*" --exclude "*.psd" --exclude "deploy.ps1" --exclude ".git/*" --exclude ".gitignore" --exclude "aws/*" --cache-control "public, max-age=86400"
 # HTML/CSS/JS: short cache so content/code updates show quickly (CloudFront is also invalidated below)
 & $aws s3 cp "$src\index.html" "$b/index.html" --content-type "text/html; charset=utf-8"        --cache-control "public, max-age=300"
 & $aws s3 cp "$src\style.css"  "$b/style.css"  --content-type "text/css; charset=utf-8"          --cache-control "public, max-age=300"

@@ -15,10 +15,10 @@ description: 把 SML 官網 (sml-site) 部署／更新上線到 AWS S3 + CloudFr
    powershell -File "W:\SML\個人賽2026\sml-site\deploy.ps1"
    ```
 
-   這支腳本會：
-   - `aws s3 sync` 整個 `sml-site` 到 `s3://boyplaymj-smlweb/sml-site/`（排除 .claude、*.psd、deploy.ps1）
-   - 對 `index.html` / `style.css` / `app.js` 補上正確 `Content-Type`（含 charset=utf-8）
-   - `aws cloudfront create-invalidation --paths "/*"` 清除快取
+   這支腳本會（三步）：
+   - **[1/3]** `aws s3 sync` 整個 `sml-site` 到 `s3://boyplaymj-smlweb/sml-site/`（排除 .claude、*.psd、deploy.ps1、.git），資產帶 `Cache-Control max-age=86400`，並對 `index.html` / `style.css` / `app.js` 補正確 `Content-Type`（charset=utf-8）+ `max-age=300`
+   - **[2/3]** `aws cloudfront create-invalidation --paths "/*"` 清除快取
+   - **[3/3]** `git add -A` + `git commit` + `git push origin main` 自動存版本到 GitHub（repo: https://github.com/boyplaymj/sml-2026-web）。可加 `-msg "訊息"` 自訂 commit 訊息,不給則用時間戳
    - AWS CLI 完整路徑：`C:\Program Files\Amazon\AWSCLIV2\aws.exe`（不在 PATH）
    - CloudFront distribution：`E1J9S5W173HSDB`
 
