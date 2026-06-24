@@ -44,6 +44,7 @@ func csvSet(s string) map[string]bool {
 
 var (
 	allowedChannels = csvSet(os.Getenv("ALLOWED_CHANNELS"))
+	allowedGuilds   = csvSet(os.Getenv("ALLOWED_GUILDS"))
 	allowedUsers    = csvSet(os.Getenv("ALLOWED_USERS"))
 	claudeBin       = env("CLAUDE_BIN", "claude")
 	workdir         = env("CLAUDE_WORKDIR", ".")
@@ -123,7 +124,13 @@ func runClaude(ctx context.Context, channelID, prompt string) string {
 }
 
 func allowedMsg(s *discordgo.Session, m *discordgo.MessageCreate) bool {
-	if len(allowedChannels) > 0 && !allowedChannels[m.ChannelID] {
+	// 範圍:有設 ALLOWED_GUILDS 就允許「整個伺服器」的所有頻道(新開頻道自動生效);
+	// 否則退回 ALLOWED_CHANNELS 逐頻道白名單。
+	if len(allowedGuilds) > 0 {
+		if !allowedGuilds[m.GuildID] {
+			return false
+		}
+	} else if len(allowedChannels) > 0 && !allowedChannels[m.ChannelID] {
 		return false
 	}
 	if len(allowedUsers) > 0 && !allowedUsers[m.Author.ID] {
@@ -264,6 +271,6 @@ func main() {
 		log.Fatal("discord open: ", err)
 	}
 	defer dg.Close()
-	fmt.Println("SML Discord bridge running. allowed channels:", os.Getenv("ALLOWED_CHANNELS"))
+	fmt.Println("SML Discord bridge running. guilds:", os.Getenv("ALLOWED_GUILDS"), "| channels:", os.Getenv("ALLOWED_CHANNELS"))
 	select {}
 }
