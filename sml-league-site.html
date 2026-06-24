@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SML ・ SUPER MAHJONG LEAGUE 2026</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,800;0,900;1,800;1,900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+<style>
+:root{
+  /* 沿用字卡色票 */
+  --ink:        #05080f;
+  --panel:      #0f172a;   /* slate-900 */
+  --panel-2:    #141822;
+  --panel-edge: #0a0f1e;
+  --gold:       #fbbf24;
+  --gold-hot:   #ffcc00;
+  --red:        #ff3b30;
+  --green:      #4ade80;
+  --danger:     #f87171;
+  --ice:        #e2e8f0;
+  --muted:      #94a3b8;
+  --muted-2:    #64748b;
+  --line:       rgba(255,255,255,.12);
+  --line-soft:  rgba(255,255,255,.07);
+
+  /* 四席主題色 (對應字卡 --col-theme 系統) */
+  --seat-1: #ff3b30;
+  --seat-2: #38bdf8;
+  --seat-3: #4ade80;
+  --seat-4: #a78bfa;
+
+  --maxw: 1240px;
+  --ff-disp: 'Montserrat','Noto Sans TC',sans-serif;
+  --ff-body: 'Noto Sans TC','Montserrat',sans-serif;
+}
+
+*,*::before,*::after{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  font-family:var(--ff-body);
+  color:var(--ice);
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(251,191,36,.08), transparent 60%),
+    radial-gradient(900px 500px at -10% 20%, rgba(56,189,248,.06), transparent 55%),
+    linear-gradient(180deg, #070b14 0%, var(--ink) 45%, #04060c 100%);
+  background-attachment:fixed;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit;text-decoration:none;}
+img{display:block;max-width:100%;}
+.wrap{width:100%;max-width:var(--maxw);margin:0 auto;padding:0 24px;}
+
+/* ======== 共用：星塵 ======== */
+.stardust{
+  position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.45;
+  background-image:
+    radial-gradient(2px 2px at 40px 60px, rgba(255,255,255,.8), transparent),
+    radial-gradient(1.5px 1.5px at 150px 30px, rgba(255,255,255,.4), transparent),
+    radial-gradient(2px 2px at 90px 140px, rgba(255,255,255,.55), transparent),
+    radial-gradient(1.5px 1.5px at 220px 90px, rgba(255,255,255,.45), transparent);
+  background-repeat:repeat;background-size:300px 200px;
+  animation:drift 40s linear infinite;
+}
+@keyframes drift{from{background-position:0 0;}to{background-position:-300px -200px;}}
+
+/* ======== 共用：紅金雙波浪 ======== */
+.waves{position:absolute;left:0;bottom:0;width:100%;height:60px;z-index:1;pointer-events:none;opacity:.16;overflow:hidden;}
+.waves i{position:absolute;left:0;bottom:0;width:100%;height:100%;background-repeat:repeat-x;background-size:400px 60px;}
+.wave-back{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 60'%3E%3Cpath fill='%23ff3b30' d='M0,30 Q100,0 200,30 T400,30 L400,60 L0,60 Z'/%3E%3C/svg%3E");animation:waveL 4s linear infinite;}
+.wave-front{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 60'%3E%3Cpath fill='%23ffcc00' d='M0,30 Q100,60 200,30 T400,30 L400,60 L0,60 Z'/%3E%3C/svg%3E");animation:waveR 3.5s linear infinite;}
+@keyframes waveL{from{background-position-x:0;}to{background-position-x:-400px;}}
+@keyframes waveR{from{background-position-x:0;}to{background-position-x:400px;}}
+
+/* ======== 共用：金色標題藥丸 (淡出邊緣) ======== */
+.pill-title{
+  display:inline-block;color:var(--gold);
+  font-family:var(--ff-disp);font-weight:900;font-size:clamp(12px,1.4vw,15px);
+  letter-spacing:.45em;text-transform:uppercase;padding:8px 0;
+  position:relative;
+}
+.pill-title::before{content:"";position:absolute;left:-14px;top:50%;transform:translateY(-50%);width:8px;height:8px;background:var(--gold);border-radius:50%;box-shadow:0 0 12px var(--gold);}
+
+/* ======== NAV ======== */
+header.nav{position:sticky;top:0;z-index:100;backdrop-filter:blur(14px);
+  background:linear-gradient(180deg, rgba(7,11,20,.92), rgba(7,11,20,.62));
+  border-bottom:1px solid var(--line-soft);}
+.nav-in{display:flex;align-items:center;gap:32px;height:72px;}
+.brand{display:flex;align-items:center;gap:12px;font-family:var(--ff-disp);font-weight:900;}
+.brand .mono{
+  display:grid;place-items:center;width:42px;height:42px;border-radius:11px;
+  background:linear-gradient(135deg,var(--panel),#000);border:1px solid var(--gold);
+  color:var(--gold);font-style:italic;font-size:20px;letter-spacing:-1px;
+  box-shadow:0 6px 18px rgba(0,0,0,.5),inset 0 1px 1px rgba(255,255,255,.08);
+}
+.brand .wm{font-size:20px;letter-spacing:3px;}
+.brand .wm small{display:block;font-family:var(--ff-body);font-weight:700;font-size:10px;letter-spacing:.3em;color:var(--muted);}
+.nav-links{display:flex;gap:28px;margin-left:auto;font-weight:700;font-size:15px;}
+.nav-links a{color:var(--muted);transition:color .2s;}
+.nav-links a:hover{color:var(--ice);}
+.live-btn{display:inline-flex;align-items:center;gap:9px;font-family:var(--ff-disp);font-weight:900;
+  font-size:13px;letter-spacing:.18em;color:#fff;padding:11px 20px;border-radius:50px;
+  background:linear-gradient(135deg,#3a0b0a,#1a0606);border:1px solid rgba(255,59,48,.5);}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--red);box-shadow:0 0 10px var(--red);animation:pulse 2s infinite;}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,59,48,.9);}70%{box-shadow:0 0 0 11px rgba(255,59,48,0);}100%{box-shadow:0 0 0 0 rgba(255,59,48,0);}}
+.nav-burger{display:none;margin-left:auto;background:none;border:1px solid var(--line);color:var(--ice);border-radius:9px;padding:8px 12px;font-size:18px;}
+
+/* ======== HERO ======== */
+.hero{position:relative;overflow:hidden;padding:clamp(70px,11vw,140px) 0 90px;}
+.hero .stardust{opacity:.5;}
+.hero-grid{position:relative;z-index:3;display:grid;grid-template-columns:1.25fr .9fr;gap:48px;align-items:center;}
+.eyebrow{display:flex;align-items:center;gap:12px;color:var(--gold);font-family:var(--ff-disp);font-weight:800;letter-spacing:.4em;font-size:13px;text-transform:uppercase;margin-bottom:22px;}
+.eyebrow .ln{height:1px;width:46px;background:linear-gradient(90deg,var(--gold),transparent);}
+.hero h1{font-family:var(--ff-disp);font-weight:900;font-style:italic;line-height:.92;margin:0;
+  font-size:clamp(48px,8.5vw,108px);letter-spacing:-.02em;
+  background:linear-gradient(180deg,#fff 30%,#9fb0c9 130%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 20px 60px rgba(0,0,0,.4);}
+.hero h1 .gold{background:linear-gradient(180deg,var(--gold-hot),#b8851a);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.hero .zh{font-family:var(--ff-disp);font-weight:900;font-size:clamp(22px,3.2vw,40px);letter-spacing:.12em;margin:18px 0 0;color:var(--ice);}
+.hero p.lead{color:var(--muted);font-size:clamp(15px,1.6vw,18px);line-height:1.8;max-width:30em;margin:22px 0 34px;}
+.cta-row{display:flex;gap:14px;flex-wrap:wrap;}
+.btn{display:inline-flex;align-items:center;gap:10px;font-family:var(--ff-disp);font-weight:900;letter-spacing:.08em;font-size:15px;
+  padding:15px 30px;border-radius:14px;border:1px solid transparent;cursor:pointer;transition:transform .15s,box-shadow .2s;}
+.btn:hover{transform:translateY(-2px);}
+.btn-gold{background:linear-gradient(135deg,var(--gold-hot),#e0a526);color:#1a1305;box-shadow:0 14px 30px rgba(251,191,36,.28);}
+.btn-ghost{background:rgba(255,255,255,.04);border-color:var(--line);color:var(--ice);}
+
+/* Hero 右側：本週對戰玻璃卡 */
+.matchup{position:relative;border-radius:22px;overflow:hidden;
+  background:linear-gradient(135deg,rgba(15,23,42,.98),rgba(0,0,0,.95));
+  border:1px solid var(--line);box-shadow:0 24px 60px rgba(0,0,0,.55);}
+.matchup-head{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--line-soft);}
+.matchup-head .tag{display:flex;align-items:center;gap:9px;font-family:var(--ff-disp);font-weight:900;font-size:13px;letter-spacing:.16em;color:#fff;}
+.matchup-head time{color:var(--muted);font-size:13px;font-weight:700;}
+.seats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line-soft);}
+.seat{position:relative;background:linear-gradient(135deg,var(--panel),var(--panel-edge));padding:20px 18px;overflow:hidden;}
+.seat::before{content:"";position:absolute;top:0;left:0;width:100%;height:5px;background:var(--c);}
+.seat .wind{font-family:var(--ff-disp);font-weight:900;font-size:12px;letter-spacing:.2em;color:var(--c);opacity:.9;}
+.seat .pname{font-weight:900;font-size:21px;margin:6px 0 2px;color:#fff;}
+.seat .pscore{font-family:var(--ff-disp);font-style:italic;font-weight:900;font-size:34px;color:var(--c);line-height:1;}
+.matchup-foot{padding:14px 22px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line-soft);}
+.matchup-foot span{color:var(--muted);font-size:13px;}
+.matchup-foot a{color:var(--gold);font-weight:900;font-family:var(--ff-disp);font-size:13px;letter-spacing:.1em;}
+.matchup .waves{opacity:.13;}
+
+/* ======== SECTION 通用 ======== */
+section.block{position:relative;padding:clamp(64px,9vw,110px) 0;}
+.sec-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:42px;flex-wrap:wrap;}
+.sec-head h2{font-family:var(--ff-disp);font-weight:900;font-style:italic;font-size:clamp(30px,5vw,56px);margin:8px 0 0;letter-spacing:-.01em;color:#fff;}
+.sec-head .sub{color:var(--muted);max-width:34em;font-size:15px;line-height:1.7;}
+
+/* ======== 積分榜 ======== */
+.board{border:1px solid var(--line);border-radius:18px;overflow:hidden;background:linear-gradient(135deg,rgba(15,23,42,.9),rgba(5,8,15,.95));}
+.board-row{display:grid;grid-template-columns:64px 1.6fr repeat(4,1fr) 1.1fr;align-items:center;gap:8px;padding:0 22px;height:70px;border-bottom:1px solid var(--line-soft);transition:background .2s;}
+.board-row:last-child{border-bottom:none;}
+.board-row.head{height:50px;background:rgba(0,0,0,.35);}
+.board-row.head span{font-family:var(--ff-disp);font-weight:900;font-size:11px;letter-spacing:.14em;color:var(--muted-2);text-transform:uppercase;}
+.board-row:not(.head):hover{background:rgba(255,255,255,.03);}
+.rk{font-family:var(--ff-disp);font-style:italic;font-weight:900;font-size:26px;color:var(--muted-2);}
+.board-row.top .rk{color:var(--gold);}
+.who{display:flex;align-items:center;gap:14px;}
+.chip{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-family:var(--ff-disp);font-weight:900;font-style:italic;color:#fff;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--c) 55%,#000),#000);border:1px solid var(--c);box-shadow:0 0 14px color-mix(in srgb,var(--c) 40%,transparent);}
+.who b{font-size:17px;color:#fff;}
+.who small{display:block;color:var(--muted-2);font-weight:700;font-size:11px;letter-spacing:.1em;}
+.num{font-family:var(--ff-disp);font-weight:900;font-size:19px;color:var(--ice);text-align:center;}
+.num.g{color:var(--green);}
+.num.r{color:var(--danger);}
+.pts{font-family:var(--ff-disp);font-style:italic;font-weight:900;font-size:24px;color:var(--gold);text-align:right;}
+
+/* ======== 選手卡 ======== */
+.players{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;}
+.pcard{position:relative;border-radius:16px;overflow:hidden;padding:26px 22px 30px;
+  background:linear-gradient(135deg,rgba(15,20,30,.98),rgba(5,8,15,.98));
+  border:1px solid var(--line-soft);border-left:6px solid var(--c);
+  box-shadow:0 16px 36px rgba(0,0,0,.45);transition:transform .2s,box-shadow .2s;}
+.pcard:hover{transform:translateY(-6px);box-shadow:0 26px 50px rgba(0,0,0,.6);}
+.pcard .wind{font-family:var(--ff-disp);font-weight:900;font-size:12px;letter-spacing:.22em;color:var(--c);}
+.pcard .ava{width:74px;height:74px;border-radius:14px;margin:12px 0 14px;display:grid;place-items:center;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--c) 45%,#000),#000);border:1px solid var(--c);
+  font-family:var(--ff-disp);font-style:italic;font-weight:900;font-size:30px;color:#fff;}
+.pcard h3{margin:0;font-size:22px;color:#fff;font-weight:900;}
+.pcard .team{color:var(--gold);font-weight:900;font-size:12px;letter-spacing:.12em;margin-top:4px;}
+.mini{display:flex;gap:0;margin-top:20px;border-top:1px solid var(--line-soft);padding-top:16px;}
+.mini div{flex:1;text-align:center;border-right:1px solid var(--line-soft);}
+.mini div:last-child{border-right:none;}
+.mini .l{font-size:11px;color:var(--muted-2);font-weight:700;}
+.mini .v{font-family:var(--ff-disp);font-weight:900;font-size:20px;color:var(--ice);margin-top:3px;}
+.pcard .waves{opacity:.12;}
+
+/* ======== 賽程 ======== */
+.sched{display:flex;flex-direction:column;gap:12px;}
+.match-row{display:grid;grid-template-columns:120px 1fr auto;align-items:center;gap:20px;padding:20px 24px;
+  border:1px solid var(--line-soft);border-radius:14px;background:rgba(15,23,42,.5);transition:border-color .2s,background .2s;}
+.match-row:hover{border-color:var(--gold);background:rgba(15,23,42,.8);}
+.match-row .date{font-family:var(--ff-disp);font-weight:900;font-style:italic;font-size:18px;color:var(--gold);}
+.match-row .date small{display:block;font-style:normal;font-weight:700;font-size:11px;letter-spacing:.1em;color:var(--muted-2);}
+.match-row .vs{font-weight:900;color:#fff;font-size:16px;}
+.match-row .vs small{color:var(--muted);font-weight:700;font-size:13px;}
+.tag-state{font-family:var(--ff-disp);font-weight:900;font-size:12px;letter-spacing:.12em;padding:7px 14px;border-radius:50px;white-space:nowrap;}
+.tag-state.live{color:#fff;background:linear-gradient(135deg,#3a0b0a,#1a0606);border:1px solid rgba(255,59,48,.5);display:inline-flex;align-items:center;gap:8px;}
+.tag-state.soon{color:var(--gold);border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.06);}
+.tag-state.done{color:var(--muted-2);border:1px solid var(--line);}
+
+/* ======== FOOTER ======== */
+footer{position:relative;border-top:1px solid var(--line-soft);padding:60px 0 40px;margin-top:30px;overflow:hidden;}
+footer .stardust{opacity:.25;}
+.foot-grid{position:relative;z-index:2;display:flex;justify-content:space-between;gap:40px;flex-wrap:wrap;}
+.foot-tag{max-width:30em;color:var(--muted);line-height:1.8;margin-top:14px;font-size:14px;}
+.socials{display:flex;gap:12px;margin-top:18px;}
+.socials a{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;border:1px solid var(--line);color:var(--muted);font-weight:900;font-family:var(--ff-disp);font-size:13px;transition:.2s;}
+.socials a:hover{color:var(--gold);border-color:var(--gold);transform:translateY(-3px);}
+.copy{color:var(--muted-2);font-size:12px;margin-top:34px;letter-spacing:.04em;}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(28px);}
+
+/* ======== RWD ======== */
+@media(max-width:1000px){
+  .hero-grid{grid-template-columns:1fr;gap:40px;}
+  .players{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:760px){
+  .nav-links{display:none;}
+  .nav-burger{display:block;}
+  .live-btn{display:none;}
+  .board{overflow-x:auto;}
+  .board-row{grid-template-columns:50px 1.4fr repeat(4,56px) 80px;width:760px;}
+  .match-row{grid-template-columns:90px 1fr;row-gap:12px;}
+  .match-row .tag-state{grid-column:1/-1;justify-self:start;}
+}
+@media(max-width:480px){
+  .players{grid-template-columns:1fr;}
+  .seats{grid-template-columns:1fr;}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;}
+  .reveal{opacity:1;transform:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#">
+      <span class="mono">S</span>
+      <span class="wm">SML<small>SUPER MAHJONG LEAGUE</small></span>
+    </a>
+    <nav class="nav-links">
+      <a href="#live">本週對戰</a>
+      <a href="#standings">積分榜</a>
+      <a href="#players">選手</a>
+      <a href="#schedule">賽程</a>
+      <a href="#about">關於聯賽</a>
+    </nav>
+    <a class="live-btn" href="#live"><span class="dot"></span>直播中</a>
+    <button class="nav-burger" aria-label="選單">☰</button>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="stardust"></div>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <div class="eyebrow"><span class="ln"></span>2026 SEASON ・ TAIWAN</div>
+      <h1>SUPER<br>MAHJONG<br><span class="gold">LEAGUE</span></h1>
+      <div class="zh">競技麻將・最高殿堂</div>
+      <p class="lead">四席對局,十六回合,純技術論勝負。SML 以職業賽事的標準重新定義麻將——這裡比的是計算、防守與膽識,不是運氣。</p>
+      <div class="cta-row">
+        <a class="btn btn-gold" href="#live">▶ 觀看直播</a>
+        <a class="btn btn-ghost" href="#schedule">本季賽程</a>
+      </div>
+    </div>
+
+    <!-- 本週對戰玻璃卡 -->
+    <div class="matchup" id="live">
+      <div class="matchup-head">
+        <span class="tag"><span class="dot"></span>本週對戰 ・ 第 12 輪</span>
+        <time>週六 20:00</time>
+      </div>
+      <div class="seats">
+        <div class="seat" style="--c:var(--seat-1)"><div class="wind">東 EAST</div><div class="pname">凌風</div><div class="pscore">+38</div></div>
+        <div class="seat" style="--c:var(--seat-2)"><div class="wind">南 SOUTH</div><div class="pname">夜貓</div><div class="pscore">+12</div></div>
+        <div class="seat" style="--c:var(--seat-3)"><div class="wind">西 WEST</div><div class="pname">青嵐</div><div class="pscore">−9</div></div>
+        <div class="seat" style="--c:var(--seat-4)"><div class="wind">北 NORTH</div><div class="pname">霜月</div><div class="pscore">−41</div></div>
+      </div>
+      <div class="matchup-foot">
+        <span>南二局・莊家連 1</span>
+        <a href="#">前往直播間 →</a>
+      </div>
+      <div class="waves"><i class="wave-back"></i><i class="wave-front"></i></div>
+    </div>
+  </div>
+</section>
+
+<!-- 積分榜 -->
+<section class="block" id="standings">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div>
+        <span class="pill-title">Season Standings</span>
+        <h2>賽季積分榜</h2>
+      </div>
+      <p class="sub">依賽季總積分排序,同分時比較自摸數、胡牌數,放槍數越低越優先——與轉播即時精算邏輯一致。</p>
+    </div>
+
+    <div class="board reveal">
+      <div class="board-row head">
+        <span>#</span><span>選手</span><span style="text-align:center">出賽</span>
+        <span style="text-align:center">自摸</span><span style="text-align:center">胡牌</span>
+        <span style="text-align:center">放槍</span><span style="text-align:right">賽季積分</span>
+      </div>
+      <div class="board-row top"><div class="rk">1</div>
+        <div class="who"><div class="chip" style="--c:var(--seat-1)">凌</div><div><b>凌風</b><small>東城戰隊</small></div></div>
+        <div class="num">11</div><div class="num g">28</div><div class="num">34</div><div class="num r">9</div><div class="pts">+286.5</div></div>
+      <div class="board-row top"><div class="rk">2</div>
+        <div class="who"><div class="chip" style="--c:var(--seat-2)">夜</div><div><b>夜貓</b><small>逆位俱樂部</small></div></div>
+        <div class="num">11</div><div class="num g">22</div><div class="num">31</div><div class="num r">12</div><div class="pts">+241.0</div></div>
+      <div class="board-row"><div class="rk">3</div>
+        <div class="who"><div class="chip" style="--c:var(--seat-3)">青</div><div><b>青嵐</b><small>聽牌堂</small></div></div>
+        <div class="num">11</div><div class="num g">19</div><div class="num">29</div><div class="num r">14</div><div class="pts">+198.5</div></div>
+      <div class="board-row"><div class="rk">4</div>
+        <div class="who"><div class="chip" style="--c:var(--seat-4)">霜</div><div><b>霜月</b><small>河底撈月</small></div></div>
+        <div class="num">11</div><div class="num g">17</div><div class="num">27</div><div class="num r">16</div><div class="pts">+143.0</div></div>
+      <div class="board-row"><div class="rk">5</div>
+        <div class="who"><div class="chip" style="--c:#f472b6">赤</div><div><b>赤羽</b><small>立直一族</small></div></div>
+        <div class="num">10</div><div class="num g">15</div><div class="num">24</div><div class="num r">18</div><div class="pts">+97.5</div></div>
+      <div class="board-row"><div class="rk">6</div>
+        <div class="who"><div class="chip" style="--c:#22d3ee">蒼</div><div><b>蒼井</b><small>三麻同好</small></div></div>
+        <div class="num">10</div><div class="num g">13</div><div class="num">22</div><div class="num r">21</div><div class="pts">+44.0</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 選手卡 -->
+<section class="block" id="players">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div>
+        <span class="pill-title">Featured Players</span>
+        <h2>本季焦點選手</h2>
+      </div>
+      <p class="sub">點開單人履歷字卡的同款卡面——主題色邊條、賽季數據、底部紅金波浪。</p>
+    </div>
+    <div class="players">
+      <article class="pcard reveal" style="--c:var(--seat-1)">
+        <div class="wind">東 EAST</div><div class="ava">凌</div>
+        <h3>凌風</h3><div class="team">東城戰隊</div>
+        <div class="mini"><div><div class="l">賽季排名</div><div class="v">#1</div></div><div><div class="l">平均打點</div><div class="v">8.4</div></div><div><div class="l">放槍率</div><div class="v">14%</div></div></div>
+        <div class="waves"><i class="wave-back"></i><i class="wave-front"></i></div>
+      </article>
+      <article class="pcard reveal" style="--c:var(--seat-2)">
+        <div class="wind">南 SOUTH</div><div class="ava">夜</div>
+        <h3>夜貓</h3><div class="team">逆位俱樂部</div>
+        <div class="mini"><div><div class="l">賽季排名</div><div class="v">#2</div></div><div><div class="l">平均打點</div><div class="v">7.9</div></div><div><div class="l">放槍率</div><div class="v">18%</div></div></div>
+        <div class="waves"><i class="wave-back"></i><i class="wave-front"></i></div>
+      </article>
+      <article class="pcard reveal" style="--c:var(--seat-3)">
+        <div class="wind">西 WEST</div><div class="ava">青</div>
+        <h3>青嵐</h3><div class="team">聽牌堂</div>
+        <div class="mini"><div><div class="l">賽季排名</div><div class="v">#3</div></div><div><div class="l">平均打點</div><div class="v">7.2</div></div><div><div class="l">放槍率</div><div class="v">21%</div></div></div>
+        <div class="waves"><i class="wave-back"></i><i class="wave-front"></i></div>
+      </article>
+      <article class="pcard reveal" style="--c:var(--seat-4)">
+        <div class="wind">北 NORTH</div><div class="ava">霜</div>
+        <h3>霜月</h3><div class="team">河底撈月</div>
+        <div class="mini"><div><div class="l">賽季排名</div><div class="v">#4</div></div><div><div class="l">平均打點</div><div class="v">6.8</div></div><div><div class="l">放槍率</div><div class="v">23%</div></div></div>
+        <div class="waves"><i class="wave-back"></i><i class="wave-front"></i></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- 賽程 -->
+<section class="block" id="schedule">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div>
+        <span class="pill-title">Schedule</span>
+        <h2>近期賽程</h2>
+      </div>
+      <p class="sub">每週六晚間於 SML 官方頻道多平台同步直播。</p>
+    </div>
+    <div class="sched">
+      <div class="match-row reveal"><div class="date">06/21<small>SAT 20:00</small></div>
+        <div class="vs">第 12 輪 ・ 四人東南戰 <small>凌風 ・ 夜貓 ・ 青嵐 ・ 霜月</small></div>
+        <span class="tag-state live"><span class="dot"></span>直播中</span></div>
+      <div class="match-row reveal"><div class="date">06/28<small>SAT 20:00</small></div>
+        <div class="vs">第 13 輪 ・ 四人東南戰 <small>赤羽 ・ 蒼井 ・ 凌風 ・ 青嵐</small></div>
+        <span class="tag-state soon">即將開打</span></div>
+      <div class="match-row reveal"><div class="date">07/05<small>SAT 20:00</small></div>
+        <div class="vs">第 14 輪 ・ 四人東南戰 <small>夜貓 ・ 霜月 ・ 赤羽 ・ 蒼井</small></div>
+        <span class="tag-state soon">即將開打</span></div>
+      <div class="match-row reveal"><div class="date">06/14<small>SAT 已結束</small></div>
+        <div class="vs">第 11 輪 ・ 四人東南戰 <small>冠軍:凌風 +52</small></div>
+        <span class="tag-state done">已結束</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT / FOOTER -->
+<footer id="about">
+  <div class="stardust"></div>
+  <div class="wrap foot-grid">
+    <div>
+      <a class="brand" href="#"><span class="mono">S</span><span class="wm">SML<small>SUPER MAHJONG LEAGUE</small></span></a>
+      <p class="foot-tag">SML 是台灣最大的競技麻將直播聯賽。我們相信麻將是一門關於機率、心理與決策的競技,值得被以職業賽事的規格認真對待。</p>
+      <div class="socials">
+        <a href="#" title="YouTube">YT</a>
+        <a href="#" title="Instagram">IG</a>
+        <a href="#" title="Facebook">FB</a>
+      </div>
+    </div>
+    <div>
+      <span class="pill-title">Navigate</span>
+      <p class="foot-tag" style="margin-top:18px;line-height:2.4;">
+        <a href="#standings">積分榜</a><br>
+        <a href="#players">選手名單</a><br>
+        <a href="#schedule">賽程表</a><br>
+        <a href="#live">觀看直播</a>
+      </p>
+    </div>
+  </div>
+  <div class="wrap"><div class="copy">© 2026 工口娛樂有限公司 ・ SML SUPER MAHJONG LEAGUE. 樣式示意,選手與數據為佔位內容。</div></div>
+</footer>
+
+<script>
+// 進場 + 捲動揭示 (尊重 reduced-motion)
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(!reduce && window.gsap){
+  gsap.from('.hero-copy > *',{y:30,opacity:0,duration:.8,stagger:.1,ease:'power3.out'});
+  gsap.from('.matchup',{y:50,opacity:0,duration:.9,delay:.3,ease:'back.out(1.1)'});
+
+  const io=new IntersectionObserver((es)=>{
+    es.forEach(e=>{
+      if(e.isIntersecting){
+        gsap.to(e.target,{y:0,opacity:1,duration:.7,ease:'power3.out'});
+        io.unobserve(e.target);
+      }
+    });
+  },{threshold:.15});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+}else{
+  document.querySelectorAll('.reveal').forEach(el=>{el.style.opacity=1;el.style.transform='none';});
+}
+</script>
+</body>
+</html>

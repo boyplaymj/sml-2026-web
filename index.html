@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SML ・ SUPER MAHJONG LEAGUE 2026</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,800;0,900;1,800;1,900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- 背景視差波浪 + 流動光球 (固定於背景,捲動時比內容慢) -->
+<div class="bgfx" aria-hidden="true">
+  <span class="orb orb-1"></span><span class="orb orb-2"></span>
+  <i class="bgfx-1"></i><i class="bgfx-2"></i>
+</div>
+
+<!-- 賽事進行中跑馬燈 -->
+<div class="announce">
+  <div class="wrap announce-in">
+    <span class="announce-live"><span class="dot"></span>賽事進行中</span>
+    <div class="announce-track">
+      <div class="announce-marquee">
+        <span>SML 個人賽 2026 正式開打　・　男生組每週二、女生組每週一　・　6/23 男生組 Game 1 揭幕　・　台灣麻將直播賽事　・　</span>
+        <span>SML 個人賽 2026 正式開打　・　男生組每週二、女生組每週一　・　6/23 男生組 Game 1 揭幕　・　台灣麻將直播賽事　・　</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#">
+      <img class="brand-logo" src="assets/logo/sml-logo.png" alt="SML ・ SUPER MAHJONG LEAGUE">
+    </a>
+    <nav class="nav-links">
+      <a href="#live">NEXT GAME</a>
+      <a href="#standings">積分榜</a>
+      <a href="#players">選手</a>
+      <a href="#schedule">賽程</a>
+      <a href="#rules">賽季規則</a>
+      <a href="#about">關於聯賽</a>
+    </nav>
+    <a class="live-btn" href="#live"><span class="dot"></span>直播中</a>
+    <button class="nav-burger" aria-label="選單">☰</button>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="stardust"></div>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <div class="eyebrow"><span class="ln"></span>SML 個人賽 2026 ・ 賽季進行中</div>
+      <h1>SUPER<br>MAHJONG<br><span class="gold">LEAGUE</span></h1>
+      <div class="zh">台灣麻將直播賽事</div>
+      <p class="lead">麻將是運氣遊戲？用策略和技術扭轉戰局的賽事。</p>
+      <div class="cta-row">
+        <a class="btn btn-gold" href="#live">▶ 觀看直播</a>
+        <a class="btn btn-ghost" href="#schedule">本季賽程</a>
+      </div>
+    </div>
+
+    <!-- 本週對戰 ・ 選角卡 (由 JS 依 FEATURED 賽事填入) -->
+    <div class="matchup" id="live"></div>
+  </div>
+</section>
+
+<!-- 積分榜 -->
+<section class="block" id="standings">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div>
+        <span class="pill-title">Season Standings</span>
+        <h2>賽季積分榜</h2>
+      </div>
+      <p class="sub">依賽季總積分排序，同分時比較自摸數、胡牌數，放槍數越低越優先。賽季剛開打，數據將逐場更新。</p>
+    </div>
+
+    <div class="sched-tabs reveal" id="tabs-standings">
+      <button class="stab active" data-grp="men">男生組</button>
+      <button class="stab" data-grp="women">女生組</button>
+    </div>
+    <div id="board-men"></div>
+    <div id="board-women" hidden></div>
+  </div>
+</section>
+
+<!-- 選手卡 -->
+<section class="block" id="players">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div>
+        <span class="pill-title">Players ・ Roster</span>
+        <h2>選手一覽</h2>
+      </div>
+    </div>
+
+    <div class="cs-wrap reveal" id="charSelect"></div>
+  </div>
+</section>
+
+
+<!-- 賽程 -->
+<section class="block" id="schedule">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div>
+        <span class="pill-title">Schedule</span>
+        <h2>賽季月曆</h2>
+      </div>
+      <p class="sub">男生組每週二、女生組每週一開打，各 10 場。點月曆上的比賽，展開該場四位選手與目前積分。</p>
+    </div>
+
+    <div class="cal-legend reveal">
+      <span><i style="background:#38bdf8"></i>男生組（週二）</span>
+      <span><i style="background:#f472b6"></i>女生組（週一）</span>
+    </div>
+    <div class="cal-wrap reveal" id="calendar"></div>
+    <div class="game-detail" id="gameDetail" hidden></div>
+  </div>
+</section>
+
+<!-- 賽季規則 -->
+<section class="block" id="rules">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div>
+        <span class="pill-title">Season Rules</span>
+        <h2>賽季規則</h2>
+      </div>
+      <p class="sub">SML 個人賽採「動態天梯積分制」——低段位保底、高段位嚴懲，並設總分天花板與台麻特有比序。以下為計分核心規則。</p>
+    </div>
+
+    <div class="rules-grid">
+      <div class="rule-card reveal span2">
+        <div class="rule-h"><span class="rule-no">賽制</span>分組預賽 ・ 混合決賽</div>
+        <p>16 位選手分<b>男生組</b>、<b>女生組</b>，預賽每人出賽 <b>5 場</b>（每場四人東南戰一雀完賽）。男、女各取<b>前 2 名</b>晉級 4 人<b>混合決賽</b>（再戰 5 場）。預賽與決賽積分<b>獨立結算</b>，不混算。</p>
+      </div>
+
+      <div class="rule-card reveal span2">
+        <div class="rule-h"><span class="rule-no">計分</span>單場積分計算順序</div>
+        <ol class="rule-ol rule-ol-2">
+          <li>兩雀總得分 ＝ 第一雀得分 ＋ 第二雀得分</li>
+          <li>加權分數 ＝ 兩雀總得分 ÷ 100</li>
+          <li>判定順位等級 ＝ 依該場「開始前」的賽季總積分</li>
+          <li>順位分數 ＝ 依當日名次（兩雀總得分高低）對照等級給分</li>
+          <li>單日總積分 ＝ 加權分數 ＋ 順位分數</li>
+          <li>賽季總積分 ＝ 原賽季總積分 ＋ 單日總積分</li>
+        </ol>
+      </div>
+
+      <div class="rule-card reveal span2">
+        <div class="rule-h"><span class="rule-no">順位分</span>動態順位等級（依「賽前總積分」判級）</div>
+        <div class="rule-tablewrap">
+          <table class="rule-table">
+            <thead><tr><th>等級</th><th>賽前總積分</th><th>第一名</th><th>第二名</th><th>第三名</th><th>第四名</th><th>保護機制</th></tr></thead>
+            <tbody>
+              <tr><td>LV.1</td><td>0.00 – 4.99</td><td class="p">+2</td><td class="p">+1</td><td>0</td><td>0</td><td class="prot">負分不扣加權，以 0 計（前加 *）</td></tr>
+              <tr><td>LV.2</td><td>5.00 – 6.99</td><td class="p">+2</td><td class="p">+1</td><td class="n">−1</td><td class="n">−2</td><td class="prot">負分不扣加權，以 0 計</td></tr>
+              <tr><td>LV.3</td><td>7.00 – 9.99</td><td class="p">+1</td><td>0</td><td class="n">−1</td><td class="n">−2</td><td class="prot">無保護，負分照扣</td></tr>
+              <tr><td>LV.4</td><td>10.00 +</td><td class="p">+1</td><td class="n">−1</td><td class="n">−2</td><td class="n">−3</td><td class="prot">無保護，負分照扣</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="rule-card reveal">
+        <div class="rule-h"><span class="rule-no">加權分</span>籌碼加權</div>
+        <p>結算籌碼 ÷ 100 ＝ 加權分（例：+42 籌碼 → +0.42）。上限 <b>+1.0</b>、下限 <b>−1.0</b>。<br><b>負分保護</b>：LV.1～2 籌碼為負時，加權強制以 0 計；LV.3～4 正常扣除。</p>
+      </div>
+
+      <div class="rule-card reveal">
+        <div class="rule-h"><span class="rule-no">總分</span>起始與鎖血</div>
+        <p>賽季起始 <b>0.00</b> 分。<b>鎖血保底</b>：總積分因扣分最低鎖定 <b>4.00</b> 分，不會低於 4 分。頂點上限 <b>12.00</b> 分（超過覆寫為 12.00）。</p>
+      </div>
+
+      <div class="rule-card reveal">
+        <div class="rule-h"><span class="rule-no">比序</span>同分判定順序</div>
+        <ol class="rule-ol"><li>出賽場次 — 少者優先</li><li>自摸數 — 多者優先</li><li>胡牌數 — 多者優先（不含自摸）</li><li>放槍數 — 少者優先</li></ol>
+        <p style="margin-top:10px;font-size:13px;">單場結算籌碼相同時，亦套用此序決定名次。</p>
+      </div>
+
+      <div class="rule-card reveal">
+        <div class="rule-h"><span class="rule-no">決賽</span>混合決賽（一波流死鬥）</div>
+        <p>4 位晉級者預賽積分<b>全數歸零</b>。順位分 <b>+1.0／+0.5／−0.5／−1.0</b>，加權同預賽（±1.0）。<b>2.0 存檔點</b>：賽前 &lt; 2.0 時負分不扣；≥ 2.0 後若跌破則回鎖 <b>2.00</b>。</p>
+      </div>
+
+      <div class="rule-card reveal span2">
+        <div class="rule-h"><span class="rule-no">台數</span>所有牌型台數一覽（同色＝同台數）</div>
+        <div class="tai-legend">
+          <span style="--c:#ef4444"><i></i>24 台</span>
+          <span style="--c:#f472b6"><i></i>16 台</span>
+          <span style="--c:#a78bfa"><i></i>8 台</span>
+          <span style="--c:#38bdf8"><i></i>5 台</span>
+          <span style="--c:#22d3ee"><i></i>4 台</span>
+          <span style="--c:#4ade80"><i></i>3 台</span>
+          <span style="--c:#fbbf24"><i></i>2 台</span>
+          <span style="--c:#94a3b8"><i></i>1 台</span>
+          <span style="--c:#dc2626"><i></i>罰則</span>
+        </div>
+        <div class="tai-grid">
+          <div class="tb" style="--c:#ef4444"><span class="tb-pt">24</span><b>天胡</b><small>莊家台另計，不計槓上自摸、獨聽，自摸台另計</small></div>
+          <div class="tb" style="--c:#f472b6"><span class="tb-pt">16</span><b>天聽</b></div>
+          <div class="tb" style="--c:#f472b6"><span class="tb-pt">16</span><b>地胡</b><small>不需宣告聽牌，自摸台另計</small></div>
+          <div class="tb" style="--c:#f472b6"><span class="tb-pt">16</span><b>人胡</b><small>不需宣告聽牌</small></div>
+          <div class="tb" style="--c:#f472b6"><span class="tb-pt">16</span><b>大四喜</b><small>不再計算小四喜、場風、正字台數</small></div>
+          <div class="tb" style="--c:#f472b6"><span class="tb-pt">16</span><b>字一色</b><small>可與其他牌型混合計算</small></div>
+          <div class="tb" style="--c:#a78bfa"><span class="tb-pt">8</span><b>地聽</b></div>
+          <div class="tb" style="--c:#a78bfa"><span class="tb-pt">8</span><b>清一色</b></div>
+          <div class="tb" style="--c:#a78bfa"><span class="tb-pt">8</span><b>五暗刻</b></div>
+          <div class="tb" style="--c:#a78bfa"><span class="tb-pt">8</span><b>大三元</b><small>不再計算三元牌台數、小三元台數</small></div>
+          <div class="tb" style="--c:#a78bfa"><span class="tb-pt">8</span><b>小四喜</b><small>不再計算場風、自風台數</small></div>
+          <div class="tb" style="--c:#a78bfa"><span class="tb-pt">8</span><b>七搶一</b></div>
+          <div class="tb" style="--c:#a78bfa"><span class="tb-pt">8</span><b>八仙過海</b></div>
+          <div class="tb" style="--c:#38bdf8"><span class="tb-pt">5</span><b>四暗刻</b></div>
+          <div class="tb" style="--c:#22d3ee"><span class="tb-pt">4</span><b>碰碰胡</b></div>
+          <div class="tb" style="--c:#22d3ee"><span class="tb-pt">4</span><b>混一色</b></div>
+          <div class="tb" style="--c:#22d3ee"><span class="tb-pt">4</span><b>小三元</b></div>
+          <div class="tb" style="--c:#4ade80"><span class="tb-pt">3</span><b>門前清自摸</b><small>門清＋自摸＋不求人</small></div>
+          <div class="tb" style="--c:#fbbf24"><span class="tb-pt">2</span><b>三暗刻</b></div>
+          <div class="tb" style="--c:#fbbf24"><span class="tb-pt">2</span><b>全求人</b><small>不另計獨聽、無半求人</small></div>
+          <div class="tb" style="--c:#fbbf24"><span class="tb-pt">2</span><b>平胡</b><small>門清無平胡，聽兩頭以上皆可，吊將不算，抓得出眼睛就有</small></div>
+          <div class="tb" style="--c:#94a3b8"><span class="tb-pt">1</span><b>自摸</b></div>
+          <div class="tb" style="--c:#94a3b8"><span class="tb-pt">1</span><b>莊家</b><small>連 N＝2N＋1 台</small></div>
+          <div class="tb" style="--c:#94a3b8"><span class="tb-pt">1</span><b>海底撈月</b><small>可與槓上自摸混合計算</small></div>
+          <div class="tb" style="--c:#94a3b8"><span class="tb-pt">1</span><b>槓上自摸</b><small>可與海底撈月混合計算</small></div>
+          <div class="tb" style="--c:#94a3b8"><span class="tb-pt">1</span><b>場風</b></div>
+          <div class="tb" style="--c:#94a3b8"><span class="tb-pt">1</span><b>正花</b><small>最多 2 張正花</small></div>
+          <div class="tb" style="--c:#94a3b8"><span class="tb-pt">1</span><b>正字</b><small>有三張才有 1 台</small></div>
+          <div class="tb" style="--c:#94a3b8"><span class="tb-pt">1</span><b>三元牌</b><small>中／發／白，有三張才有 1 台；最多 2 組三元牌</small></div>
+          <div class="tb" style="--c:#94a3b8"><span class="tb-pt">1</span><b>獨聽</b><small>單吊、邊章、中洞，只聽 1 張</small></div>
+          <div class="tb" style="--c:#94a3b8"><span class="tb-pt">1</span><b>門清</b></div>
+          <div class="tb" style="--c:#94a3b8"><span class="tb-pt">1</span><b>搶槓</b></div>
+          <div class="tb" style="--c:#94a3b8"><span class="tb-pt">1</span><b>花槓</b></div>
+          <div class="tb" style="--c:#dc2626"><span class="tb-pt tb-pen">罰</span><b>詐胡</b><small>賠 1 底 8 台 ＋ 莊家台</small></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-faq reveal">
+      <div class="faq-head"><span class="rule-no">細則</span>賽事競賽規則 ・ 點擊展開細項</div>
+      <details><summary>過水規則</summary><p>捨出一張非胡的牌即完成過水，完成過水後方可吃、碰、胡；補槓牌與暗槓牌視同捨牌。過水未完成而胡牌者，即為詐胡。</p></details>
+      <details><summary>明槓相公判定</summary><p>明槓槓上自摸、明槓上家捨出的牌，判定為相公。若有爭議或選手提出異議，由裁判定奪。</p></details>
+      <details><summary>花胡與補花</summary><p>花胡後補花完成牌局結束，莊家台另計。可視情況放棄花胡不須過水。若牌墩數不夠無法補花，則無法花胡。</p></details>
+      <details><summary>藏花判定</summary><p>藏花者經裁判判定後，該選手視為詐胡。</p></details>
+      <details><summary>攔胡與響數（無雙響、有三響）</summary><p>無雙響、有三響。攔胡發生時，若過水，手接觸到牌墩則表示放棄胡牌，不得胡牌，否則以詐胡論。</p></details>
+      <details><summary>摸牌觸牌墩</summary><p>輪到選手摸牌時，若手接觸到牌墩，表示放棄吃牌、碰牌、胡牌。上牌墩則不在此限制內，若有爭議或選手提出異議，由裁判定奪。</p></details>
+      <details><summary>叫牌反悔</summary><p>允許喊碰不碰、允許喊胡不胡，胡牌、自摸以倒牌為最後判定，允許叫牌反悔、不罰點數。若多次刻意無意義叫牌反悔，經裁判判定後，該選手則以詐胡論。</p></details>
+      <details><summary>現搭與搭子</summary><p>現搭不一定要吃、碰、槓，但當局無法再吃、再碰或胡該搭；可以自摸。現搭後捨牌即表示完成吃、碰、槓牌，無法再更換搭子，若發生拿錯搭或無法吃、碰、槓情形，則判定為相公，並由裁判暫時中止牌局做有限度的回朔，以不影響原先摸牌順序為原則判定。若有爭議或選手提出異議，由裁判定奪。</p></details>
+      <details><summary>禁止言語影響牌局</summary><p>禁止使用言語影響牌局，如明確喊出牌章、宣告聽牌或下車等，若有爭議或選手提出異議，由裁判定奪。</p></details>
+      <details><summary>碰最大無假溜</summary><p>碰最大無假溜規則，胡牌或碰牌必須要叫牌，明確中止摸牌動作。</p></details>
+      <details><summary>禁止行為（眼牌、蓋牌、過牌）</summary><p>不允許眼牌、不允許蓋牌、不允許打骰前後過牌。</p></details>
+      <details><summary>無牌可摸時之限制</summary><p>若沒有牌能摸時，則不允許吃、碰、明槓，允許暗槓但需要先打開再暗槓。</p></details>
+      <details><summary>配牌抓錯</summary><p>配牌時抓錯，若經提醒可復原則不罰；若已打開手牌或不可復原情況下，經裁判判定後，由第一位抓錯的人相公。</p></details>
+      <details><summary>補花喊過補</summary><p>補花需明確喊出「過補」下一家才能補牌，若無明確喊出過補、下一家已經補牌，則下一家判定相公；若無明確喊出過補但已捨第一張牌，則判定為相公、其他家可依照順序補牌，若有爭議或選手提出異議，由裁判定奪。</p></details>
+      <details><summary>第二次相公視為詐胡</summary><p>同一人於同一牌局內第二次相公，則視為詐胡。</p></details>
+      <details><summary>流局攤牌檢查</summary><p>流局時須翻開暗槓手牌供其他家、裁判檢查。若為天聽、地聽牌局結束時，亦須攤牌供裁判檢查。</p></details>
+      <details><summary>最後一張牌</summary><p>最後一張牌必須要摸、要捨牌。若摸到花、補槓、暗槓，則無法再補牌。</p></details>
+      <details><summary>流局連莊</summary><p>尾端剩 16 張牌、無牌可摸時，則流局連莊。</p></details>
+      <details><summary>海底自摸定義</summary><p>海底自摸定義為最後一張摸牌自摸，與槓上自摸可以並存。</p></details>
+      <details><summary>自摸與天胡倒牌</summary><p>自摸禁止靠進或插入手牌中；天胡允許直接倒牌，不另計獨聽、槓上自摸。</p></details>
+      <details><summary>無骰規規則</summary><p>採無骰規規則。</p></details>
+      <details><summary>不回追判定</summary><p>每局牌局結束、由裁判確認胡牌完成後，不再回追前一把失誤或追判詐胡。</p></details>
+      <details><summary>查詢點數權利</summary><p>每隊每一風可有一次詢問各家點數的權利，在牌局結束後可立即查詢，禁止預約時間點申請查詢。</p></details>
+      <details><summary>離桌限制</summary><p>非緊急情況下，選手禁止於賽事進行中離開牌桌，若有爭議或選手提出異議，由裁判定奪。</p></details>
+      <details><summary>禁帶電子設備</summary><p>禁止攜帶電子通訊設備上場比賽，如智慧型手錶、智慧型手機等，若有爭議或選手提出異議，由裁判定奪。</p></details>
+      <details><summary>上場順序</summary><p>以現場填寫小卡方式，決定當日先發選手、第二雀上場選手。</p></details>
+      <details><summary>牌章相混判詐胡</summary><p>若胡牌斷橋牌章至海底牌章相混或無法復原時，由裁判判定詐胡。</p></details>
+      <details><summary>規章未提之爭議</summary><p>若出現規章未提之爭議，裁判有權暫停比賽，進行檢視回放與判定。</p></details>
+      <details><summary>北位最高分・自摸直接獲勝</summary><p>若坐北風北位者為最高分隊伍（選手），莊家自摸即直接獲勝。</p></details>
+      <details><summary>北位最高分・分差獲勝</summary><p>若坐北風北位者為最高分隊伍（選手），莊家胡牌或臭莊時，與第二名的分差超過 100 分即直接獲勝。</p></details>
+    </div>
+
+    <p style="color:var(--muted-2);font-size:12px;margin-top:22px;line-height:1.7;">※ 積分規則依 SML 2026 個人賽計分規格整理；競賽細則摘自官方賽事規則。完整賽事規章以官方 <a href="https://www.supermahjongleague.com/#/" target="_blank" rel="noopener" style="color:var(--gold)">supermahjongleague.com</a> 公告為準。</p>
+  </div>
+</section>
+
+<!-- ABOUT / FOOTER -->
+<footer id="about">
+  <div class="stardust"></div>
+  <div class="wrap foot-grid">
+    <div>
+      <a class="brand" href="#"><img class="brand-logo" src="assets/logo/sml-logo.png" alt="SML ・ SUPER MAHJONG LEAGUE"></a>
+      <p class="foot-tag">SML 是台灣最大的競技麻將直播聯賽。我們相信麻將是需要策略的競技，值得被以職業賽事的規格認真對待。</p>
+      <div class="socials">
+        <a href="#" title="YouTube">YT</a>
+        <a href="#" title="Instagram">IG</a>
+        <a href="#" title="Facebook">FB</a>
+      </div>
+    </div>
+    <div>
+      <span class="pill-title">Navigate</span>
+      <p class="foot-tag" style="margin-top:18px;line-height:2.4;">
+        <a href="#standings">積分榜</a><br>
+        <a href="#players">選手名單</a><br>
+        <a href="#schedule">賽程表</a><br>
+        <a href="#rules">賽季規則</a><br>
+        <a href="#live">觀看直播</a>
+      </p>
+    </div>
+  </div>
+  <div class="wrap"><div class="copy">© 2026 SUPER MAHJONG LEAGUE ・ 個人賽 2026.</div></div>
+</footer>
+
+<!-- 選手雷達 Modal -->
+<div class="modal" id="playerModal" hidden>
+  <div class="modal-backdrop" data-close></div>
+  <div class="modal-card pd-card">
+    <button class="modal-x" data-close aria-label="關閉">✕</button>
+    <div class="pd-body">
+
+      <!-- 左:4K 半身照 + 最常胡牌 -->
+      <div class="pd-photo">
+        <img id="pm-photo" alt="">
+        <div class="pd-photo-grad"></div>
+        <div class="pd-photo-info">
+          <div class="modal-grp" id="pm-grp"></div>
+          <h3 id="pm-name"></h3>
+          <div class="pd-rankline" id="pm-rankline"></div>
+        </div>
+        <div class="pd-tiles" id="pm-tiles"></div>
+      </div>
+
+      <!-- 中:六角攻防裝甲雷達 -->
+      <div class="pd-radarcol">
+        <div class="pd-coltitle">六角攻防裝甲</div>
+        <div class="radar-wrapper">
+          <svg viewBox="0 0 400 400" id="radar-svg">
+            <g id="grid-group"></g>
+            <polygon class="data-polygon-career" id="poly-career" vector-effect="non-scaling-stroke"></polygon>
+            <polygon class="data-polygon" id="poly" vector-effect="non-scaling-stroke"></polygon>
+            <g id="dots-group">
+              <circle class="data-dot" id="dot-0" cx="200" cy="200" r="5"></circle>
+              <circle class="data-dot" id="dot-1" cx="200" cy="200" r="5"></circle>
+              <circle class="data-dot" id="dot-2" cx="200" cy="200" r="5"></circle>
+              <circle class="data-dot" id="dot-3" cx="200" cy="200" r="5"></circle>
+              <circle class="data-dot" id="dot-4" cx="200" cy="200" r="5"></circle>
+              <circle class="data-dot" id="dot-5" cx="200" cy="200" r="5"></circle>
+            </g>
+          </svg>
+          <div class="label-container" id="lbl-0"><div class="label-title" id="title-0">效率</div><div class="label-value" id="val-0">0</div><div class="label-sub" id="subval-0">生涯 0</div></div>
+          <div class="label-container" id="lbl-1"><div class="label-title" id="title-1">攻擊力</div><div class="label-value" id="val-1">0</div><div class="label-sub" id="subval-1">生涯 0</div></div>
+          <div class="label-container" id="lbl-2"><div class="label-title" id="title-2">防守力</div><div class="label-value" id="val-2">0</div><div class="label-sub" id="subval-2">生涯 0</div></div>
+          <div class="label-container" id="lbl-3"><div class="label-title" id="title-3">技術</div><div class="label-value" id="val-3">0</div><div class="label-sub" id="subval-3">生涯 0</div></div>
+          <div class="label-container" id="lbl-4"><div class="label-title" id="title-4">爆發力</div><div class="label-value" id="val-4">0</div><div class="label-sub" id="subval-4">生涯 0</div></div>
+          <div class="label-container" id="lbl-5"><div class="label-title" id="title-5">穩定度</div><div class="label-value" id="val-5">0</div><div class="label-sub" id="subval-5">生涯 0</div></div>
+        </div>
+        <div class="pd-radarnote">外圈實線=當季　虛線=生涯殘影</div>
+      </div>
+
+      <!-- 右:HUD 三頁數據 -->
+      <div class="pd-statcol">
+        <div class="pd-anchor" id="pm-anchor"></div>
+        <div class="pd-tabs">
+          <button class="pd-tab active" data-pg="0">綜合機率</button>
+          <button class="pd-tab" data-pg="1">攻擊火力</button>
+          <button class="pd-tab" data-pg="2">防守失血</button>
+        </div>
+        <div class="pd-page" id="pm-page"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
