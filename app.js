@@ -153,7 +153,7 @@ let previewChar = null;
 function renderCharSelect(){
   const grid = grp => Object.entries(PLAYERS).filter(([,p])=>p.grp===grp).map(([n,p])=>`
     <button class="cs-portrait" data-name="${n}" style="--c:${p.color}"
-      onmouseenter="selectChar('${n}')" onfocus="selectChar('${n}')" onclick="openPlayer('${n}')">
+      onmouseenter="selectChar('${n}')" onfocus="selectChar('${n}')" onclick="selectChar('${n}');openPlayer('${n}')">
       <img ${imgAttrs(n,'grid')}><span class="cs-pn">${n}</span>
     </button>`).join('');
   document.getElementById('charSelect').innerHTML = `
@@ -331,8 +331,11 @@ function openPlayer(name){
   // CSS 動畫做進場(獨立於 GSAP,不會被雷達的 killTweensOf 清掉);重觸發動畫
   const card = modal.querySelector('.pd-card');
   card.style.animation='none'; void card.offsetWidth; card.style.animation='';
-  if(window.playSMLRadarAnimation)
-    playSMLRadarAnimation({color:pl.color, data:pl.radar, careerData:pl.career});
+  // 雙 rAF:等瀏覽器完成 layout 後才跑 GSAP 動畫,避免手機上 modal 未渲染完就算座標
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    if(window.playSMLRadarAnimation)
+      playSMLRadarAnimation({color:pl.color, data:pl.radar, careerData:pl.career});
+  }));
 }
 function closePlayer(){
   document.getElementById('playerModal').hidden = true;
