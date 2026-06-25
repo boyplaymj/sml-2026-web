@@ -18,6 +18,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -30,6 +31,28 @@ func env(k, def string) string {
 		return v
 	}
 	return def
+}
+
+func envInt(k string, def int) int {
+	if v := os.Getenv(k); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			return n
+		}
+	}
+	return def
+}
+
+// 「開新對話」指令關鍵字(清空該頻道 session)
+var resetCmds = map[string]bool{
+	"new": true, "reset": true, "/new": true, "/reset": true,
+	"清空": true, "重來": true, "開新對話": true, "新對話": true, "重新開始": true,
+}
+
+// stripMention 去掉 bot 的 @mention,回傳純文字內容。
+func stripMention(content, botID string) string {
+	content = strings.ReplaceAll(content, "<@"+botID+">", "")
+	content = strings.ReplaceAll(content, "<@!"+botID+">", "")
+	return strings.TrimSpace(content)
 }
 
 func csvSet(s string) map[string]bool {
@@ -49,6 +72,7 @@ var (
 	claudeBin       = env("CLAUDE_BIN", "claude")
 	workdir         = env("CLAUDE_WORKDIR", ".")
 	channelWorkdirs = parseChannelWorkdirs(os.Getenv("CHANNEL_WORKDIRS"))
+	timeoutMin      = envInt("CLAUDE_TIMEOUT_MIN", 25) // 單一訊息處理逾時(分鐘)
 
 	mu       sync.Mutex
 	sessions = map[string]string{} // channelID -> claude session id
@@ -226,7 +250,7 @@ func main() {
 	dg.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Printf("READY: 已登入為 %s,可見 %d 個伺服器", r.User.String(), len(r.Guilds))
 		for chID := range allowedChannels {
-			s.ChannelMessageSend(chID, "✅ SML Claude 已上線，支援文字附件讀取（.txt / .html 等）")
+			s.ChannelMessageSend(chID, "✅ SML Claude 已上線。大任務前先打「新對話」可清空脈絡、避免變慢；單則處理上限已拉長到 "+strconv.Itoa(timeoutMin)+" 分鐘。")
 		}
 	})
 	dg.AddHandler(func(s *discordgo.Session, _ *discordgo.Disconnect) {
@@ -241,6 +265,14 @@ func main() {
 		}
 		// 文字與附件都空白就忽略
 		if strings.TrimSpace(m.Content) == "" && len(m.Attachments) == 0 {
+			return
+		}
+		// 「開新對話」指令:清空該頻道 session,不跑 claude
+		if len(m.Attachments) == 0 && resetCmds[stripMention(m.Content, s.State.User.ID)] {
+			mu.Lock()
+			delete(sessions, m.ChannelID)
+			mu.Unlock()
+			s.ChannelMessageSend(m.ChannelID, "🆕 已開新對話、清空脈絡。接下來會是全新的 session(處理大量內容前先這樣做最不會卡)。")
 			return
 		}
 		s.ChannelTyping(m.ChannelID)
@@ -282,7 +314,7 @@ func main() {
 				strings.Join(textBlocks, "\n\n") + "]"
 		}
 
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutMin)*time.Minute)
 		defer cancel()
 		// claude 工作期間持續顯示「輸入中…」
 		done := make(chan struct{})
