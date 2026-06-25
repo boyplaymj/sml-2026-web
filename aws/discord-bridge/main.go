@@ -170,6 +170,30 @@ func downloadAttachment(url, filename string) (string, error) {
 	return tmp.Name(), nil
 }
 
+// downloadTextContent 把 Discord 文字附件下載並以字串回傳(最多 200KB)。
+func downloadTextContent(url string) (string, error) {
+	resp, err := http.Get(url) //nolint:gosec
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	const maxSize = 200 * 1024
+	b, err := io.ReadAll(io.LimitReader(resp.Body, maxSize))
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
+}
+
+var textExts = map[string]bool{
+	".txt": true, ".html": true, ".htm": true,
+	".js": true, ".css": true, ".json": true,
+	".md": true, ".yaml": true, ".yml": true,
+	".py": true, ".go": true, ".ts": true,
+	".tsx": true, ".jsx": true, ".xml": true,
+	".sh": true, ".sql": true, ".csv": true,
+}
+
 // sendChunked 因應 Discord 單則 2000 字上限,分段送出。
 func sendChunked(s *discordgo.Session, channelID, text string) {
 	const max = 1900
@@ -201,6 +225,9 @@ func main() {
 
 	dg.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Printf("READY: 已登入為 %s,可見 %d 個伺服器", r.User.String(), len(r.Guilds))
+		for chID := range allowedChannels {
+			s.ChannelMessageSend(chID, "✅ SML Claude 已上線，支援文字附件讀取（.txt / .html 等）")
+		}
 	})
 	dg.AddHandler(func(s *discordgo.Session, _ *discordgo.Disconnect) {
 		log.Println("DISCONNECT: gateway 連線中斷(會自動重連)")
@@ -218,28 +245,41 @@ func main() {
 		}
 		s.ChannelTyping(m.ChannelID)
 
-		// 下載圖片附件到暫存檔
+		// 下載附件：圖片存暫存檔、文字類直接讀內容
 		var tmpFiles []string
 		var imageLines []string
+		var textBlocks []string
 		for _, att := range m.Attachments {
 			ct := att.ContentType
-			if !strings.HasPrefix(ct, "image/") {
-				continue
+			ext := strings.ToLower(filepath.Ext(att.Filename))
+			if strings.HasPrefix(ct, "image/") {
+				path, err := downloadAttachment(att.URL, att.Filename)
+				if err != nil {
+					log.Printf("attachment download error %s: %v", att.Filename, err)
+					continue
+				}
+				tmpFiles = append(tmpFiles, path)
+				imageLines = append(imageLines, path)
+				log.Printf("downloaded image %s -> %s", att.Filename, path)
+			} else if strings.HasPrefix(ct, "text/") || strings.Contains(ct, "json") || strings.Contains(ct, "xml") || textExts[ext] {
+				content, err := downloadTextContent(att.URL)
+				if err != nil {
+					log.Printf("text attachment download error %s: %v", att.Filename, err)
+					continue
+				}
+				textBlocks = append(textBlocks, fmt.Sprintf("=== 附件: %s ===\n%s", att.Filename, content))
+				log.Printf("downloaded text attachment %s (%d bytes)", att.Filename, len(content))
 			}
-			path, err := downloadAttachment(att.URL, att.Filename)
-			if err != nil {
-				log.Printf("attachment download error %s: %v", att.Filename, err)
-				continue
-			}
-			tmpFiles = append(tmpFiles, path)
-			imageLines = append(imageLines, path)
-			log.Printf("downloaded attachment %s -> %s", att.Filename, path)
 		}
 
 		prompt := m.Content
 		if len(imageLines) > 0 {
 			prompt += "\n\n[使用者附上了以下圖片，請用 Read 工具查看後再回答：\n" +
 				strings.Join(imageLines, "\n") + "]"
+		}
+		if len(textBlocks) > 0 {
+			prompt += "\n\n[使用者附上了以下文字附件，內容如下：\n\n" +
+				strings.Join(textBlocks, "\n\n") + "]"
 		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
