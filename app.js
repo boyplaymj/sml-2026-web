@@ -373,7 +373,7 @@ const HUD_FIELDS = ['total_hanchan','avg_rank','win_rate','tsumo_rate','deal_in_
 function applyLiveData(live){
   if(!live) return;
   const num = (...vs)=>{ for(const v of vs){ if(v!==undefined && v!==null && v!=='') return +v||0; } return 0; };
-  const hasReal = a => Array.isArray(a) && a.length===6 && a.some(v=>+v>0);  // 雷達有真資料才覆蓋
+  const isArr6 = a => Array.isArray(a) && a.length===6;  // Firebase 有送陣列就用（含全零）
   for(const name in live){
     const d = live[name] || {};
     // ── 榜單 + 雷達 → PLAYERS ──
@@ -382,8 +382,8 @@ function applyLiveData(live){
       ...base,
       grp:    d.grp || base.grp,
       color:  (d.color && d.color!=='#ffffff') ? d.color : base.color,
-      radar:  hasReal(d.radar) ? d.radar : (hasReal(d.radar_current) ? d.radar_current : base.radar),
-      career: hasReal(d.career)? d.career: (hasReal(d.radar_career)  ? d.radar_career  : base.career),
+      radar:  isArr6(d.radar) ? d.radar.map(v=>+v||0) : (isArr6(d.radar_current) ? d.radar_current.map(v=>+v||0) : base.radar),
+      career: isArr6(d.career)? d.career.map(v=>+v||0): (isArr6(d.radar_career)  ? d.radar_career.map(v=>+v||0)  : base.career),
       pts:   num(d.pts, d.season_score),
       games: num(d.games, d.matches),
       tsumo: num(d.tsumo, d.tsumo_count),
@@ -425,9 +425,61 @@ function applyLiveData(live){
       .onSnapshot(snap=>{                          // 即時:後台一按更新,官網自動跟著變
         const data = snap.data();
         if(data && data.players) applyLiveData(data.players);
+        applyLiveStream(data && data.liveStream);
       }, err=>console.warn('官網數據讀取失敗(可能是 Firestore 讀取權限):', err));
   }catch(e){ console.warn('Firebase 初始化失敗:', e); }
 })();
+
+/* ====================================================================
+   直播狀態:後台控制 liveStream.isLive / url,官網即時切換按鈕
+   ==================================================================== */
+function applyLiveStream(ls){
+  const btn = document.querySelector('a.live-btn');
+  const badge = document.querySelector('.announce-live');
+  const isLive = ls && ls.isLive && ls.url;
+
+  // 跑馬燈左側 badge
+  if(badge) badge.style.display = isLive ? '' : 'none';
+
+  if(!btn) return;
+  if(isLive){
+    btn.href = ls.url;
+    btn.target = '_blank';
+    btn.rel = 'noopener';
+    btn.innerHTML = '<span class="dot"></span>直播中';
+    btn.style.display = '';
+  } else {
+    const next = getNextMatch();
+    if(next){
+      btn.href = '#live';
+      btn.target = '';
+      btn.rel = '';
+      btn.innerHTML = `下次直播 ${next}`;
+      btn.style.display = '';
+    } else {
+      btn.style.display = 'none';
+    }
+  }
+}
+
+function getNextMatch(){
+  const now = new Date();
+  const year = now.getFullYear();
+  const all = [
+    ...( SCHEDULE.men   || []).map(g=>({...g, grp:'men'})),
+    ...( SCHEDULE.women || []).map(g=>({...g, grp:'women'}))
+  ];
+  let nearest = null, nearestDate = null;
+  for(const g of all){
+    const [m,d] = (g.date||'').split('/').map(Number);
+    if(!m||!d) continue;
+    const dt = new Date(year, m-1, d, 20, 0, 0); // 預設晚上8點
+    if(dt > now && (!nearestDate || dt < nearestDate)){ nearest = g; nearestDate = dt; }
+  }
+  if(!nearest) return null;
+  const [m,d] = nearest.date.split('/');
+  return `${m}/${d}`;
+}
 
 /* ====================================================================
    賽程自動同步:讀取 EventBridge+Lambda 每小時從 Google Sheet 產生的
@@ -567,7 +619,7 @@ window.playSMLRadarAnimation = function(payload){
     gsap.fromTo(valNode,{color:'#ef4444',textShadow:'0 0 25px rgba(239,68,68,1)',scale:1.4},{color:'#f8fafc',textShadow:'0 0 10px rgba(255,255,255,.3)',scale:1,duration:.7,ease:'power2.out'});
     gsap.fromTo(dotNode,{attr:{r:10},fill:'#ef4444',filter:'drop-shadow(0 0 15px rgba(239,68,68,1))'},{attr:{r:5},fill:payload.color,filter:`drop-shadow(0 0 5px ${payload.color})`,duration:.7,ease:'power2.out'});
   }}); },2.8);
-  tl.add(()=>{
+  if(maxValue > 0) tl.add(()=>{
     const L=document.getElementById(`lbl-${maxIndex}`), V=document.getElementById(`val-${maxIndex}`), T=document.getElementById(`title-${maxIndex}`), Dt=document.getElementById(`dot-${maxIndex}`);
     gsap.to(L,{scale:1.12,duration:.8,repeat:-1,yoyo:true,ease:'sine.inOut'});
     gsap.to([V,T],{color:'#fbbf24',textShadow:'0 0 15px rgba(251,191,36,.9)',duration:.8,repeat:-1,yoyo:true,ease:'sine.inOut'});
