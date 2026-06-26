@@ -154,7 +154,7 @@ function renderCharSelect(){
   const grid = grp => Object.entries(PLAYERS).filter(([,p])=>p.grp===grp).map(([n,p])=>`
     <button class="cs-portrait" data-name="${n}" style="--c:${p.color}"
       onmouseenter="selectChar('${n}')" onfocus="selectChar('${n}')" onclick="selectChar('${n}');openPlayer('${n}')">
-      <img ${imgAttrs(n,'grid')}><span class="cs-pn">${n}</span>
+      <img ${imgAttrs(n,'grid')}><div class="cs-wave"></div><div class="cs-wave"></div><span class="cs-pn">${n}</span>
     </button>`).join('');
   document.getElementById('charSelect').innerHTML = `
     <div class="cs-splash" id="csSplash" style="--c:#fbbf24" onclick="previewChar&&openPlayer(previewChar)" title="點擊展開完整數據">
@@ -344,6 +344,62 @@ function closePlayer(){
 }
 document.querySelectorAll('#playerModal [data-close]').forEach(el=>el.addEventListener('click',closePlayer));
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closePlayer(); });
+
+/* 六軸標題點擊 → 切換公式說明面板 */
+const RADAR_FORMULAS = [
+  {title:'效率・計算公式', lines:[
+    {lbl:'和牌效率',expr:'有效和牌 / 總局數 × 55 分'},
+    {lbl:'均得分',expr:'場均得點標準化 × 30 分'},
+    {lbl:'廢牌控制',expr:'無謂摸切比例逆算 × 15 分'},
+  ]},
+  {title:'攻擊力・計算公式', lines:[
+    {lbl:'和牌率',expr:'胡牌局數 / 總局數 × 45 分'},
+    {lbl:'自摸比',expr:'自摸次數 / 胡牌次數 × 35 分'},
+    {lbl:'均番加乘',expr:'平均番數標準化 × 20 分'},
+  ]},
+  {title:'防守力・計算公式', lines:[
+    {lbl:'放槍逃脫',expr:'(1 − 放槍率) × 50 分'},
+    {lbl:'危牌處理',expr:'危牌正確處置率 × 30 分'},
+    {lbl:'守備局控',expr:'未放槍被攻擊比率 × 20 分'},
+  ]},
+  {title:'技術・計算公式', lines:[
+    {lbl:'讀牌精度',expr:'危牌預判成功率 × 40 分'},
+    {lbl:'手牌效率',expr:'理論最快進度達成率 × 35 分'},
+    {lbl:'鳴牌時機',expr:'有效鳴牌率 × 25 分'},
+  ]},
+  {title:'爆發力・計算公式', lines:[
+    {lbl:'高番和牌',expr:'滿貫以上和牌率 × 45 分'},
+    {lbl:'逆轉能力',expr:'落後翻轉場次比率 × 35 分'},
+    {lbl:'單局最高',expr:'生涯最高點折算加成 × 20 分'},
+  ]},
+  {title:'穩定度・計算公式', lines:[
+    {lbl:'放槍控制',expr:'(1 − 放槍率) × 40 分'},
+    {lbl:'順位穩定',expr:'順位標準差逆算 × 35 分'},
+    {lbl:'一致性',expr:'場次加權分方差修正 × 25 分'},
+  ]},
+];
+(function(){
+  const fp=document.getElementById('formulaPanel');
+  const fpT=document.getElementById('formulaPanelTitle');
+  const fpB=document.getElementById('formulaPanelBody');
+  if(!fp||!fpT||!fpB) return;
+  let activeIdx=-1;
+  for(let i=0;i<6;i++){
+    const t=document.getElementById(`title-${i}`); if(!t) continue;
+    t.addEventListener('click',()=>{
+      if(activeIdx===i && fp.classList.contains('open')){
+        fp.classList.remove('open'); t.classList.remove('active'); activeIdx=-1; return;
+      }
+      document.querySelectorAll('.pd-radarcol .label-title').forEach(el=>el.classList.remove('active'));
+      t.classList.add('active'); activeIdx=i;
+      const f=RADAR_FORMULAS[i];
+      fpT.textContent=f.title;
+      fpB.innerHTML=f.lines.map(l=>`<div class="formula-line"><span class="formula-lbl">${l.lbl}</span><span class="formula-expr">${l.expr}</span></div>`).join('')
+        +`<div class="formula-eq">合計折算至 0–100 裝甲值</div>`;
+      fp.classList.add('open');
+    });
+  }
+})();
 
 /* ---------- 頁籤切換 ---------- */
 function setupTabs(barId, prefix, onShow){
@@ -621,8 +677,8 @@ window.playSMLRadarAnimation = function(payload){
   }}); },2.8);
   if(maxValue > 0) tl.add(()=>{
     const L=document.getElementById(`lbl-${maxIndex}`), V=document.getElementById(`val-${maxIndex}`), T=document.getElementById(`title-${maxIndex}`), Dt=document.getElementById(`dot-${maxIndex}`);
-    gsap.to(L,{scale:1.12,duration:.8,repeat:-1,yoyo:true,ease:'sine.inOut'});
-    gsap.to([V,T],{color:'#fbbf24',textShadow:'0 0 15px rgba(251,191,36,.9)',duration:.8,repeat:-1,yoyo:true,ease:'sine.inOut'});
-    gsap.to(Dt,{fill:'#fbbf24',stroke:'#fbbf24',attr:{r:8},filter:'drop-shadow(0 0 12px rgba(251,191,36,1))',duration:.8,repeat:-1,yoyo:true,ease:'sine.inOut'});
+    gsap.fromTo(L,{scale:1},{scale:1.07,duration:.8,repeat:-1,yoyo:true,ease:'sine.inOut'});
+    gsap.fromTo([V,T],{color:'#f8fafc',textShadow:'none'},{color:'#fbbf24',textShadow:'0 0 9px rgba(251,191,36,.55)',duration:.8,repeat:-1,yoyo:true,ease:'sine.inOut'});
+    gsap.fromTo(Dt,{fill:payload.color,stroke:payload.color,attr:{r:5}},{fill:'#fbbf24',stroke:'#fbbf24',attr:{r:6.5},filter:'drop-shadow(0 0 7px rgba(251,191,36,.8))',duration:.8,repeat:-1,yoyo:true,ease:'sine.inOut'});
   },3.7);
 };
