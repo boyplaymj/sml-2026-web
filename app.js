@@ -512,24 +512,31 @@ const LIVE_STREAM_DEFAULT = {
 function applyLiveStream(ls){
   const btn = document.querySelector('a.live-btn');
   const badge = document.querySelector('.announce-live');
+  const watch = document.querySelector('a.btn-gold');   // 「▶ 觀看直播」按鈕
   const isLive = ls && ls.isLive && ls.url;
+  const url = (ls && ls.url) || LIVE_STREAM_DEFAULT.url; // 後台有送就用後台,否則用手動連結
+
+  // 「▶ 觀看直播」永遠開新視窗轉跳直播連結
+  if(watch){
+    watch.href = url;
+    watch.target = '_blank';
+    watch.rel = 'noopener';
+  }
 
   // 跑馬燈左側 badge
   if(badge) badge.style.display = isLive ? '' : 'none';
 
   if(!btn) return;
+  // 上方狀態按鈕:直播中或下次直播,點下去都開新視窗到直播連結
+  btn.href = url;
+  btn.target = '_blank';
+  btn.rel = 'noopener';
   if(isLive){
-    btn.href = ls.url;
-    btn.target = '_blank';
-    btn.rel = 'noopener';
     btn.innerHTML = '<span class="dot"></span>直播中';
     btn.style.display = '';
   } else {
     const next = getNextMatch();
     if(next){
-      btn.href = '#live';
-      btn.target = '';
-      btn.rel = '';
       btn.innerHTML = `下次直播 ${next}`;
       btn.style.display = '';
     } else {
