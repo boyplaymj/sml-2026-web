@@ -388,6 +388,242 @@ func tryBridgeCommand(s *discordgo.Session, m *discordgo.MessageCreate, stripped
 	return false
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// !用量：顯示 Claude 版本與用量上限（工作階段 / 全模型週上限 / Fable 週上限）。
+//
+// 版本用 `claude --version`。用量優先打 OAuth /api/oauth/usage（需 user:profile
+// 權限的 token，能一次拿到逐模型上限含 Fable）；拿不到（例如 setup-token 只有
+// user:inference 權限、會回 403）時，退回用一次 1-token 推論、讀回應標頭
+// anthropic-ratelimit-unified-*（只有 5h 與 7d 全模型，沒有逐模型 Fable）。
+var (
+	cstZone   = time.FixedZone("CST", 8*3600)
+	usageHTTP = &http.Client{Timeout: 15 * time.Second}
+)
+
+func claudeVersion() string {
+	out, err := exec.Command(claudeBin, "--version").Output()
+	if err != nil {
+		return "未知"
+	}
+	return strings.TrimSpace(string(out))
+}
+
+// currentModel 讀 ~/.claude/settings.json 的預設模型（best-effort）。
+func currentModel() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
+	data, err := os.ReadFile(filepath.Join(home, ".claude", "settings.json"))
+	if err != nil {
+		return ""
+	}
+	var s struct {
+		Model string `json:"model"`
+	}
+	if json.Unmarshal(data, &s) != nil {
+		return ""
+	}
+	return s.Model
+}
+
+// limitLine 是一條用量上限：使用百分比 + 重置時間。
+type limitLine struct {
+	pct   float64 // 使用百分比 0-100；<0 代表無資料
+	reset int64   // 重置 unix 秒；0 代表無資料
+}
+
+func (l limitLine) String() string {
+	if l.pct < 0 {
+		return "—（無資料）"
+	}
+	out := fmt.Sprintf("%.0f%%", l.pct)
+	if l.reset > 0 {
+		out += fmt.Sprintf("（重置 %s）", time.Unix(l.reset, 0).In(cstZone).Format("01/02 15:04"))
+	}
+	return out
+}
+
+type usageSnapshot struct {
+	session limitLine // 本次工作階段（5h）
+	weekAll limitLine // 每週・所有模型（7d）
+	fable   limitLine // 每週・Fable 逐模型
+	note    string    // 補充說明（例如提示換 token）
+}
+
+func newUsageSnapshot() usageSnapshot {
+	return usageSnapshot{
+		session: limitLine{pct: -1},
+		weekAll: limitLine{pct: -1},
+		fable:   limitLine{pct: -1},
+	}
+}
+
+// parseReset 容忍 resets_at 是 unix 秒或 RFC3339 字串兩種格式。
+func parseReset(raw json.RawMessage) int64 {
+	if len(raw) == 0 {
+		return 0
+	}
+	var n int64
+	if json.Unmarshal(raw, &n) == nil {
+		return n
+	}
+	var str string
+	if json.Unmarshal(raw, &str) == nil {
+		if t, err := time.Parse(time.RFC3339, str); err == nil {
+			return t.Unix()
+		}
+	}
+	return 0
+}
+
+func readLimit(m map[string]json.RawMessage, key string) limitLine {
+	out := limitLine{pct: -1}
+	raw, ok := m[key]
+	if !ok {
+		return out
+	}
+	var obj struct {
+		Utilization    *float64        `json:"utilization"`
+		UsedPercentage *float64        `json:"used_percentage"`
+		ResetsAt       json.RawMessage `json:"resets_at"`
+		Reset          json.RawMessage `json:"reset"`
+	}
+	if json.Unmarshal(raw, &obj) != nil {
+		return out
+	}
+	switch {
+	case obj.UsedPercentage != nil:
+		out.pct = *obj.UsedPercentage
+	case obj.Utilization != nil:
+		out.pct = *obj.Utilization * 100
+	}
+	if r := parseReset(obj.ResetsAt); r != 0 {
+		out.reset = r
+	} else {
+		out.reset = parseReset(obj.Reset)
+	}
+	return out
+}
+
+// fetchUsageFromOAuth 打 /api/oauth/usage（需 user:profile 權限）。成功回傳 true。
+func fetchUsageFromOAuth(tok string) (usageSnapshot, bool) {
+	u := newUsageSnapshot()
+	req, err := http.NewRequest("GET", "https://api.anthropic.com/api/oauth/usage", nil)
+	if err != nil {
+		return u, false
+	}
+	req.Header.Set("Authorization", "Bearer "+tok)
+	req.Header.Set("anthropic-beta", "oauth-2025-04-20")
+	resp, err := usageHTTP.Do(req)
+	if err != nil {
+		return u, false
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+	if resp.StatusCode != 200 {
+		log.Printf("oauth/usage http %d: %s", resp.StatusCode, firstLine(string(body)))
+		return u, false
+	}
+	var raw map[string]json.RawMessage
+	if json.Unmarshal(body, &raw) != nil {
+		return u, false
+	}
+	// 上限可能包在 rate_limits 底下，也可能直接在頂層。
+	buckets := raw
+	if rl, ok := raw["rate_limits"]; ok {
+		var inner map[string]json.RawMessage
+		if json.Unmarshal(rl, &inner) == nil {
+			buckets = inner
+		}
+	}
+	u.session = readLimit(buckets, "five_hour")
+	u.weekAll = readLimit(buckets, "seven_day")
+	// Fable 逐模型上限：新版可能叫 seven_day_fable，沿用舊命名則是 seven_day_opus。
+	if u.fable = readLimit(buckets, "seven_day_fable"); u.fable.pct < 0 {
+		u.fable = readLimit(buckets, "seven_day_opus")
+	}
+	return u, u.session.pct >= 0 || u.weekAll.pct >= 0
+}
+
+func headerLimit(h http.Header, span string) limitLine {
+	out := limitLine{pct: -1}
+	if v := h.Get("anthropic-ratelimit-unified-" + span + "-utilization"); v != "" {
+		if f, err := strconv.ParseFloat(v, 64); err == nil {
+			out.pct = f * 100
+		}
+	}
+	if v := h.Get("anthropic-ratelimit-unified-" + span + "-reset"); v != "" {
+		if n, err := strconv.ParseInt(v, 10, 64); err == nil {
+			out.reset = n
+		}
+	}
+	return out
+}
+
+// fetchUsageFromHeaders 用一次 1-token 推論讀 anthropic-ratelimit-unified-* 標頭。
+// 只拿得到 5h 與 7d（全模型），沒有逐模型 Fable 上限。
+func fetchUsageFromHeaders(tok string) usageSnapshot {
+	u := newUsageSnapshot()
+	payload := `{"model":"claude-haiku-4-5-20251001","max_tokens":1,"messages":[{"role":"user","content":"hi"}]}`
+	req, err := http.NewRequest("POST", "https://api.anthropic.com/v1/messages", strings.NewReader(payload))
+	if err != nil {
+		return u
+	}
+	req.Header.Set("Authorization", "Bearer "+tok)
+	req.Header.Set("anthropic-beta", "oauth-2025-04-20")
+	req.Header.Set("anthropic-version", "2023-06-01")
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := usageHTTP.Do(req)
+	if err != nil {
+		return u
+	}
+	defer resp.Body.Close()
+	io.Copy(io.Discard, io.LimitReader(resp.Body, 1<<16))
+	if resp.StatusCode != 200 {
+		return u
+	}
+	u.session = headerLimit(resp.Header, "5h")
+	u.weekAll = headerLimit(resp.Header, "7d")
+	return u
+}
+
+func handleUsageCommand(s *discordgo.Session, channelID string) {
+	tok := os.Getenv("CLAUDE_CODE_OAUTH_TOKEN")
+	u := newUsageSnapshot()
+	if tok == "" {
+		u.note = "找不到 CLAUDE_CODE_OAUTH_TOKEN，無法查詢用量。"
+	} else if oauthU, ok := fetchUsageFromOAuth(tok); ok {
+		u = oauthU
+	} else {
+		u = fetchUsageFromHeaders(tok)
+		u.note = "逐模型（Fable）週上限需要具 user:profile 權限的 OAuth token；" +
+			"目前 token 僅能提供工作階段與全模型週上限。"
+	}
+
+	ver := claudeVersion()
+	if m := currentModel(); m != "" {
+		ver += "・模型 " + m
+	}
+
+	emb := &discordgo.MessageEmbed{
+		Title: "📊 SML_Claude 用量",
+		Color: 0xf9a8d4,
+		Fields: []*discordgo.MessageEmbedField{
+			{Name: "🤖 版本", Value: ver},
+			{Name: "⏳ 本次工作階段", Value: u.session.String()},
+			{Name: "📅 每週上限（所有模型）", Value: u.weekAll.String()},
+			{Name: "✨ 每週上限（Fable）", Value: u.fable.String()},
+		},
+	}
+	if u.note != "" {
+		emb.Footer = &discordgo.MessageEmbedFooter{Text: u.note}
+	}
+	if _, err := s.ChannelMessageSendEmbed(channelID, emb); err != nil {
+		log.Printf("usage embed send error: %v", err)
+	}
+}
+
 func main() {
 	token := os.Getenv("DISCORD_TOKEN")
 	if token == "" {
@@ -423,7 +659,17 @@ func main() {
 		// ! 前綴指令：先看 commands.json 有沒有設定(有就推 Embed)；沒設定就照舊交給 sweetbot、bridge 不介入
 		botRoles := botRoleIDs(s, m.GuildID)
 		if stripped := stripMention(m.Content, s.State.User.ID, botRoles); strings.HasPrefix(stripped, "!") {
-			tryBridgeCommand(s, m, stripped)
+			cmd := stripped
+			if i := strings.IndexAny(cmd, " \t\n"); i >= 0 {
+				cmd = cmd[:i]
+			}
+			// !用量 是動態資訊（版本＋即時用量），不走 commands.json 的固定 Embed。
+			if cmd == "!用量" {
+				s.ChannelTyping(m.ChannelID)
+				handleUsageCommand(s, m.ChannelID)
+			} else {
+				tryBridgeCommand(s, m, stripped)
+			}
 			return
 		}
 		// 「開新對話」指令:清空該頻道 session,不跑 claude
