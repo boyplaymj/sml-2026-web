@@ -11,3 +11,9 @@ desktop.ini
 
 # Claude 本機設定
 .claude/settings.local.json
+
+# 執行中程序的 pid 檔(機器相關,不入庫)
+*.pid
+
+# bridge 編譯產物(由原始碼建置,不入庫)
+aws/discord-bridge/sml-discord-bridge
