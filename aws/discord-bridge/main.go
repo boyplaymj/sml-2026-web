@@ -18,6 +18,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -48,11 +49,33 @@ var resetCmds = map[string]bool{
 	"清空": true, "重來": true, "開新對話": true, "新對話": true, "重新開始": true,
 }
 
-// stripMention 去掉 bot 的 @mention,回傳純文字內容。
-func stripMention(content, botID string) string {
+// stripMention 去掉 bot 的 @mention(含身分組 mention),回傳純文字內容。
+func stripMention(content, botID string, roleIDs map[string]bool) string {
 	content = strings.ReplaceAll(content, "<@"+botID+">", "")
 	content = strings.ReplaceAll(content, "<@!"+botID+">", "")
+	for id := range roleIDs {
+		content = strings.ReplaceAll(content, "<@&"+id+">", "")
+	}
 	return strings.TrimSpace(content)
+}
+
+// botRoleIDs 回傳 bot 在該 guild 的身分組 ID 集合。
+// Discord 的 @ 選單常讓人選到 bot 的「整合身分組」而不是 bot 使用者,兩種 tag 都要視為觸發。
+func botRoleIDs(s *discordgo.Session, guildID string) map[string]bool {
+	set := map[string]bool{}
+	if guildID == "" {
+		return set
+	}
+	member, err := s.State.Member(guildID, s.State.User.ID)
+	if err != nil {
+		if member, err = s.GuildMember(guildID, s.State.User.ID); err != nil {
+			return set
+		}
+	}
+	for _, r := range member.Roles {
+		set[r] = true
+	}
+	return set
 }
 
 func csvSet(s string) map[string]bool {
@@ -149,9 +172,10 @@ func runClaude(ctx context.Context, channelID, prompt string) string {
 
 func allowedMsg(s *discordgo.Session, m *discordgo.MessageCreate) bool {
 	// 範圍:有設 ALLOWED_GUILDS 就允許「整個伺服器」的所有頻道(新開頻道自動生效);
-	// 否則退回 ALLOWED_CHANNELS 逐頻道白名單。
+	// 另外仍尊重逐頻道白名單 ALLOWED_CHANNELS —— 這樣可以放行「不在允許伺服器、
+	// 但明確列進白名單的單一頻道」(例如跨伺服器的股市收件匣頻道)。
 	if len(allowedGuilds) > 0 {
-		if !allowedGuilds[m.GuildID] {
+		if !allowedGuilds[m.GuildID] && !allowedChannels[m.ChannelID] {
 			return false
 		}
 	} else if len(allowedChannels) > 0 && !allowedChannels[m.ChannelID] {
@@ -160,10 +184,18 @@ func allowedMsg(s *discordgo.Session, m *discordgo.MessageCreate) bool {
 	if len(allowedUsers) > 0 && !allowedUsers[m.Author.ID] {
 		return false
 	}
-	// 只回應 mention bot 或回覆 bot 訊息的情況
+	// 只回應 mention bot(使用者或其身分組)或回覆 bot 訊息的情況
 	botID := s.State.User.ID
-	if strings.Contains(m.Content, "<@"+botID+">") {
+	if strings.Contains(m.Content, "<@"+botID+">") || strings.Contains(m.Content, "<@!"+botID+">") {
 		return true
+	}
+	if len(m.MentionRoles) > 0 {
+		roles := botRoleIDs(s, m.GuildID)
+		for _, r := range m.MentionRoles {
+			if roles[r] {
+				return true
+			}
+		}
 	}
 	if m.MessageReference != nil && m.MessageReference.MessageID != "" {
 		ref, err := s.ChannelMessage(m.ChannelID, m.MessageReference.MessageID)
@@ -236,6 +268,126 @@ func sendChunked(s *discordgo.Session, channelID, text string) {
 	}
 }
 
+// ── 互動按鈕支援 ──────────────────────────────────────────────────────────────
+//
+// Claude 回應中可以用 [[BTN:顯示文字:custom_id]] 插入按鈕，例如：
+//   要發布更新日誌嗎？
+//   [[BTN:✅ 發布:publish]][[BTN:✏️ 修改:edit]][[BTN:❌ 取消:cancel]]
+//
+// Bridge 會把標記去除，並附上實體按鈕。
+// 使用者點按鈕後，Bridge 把 「[按鈕點擊] 使用者名稱 點了「顯示文字」(custom_id)」
+// 送回給 Claude，讓對話繼續。
+
+var btnRe = regexp.MustCompile(`\[\[BTN:([^:\]]+):([^\]]+)\]\]`)
+
+type btnDef struct{ label, id string }
+
+// parseButtons 從文字中提取所有 [[BTN:...]] 標記，回傳乾淨文字與按鈕列表。
+func parseButtons(text string) (string, []btnDef) {
+	var btns []btnDef
+	clean := btnRe.ReplaceAllStringFunc(text, func(m string) string {
+		sub := btnRe.FindStringSubmatch(m)
+		if len(sub) == 3 {
+			id := sub[2]
+			if len(id) > 100 {
+				id = id[:100]
+			}
+			btns = append(btns, btnDef{label: sub[1], id: id})
+		}
+		return ""
+	})
+	return strings.TrimSpace(clean), btns
+}
+
+// sendWithButtons 偵測按鈕標記後送出帶按鈕的訊息，否則退回純文字分段送出。
+func sendWithButtons(s *discordgo.Session, channelID, text string) {
+	clean, btns := parseButtons(text)
+	if len(btns) == 0 {
+		sendChunked(s, channelID, text)
+		return
+	}
+	// Discord 每列最多 5 顆按鈕
+	if len(btns) > 5 {
+		btns = btns[:5]
+	}
+	var comps []discordgo.MessageComponent
+	for _, b := range btns {
+		comps = append(comps, discordgo.Button{
+			Label:    b.label,
+			Style:    discordgo.PrimaryButton,
+			CustomID: b.id,
+		})
+	}
+	msg := &discordgo.MessageSend{
+		Content: clean,
+		Components: []discordgo.MessageComponent{
+			discordgo.ActionsRow{Components: comps},
+		},
+	}
+	if _, err := s.ChannelMessageSendComplex(channelID, msg); err != nil {
+		log.Printf("send with buttons error: %v — falling back to text", err)
+		sendChunked(s, channelID, clean)
+	}
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 設定檔驅動的固定指令(commands.json)：使用者自己加 !指令 → 推 Embed。
+// 每次呼叫都重讀檔案，所以改 commands.json 立即生效、不用重編譯/重啟。
+type bridgeCmd struct {
+	Cmd    string `json:"cmd"`
+	Title  string `json:"title"`
+	Desc   string `json:"desc"`
+	URL    string `json:"url"`
+	Color  int    `json:"color"`
+	Fields []struct {
+		Name   string `json:"name"`
+		Value  string `json:"value"`
+		Inline bool   `json:"inline"`
+	} `json:"fields"`
+}
+
+func commandsPath() string {
+	if p := os.Getenv("BRIDGE_COMMANDS"); p != "" {
+		return p
+	}
+	return "/opt/sml/repo/aws/discord-bridge/commands.json"
+}
+
+// tryBridgeCommand：若 stripped 的第一個 token 命中 commands.json 的指令，送 Embed 並回傳 true。
+func tryBridgeCommand(s *discordgo.Session, m *discordgo.MessageCreate, stripped string) bool {
+	cmd := strings.TrimSpace(stripped)
+	if i := strings.IndexAny(cmd, " \t\n"); i >= 0 {
+		cmd = cmd[:i]
+	}
+	data, err := os.ReadFile(commandsPath())
+	if err != nil {
+		return false
+	}
+	var cmds []bridgeCmd
+	if err := json.Unmarshal(data, &cmds); err != nil {
+		log.Printf("commands.json parse error: %v", err)
+		return false
+	}
+	for _, c := range cmds {
+		if c.Cmd != cmd {
+			continue
+		}
+		color := c.Color
+		if color == 0 {
+			color = 0xf9a8d4
+		}
+		emb := &discordgo.MessageEmbed{Title: c.Title, Description: c.Desc, URL: c.URL, Color: color}
+		for _, f := range c.Fields {
+			emb.Fields = append(emb.Fields, &discordgo.MessageEmbedField{Name: f.Name, Value: f.Value, Inline: f.Inline})
+		}
+		if _, err := s.ChannelMessageSendEmbed(m.ChannelID, emb); err != nil {
+			log.Printf("bridge command embed send error: %v", err)
+		}
+		return true
+	}
+	return false
+}
+
 func main() {
 	token := os.Getenv("DISCORD_TOKEN")
 	if token == "" {
@@ -257,6 +409,7 @@ func main() {
 		log.Println("DISCONNECT: gateway 連線中斷(會自動重連)")
 	})
 
+	// ── 一般訊息處理 ──
 	dg.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
 		// 診斷:每則訊息都先記下來源頻道,再套用過濾
 		log.Printf("MSG ch=%s author=%s bot=%v content=%q", m.ChannelID, m.Author.Username, m.Author.Bot, m.Content)
@@ -267,8 +420,14 @@ func main() {
 		if strings.TrimSpace(m.Content) == "" && len(m.Attachments) == 0 {
 			return
 		}
+		// ! 前綴指令：先看 commands.json 有沒有設定(有就推 Embed)；沒設定就照舊交給 sweetbot、bridge 不介入
+		botRoles := botRoleIDs(s, m.GuildID)
+		if stripped := stripMention(m.Content, s.State.User.ID, botRoles); strings.HasPrefix(stripped, "!") {
+			tryBridgeCommand(s, m, stripped)
+			return
+		}
 		// 「開新對話」指令:清空該頻道 session,不跑 claude
-		if len(m.Attachments) == 0 && resetCmds[stripMention(m.Content, s.State.User.ID)] {
+		if len(m.Attachments) == 0 && resetCmds[stripMention(m.Content, s.State.User.ID, botRoles)] {
 			mu.Lock()
 			delete(sessions, m.ChannelID)
 			mu.Unlock()
@@ -336,7 +495,71 @@ func main() {
 		for _, p := range tmpFiles {
 			os.Remove(p)
 		}
-		sendChunked(s, m.ChannelID, reply)
+		sendWithButtons(s, m.ChannelID, reply)
+	})
+
+	// ── 按鈕互動處理 ──
+	dg.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		if i.Type != discordgo.InteractionMessageComponent {
+			return
+		}
+		// 權限檢查
+		if len(allowedGuilds) > 0 {
+			if !allowedGuilds[i.GuildID] {
+				return
+			}
+		} else if len(allowedChannels) > 0 && !allowedChannels[i.ChannelID] {
+			return
+		}
+		if len(allowedUsers) > 0 && !allowedUsers[i.Member.User.ID] {
+			return
+		}
+
+		data := i.MessageComponentData()
+		customID := data.CustomID
+
+		// 從原始訊息找 button label
+		btnLabel := customID
+		if i.Message != nil {
+			for _, row := range i.Message.Components {
+				if ar, ok := row.(discordgo.ActionsRow); ok {
+					for _, comp := range ar.Components {
+						if btn, ok := comp.(discordgo.Button); ok && btn.CustomID == customID {
+							btnLabel = btn.Label
+						}
+					}
+				}
+			}
+		}
+
+		// 先 ACK 這個 interaction，避免 Discord 顯示「互動失敗」
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseDeferredMessageUpdate,
+		})
+
+		userName := i.Member.User.Username
+		prompt := fmt.Sprintf("[按鈕點擊] %s 點了「%s」(%s)", userName, btnLabel, customID)
+		log.Printf("BUTTON ch=%s user=%s id=%s label=%s", i.ChannelID, userName, customID, btnLabel)
+
+		s.ChannelTyping(i.ChannelID)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutMin)*time.Minute)
+		defer cancel()
+		done := make(chan struct{})
+		go func() {
+			t := time.NewTicker(8 * time.Second)
+			defer t.Stop()
+			for {
+				select {
+				case <-done:
+					return
+				case <-t.C:
+					s.ChannelTyping(i.ChannelID)
+				}
+			}
+		}()
+		reply := runClaude(ctx, i.ChannelID, prompt)
+		close(done)
+		sendWithButtons(s, i.ChannelID, reply)
 	})
 
 	if err := dg.Open(); err != nil {

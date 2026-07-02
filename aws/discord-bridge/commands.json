@@ -1,0 +1,15 @@
+[
+  {
+    "cmd": "!後台",
+    "title": "🍬 甜甜遊戲館後台",
+    "desc": "點連結進入 → 遊戲設計、車款管理、成本分析、指令表（側邊欄切換）",
+    "url": "https://sweetbot-games.web.app",
+    "color": 16361172,
+    "fields": [
+      { "name": "🦠 牙菌斑怪獸（設計文件）", "value": "https://sweetbot-games.web.app/#yajunban_design.html" },
+      { "name": "🐸 捍衛路權・青蛙過馬路（車款管理）", "value": "https://sweetbot-games.web.app/#crossroad_admin.html" },
+      { "name": "📊 成本 & 資料分析", "value": "https://sweetbot-games.web.app/#dashboard.html" },
+      { "name": "🤖 SML_Claude 指令表", "value": "https://sweetbot-games.web.app/#sml_claude_commands.html" }
+    ]
+  }
+]
