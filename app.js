@@ -163,6 +163,29 @@ function renderFeatured(){
     <div class="waves"><i class="wave-back"></i><i class="wave-front"></i></div>`;
 }
 
+/* ---------- 賽事精華 ・ Reels / Shorts ---------- */
+const ytThumb = id => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;   // 與後台 reels_manager 同邏輯
+function renderReels(reels){
+  const sec  = document.getElementById('reels');
+  const grid = document.getElementById('reelsGrid');
+  if(!grid) return;
+  const items = (Array.isArray(reels) ? reels : []).filter(r => r && r.enabled !== false);
+  if(!items.length){ if(sec) sec.hidden = true; grid.innerHTML = ''; return; }   // 沒有精華就整段收起,不留空標題
+  if(sec) sec.hidden = false;
+  const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  grid.innerHTML = items.map(it=>{
+    const thumb = it.thumb || (it.yt ? ytThumb(it.yt) : '');   // YouTube 自動抓,其餘用後台存的封面
+    const plat  = it.yt ? 'YouTube' : 'Instagram';
+    const img   = thumb ? `<img src="${esc(thumb)}" alt="" loading="lazy" onerror="this.style.display='none'">` : '';
+    return `<a class="reel" href="${esc(it.url)}" target="_blank" rel="noopener" title="觀看完整片段">
+      <div class="reel-thumb">${img}
+        <span class="reel-plat">${plat}</span>
+        <span class="reel-play">▶</span>
+      </div>
+    </a>`;
+  }).join('');
+}
+
 /* ---------- 選手一覽 (hover 預覽 + 點擊展開) ---------- */
 let previewChar = null;
 function renderCharSelect(){
@@ -432,6 +455,7 @@ renderFeatured();
 renderCharSelect();
 renderStandings();
 renderCalendar();
+renderReels([]);                                    // 先收起空板位,等 Firestore reels 到位再展開
 setupTabs('tabs-standings','board-', animateBoard);
 
 /* ====================================================================
@@ -497,6 +521,7 @@ function applyLiveData(live){
         const data = snap.data();
         if(data && data.players) applyLiveData(data.players);
         applyLiveStream(data && data.liveStream ? data.liveStream : LIVE_STREAM_DEFAULT);
+        renderReels(data && data.reels);            // 賽事精華:後台一存,官網即時重繪
       }, err=>console.warn('官網數據讀取失敗(可能是 Firestore 讀取權限):', err));
   }catch(e){ console.warn('Firebase 初始化失敗:', e); }
 })();
