@@ -169,6 +169,7 @@ function renderReels(reels){
   const sec  = document.getElementById('reels');
   const grid = document.getElementById('reelsGrid');
   if(!grid) return;
+  // 顯示順序 = 後台排序(第 1 則在最左);後台新增插最前、可用 ↑/↓ 自訂
   const items = (Array.isArray(reels) ? reels : []).filter(r => r && r.enabled !== false);
   if(!items.length){ if(sec) sec.hidden = true; grid.innerHTML = ''; return; }   // 沒有精華就整段收起,不留空標題
   if(sec) sec.hidden = false;

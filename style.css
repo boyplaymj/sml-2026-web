@@ -160,11 +160,20 @@ section.block{position:relative;padding:clamp(64px,9vw,110px) 0;}
 
 /* ======== 賽事精華 ・ Reels / Shorts (直式推薦板位) ======== */
 .reels-grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
+  display:flex;
   gap:22px;
+  overflow-x:auto;
+  scroll-snap-type:x proximity;
+  padding:8px 0 18px;                 /* 留上下空間,不裁掉 hover 上浮與陰影 */
+  scrollbar-width:thin;
+  scrollbar-color:rgba(251,191,36,.45) rgba(255,255,255,.06);
 }
+.reels-grid::-webkit-scrollbar{height:8px;}
+.reels-grid::-webkit-scrollbar-track{background:rgba(255,255,255,.05);border-radius:999px;}
+.reels-grid::-webkit-scrollbar-thumb{background:rgba(251,191,36,.45);border-radius:999px;}
 .reel{
+  flex:0 0 calc((100% - 44px) / 3);   /* 一屏固定 3 支(2 個 22px 間距),第 4 支起往右滑 */
+  scroll-snap-align:start;
   display:block;position:relative;border-radius:18px;overflow:hidden;
   background:linear-gradient(135deg,rgba(15,23,42,.9),rgba(5,8,15,.95));
   border:1px solid var(--line);
