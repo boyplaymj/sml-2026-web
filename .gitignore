@@ -17,3 +17,4 @@ desktop.ini
 
 # bridge 編譯產物(由原始碼建置,不入庫)
 aws/discord-bridge/sml-discord-bridge
+aws/codex-bridge/sml-codex-bridge

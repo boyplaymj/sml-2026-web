@@ -1,0 +1,17 @@
+[Unit]
+Description=SML Discord <-> OpenAI Codex bridge (SML_Claude 的搭檔)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=smlbot
+WorkingDirectory=/opt/sml/repo
+Environment=HOME=/home/smlbot
+Environment=CLAUDE_WORKDIR=/opt/sml/repo
+# 白名單與 token 由 run.sh 從 AWS SSM 讀(/sml/codex-bridge/*),不寫死在這裡。
+ExecStart=/opt/sml/codex-run.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
