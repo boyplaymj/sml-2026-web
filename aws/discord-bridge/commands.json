@@ -11,5 +11,15 @@
       { "name": "📊 成本 & 資料分析", "value": "https://sweetbot-games.web.app/#dashboard.html" },
       { "name": "🤖 SML_Claude 指令表", "value": "https://sweetbot-games.web.app/#sml_claude_commands.html" }
     ]
+  },
+  {
+    "cmd": "!甜甜",
+    "title": "🍬 邀請甜甜加入你的伺服器",
+    "desc": "點下方連結，把甜甜 SweetBot 邀進你的 Discord 伺服器～",
+    "url": "https://discord.com/oauth2/authorize?client_id=909624656846286899&scope=bot&permissions=1073741824",
+    "color": 16361172,
+    "fields": [
+      { "name": "🔗 加入連結", "value": "https://discord.com/oauth2/authorize?client_id=909624656846286899&scope=bot&permissions=1073741824" }
+    ]
   }
 ]
