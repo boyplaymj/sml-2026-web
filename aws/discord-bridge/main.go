@@ -99,7 +99,43 @@ var (
 
 	mu       sync.Mutex
 	sessions = map[string]string{} // channelID -> claude session id
+
+	// 同頻道序列化：每個 channel 一把鎖，確保「一次只跑一個 claude」。
+	// 否則使用者連發訊息時，discordgo 會各開 goroutine 同時起兩個 claude --resume（共用同一 session
+	// 與工作目錄）→ 兩個實例互相覆蓋檔案、各跑重複建置、搶寫 registry。
+	chanLocks sync.Map // channelID -> *sync.Mutex
 )
+
+// chanLock 取得某頻道專屬的鎖（不存在就建立）。
+func chanLock(channelID string) *sync.Mutex {
+	v, _ := chanLocks.LoadOrStore(channelID, &sync.Mutex{})
+	return v.(*sync.Mutex)
+}
+
+// 對談 session 持久化：存磁碟 → bridge 重啟不會丟失各頻道對話脈絡(否則重啟＝所有對話重置)。
+func sessionsFile() string {
+	home, _ := os.UserHomeDir()
+	return filepath.Join(home, ".claude", "bridge-sessions.json")
+}
+
+func loadSessions() {
+	data, err := os.ReadFile(sessionsFile())
+	if err != nil {
+		return
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	_ = json.Unmarshal(data, &sessions)
+}
+
+// 呼叫端須已持有 mu。
+func saveSessionsLocked() {
+	data, err := json.Marshal(sessions)
+	if err != nil {
+		return
+	}
+	_ = os.WriteFile(sessionsFile(), data, 0600)
+}
 
 func parseChannelWorkdirs(s string) map[string]string {
 	m := map[string]string{}
@@ -138,6 +174,12 @@ func firstLine(s string) string {
 
 // runClaude 在工作目錄跑 headless claude,維持每個頻道的 session。
 func runClaude(ctx context.Context, channelID, prompt string) string {
+	// 同頻道序列化：一次只跑一個 claude。第二則訊息會在這裡等前一則跑完再進場，
+	// 杜絕「兩個 claude --resume 同一 session、同一工作目錄」互相覆蓋檔案／搶寫 registry。
+	lk := chanLock(channelID)
+	lk.Lock()
+	defer lk.Unlock()
+
 	mu.Lock()
 	sid := sessions[channelID]
 	mu.Unlock()
@@ -148,7 +190,8 @@ func runClaude(ctx context.Context, channelID, prompt string) string {
 	}
 	cmd := exec.CommandContext(ctx, claudeBin, args...)
 	cmd.Dir = workdirFor(channelID)
-	cmd.Env = os.Environ()
+	// 把來源頻道 ID 注入 Claude 對話環境 → 讓 hook(如 crossroad 擁有權護欄)可依頻道決定放行/阻擋。
+	cmd.Env = append(os.Environ(), "SML_DISCORD_CHANNEL="+channelID)
 	var out, errb bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &out, &errb
 	if err := cmd.Run(); err != nil {
@@ -162,6 +205,7 @@ func runClaude(ctx context.Context, channelID, prompt string) string {
 	if res.SessionID != "" {
 		mu.Lock()
 		sessions[channelID] = res.SessionID
+		saveSessionsLocked()
 		mu.Unlock()
 	}
 	if strings.TrimSpace(res.Result) == "" {
@@ -629,6 +673,7 @@ func main() {
 	if token == "" {
 		log.Fatal("DISCORD_TOKEN not set")
 	}
+	loadSessions() // 還原各頻道對話 session（重啟不丟脈絡）
 	dg, err := discordgo.New("Bot " + token)
 	if err != nil {
 		log.Fatal(err)
