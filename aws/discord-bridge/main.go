@@ -22,6 +22,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -92,6 +93,12 @@ var (
 	allowedChannels = csvSet(os.Getenv("ALLOWED_CHANNELS"))
 	allowedGuilds   = csvSet(os.Getenv("ALLOWED_GUILDS"))
 	allowedUsers    = csvSet(os.Getenv("ALLOWED_USERS"))
+	// bot↔bot 互通:只有 PEER_BOT_ID 這顆 AI bot、且在 DISCUSS_CHANNELS 白名單頻道,才准跨 bot 觸發本 bot。
+	peerBotID       = os.Getenv("PEER_BOT_ID")
+	discussChannels = csvSet(os.Getenv("DISCUSS_CHANNELS"))
+	maxBotExchanges = envInt("MAX_BOT_EXCHANGES", 3) // 兩則人類訊息間,bot↔bot 最多來回幾次
+	botExchMu       sync.Mutex
+	botExchange     = map[string]int{} // channelID -> 連續 bot↔bot 來回計數(人類發言歸零)
 	claudeBin       = env("CLAUDE_BIN", "claude")
 	workdir         = env("CLAUDE_WORKDIR", ".")
 	channelWorkdirs = parseChannelWorkdirs(os.Getenv("CHANNEL_WORKDIRS"))
@@ -104,6 +111,11 @@ var (
 	// 否則使用者連發訊息時，discordgo 會各開 goroutine 同時起兩個 claude --resume（共用同一 session
 	// 與工作目錄）→ 兩個實例互相覆蓋檔案、各跑重複建置、搶寫 registry。
 	chanLocks sync.Map // channelID -> *sync.Mutex
+
+	// 全域併發上限：跨「不同頻道」最多同時 N 個 claude。小機器(如 t4g.small 2GB)上,每個 claude 吃
+	// 250-600MB,同時開 3+ 個會把記憶體榨爆 → 進程被 SIGKILL(stderr 空)→ 顯示「unknown error」。
+	// 加這道閘,第 N+1 個任務會排隊等,而不是硬起來擠爆。預設 2,可用 CLAUDE_MAX_CONCURRENT 調。
+	claudeSem = make(chan struct{}, envInt("CLAUDE_MAX_CONCURRENT", 2))
 )
 
 // chanLock 取得某頻道專屬的鎖（不存在就建立）。
@@ -161,6 +173,21 @@ type claudeResult struct {
 	IsError   bool   `json:"is_error"`
 }
 
+// wasKilled 判斷 claude 是否被信號強殺(SIGKILL,例如記憶體壓力下被中止)。
+// 這類失敗 stderr 通常是空的,值得等一下自動重試。
+func wasKilled(err error) bool {
+	if err == nil {
+		return false
+	}
+	if ee, ok := err.(*exec.ExitError); ok {
+		if ws, ok := ee.Sys().(syscall.WaitStatus); ok && ws.Signaled() {
+			return true
+		}
+	}
+	s := err.Error()
+	return strings.Contains(s, "killed") || strings.Contains(s, "signal:")
+}
+
 func firstLine(s string) string {
 	s = strings.TrimSpace(s)
 	if i := strings.IndexByte(s, '\n'); i > 0 {
@@ -180,6 +207,15 @@ func runClaude(ctx context.Context, channelID, prompt string) string {
 	lk.Lock()
 	defer lk.Unlock()
 
+	// 全域併發閘：跨頻道最多同時 claudeSem 容量個 claude。放在頻道鎖「之後」取,
+	// 這樣同頻道排隊的第二則不會白佔一個併發槽。ctx 取消(逾時)時不卡死。
+	select {
+	case claudeSem <- struct{}{}:
+		defer func() { <-claudeSem }()
+	case <-ctx.Done():
+		return "⚠️ 等待排隊逾時,請稍後再試。"
+	}
+
 	mu.Lock()
 	sid := sessions[channelID]
 	mu.Unlock()
@@ -188,15 +224,44 @@ func runClaude(ctx context.Context, channelID, prompt string) string {
 	if sid != "" {
 		args = append(args, "--resume", sid)
 	}
-	cmd := exec.CommandContext(ctx, claudeBin, args...)
-	cmd.Dir = workdirFor(channelID)
-	// 把來源頻道 ID 注入 Claude 對話環境 → 讓 hook(如 crossroad 擁有權護欄)可依頻道決定放行/阻擋。
-	cmd.Env = append(os.Environ(), "SML_DISCORD_CHANNEL="+channelID)
-	var out, errb bytes.Buffer
-	cmd.Stdout, cmd.Stderr = &out, &errb
-	if err := cmd.Run(); err != nil {
-		log.Printf("claude error: %v | stderr: %s", err, errb.String())
-		return "⚠️ 執行出錯：" + firstLine(errb.String())
+
+	// 執行 claude,最多試 2 次:若進程被系統強殺(signal: killed,通常是記憶體壓力,stderr 空),
+	// 等幾秒讓記憶體釋放後自動重試一次,避免使用者只看到無意義的「unknown error」。
+	var out bytes.Buffer
+	var runErr error
+	var stderr string
+	for attempt := 1; attempt <= 2; attempt++ {
+		out.Reset()
+		var errb bytes.Buffer
+		cmd := exec.CommandContext(ctx, claudeBin, args...)
+		cmd.Dir = workdirFor(channelID)
+		// 把來源頻道 ID 注入 Claude 對話環境 → 讓 hook(如 crossroad 擁有權護欄)可依頻道決定放行/阻擋。
+		cmd.Env = append(os.Environ(), "SML_DISCORD_CHANNEL="+channelID)
+		cmd.Stdout, cmd.Stderr = &out, &errb
+		runErr = cmd.Run()
+		stderr = errb.String()
+		if runErr == nil {
+			break
+		}
+		log.Printf("claude error (attempt %d/2): %v | stderr: %s", attempt, runErr, stderr)
+		// ctx 已逾時/取消就別重試;否則若像是被強殺,等 4 秒讓記憶體回收再試一次。
+		if ctx.Err() != nil || attempt == 2 {
+			break
+		}
+		if wasKilled(runErr) {
+			time.Sleep(4 * time.Second)
+		} else {
+			break // 非「被殺」類錯誤(有實際 stderr)不重試,直接回報
+		}
+	}
+	if runErr != nil {
+		if ctx.Err() != nil {
+			return "⚠️ 處理逾時(超過 " + strconv.Itoa(timeoutMin) + " 分鐘)被中止,請把任務拆小一點再試。"
+		}
+		if wasKilled(runErr) && strings.TrimSpace(stderr) == "" {
+			return "⚠️ 處理被系統中止(通常是同時任務太多、記憶體不足),已自動重試仍失敗。請稍等一下、或避免同時在多個頻道操作,再重試。"
+		}
+		return "⚠️ 執行出錯：" + firstLine(stderr)
 	}
 	var res claudeResult
 	if err := json.Unmarshal(out.Bytes(), &res); err != nil {
@@ -540,7 +605,9 @@ func readLimit(m map[string]json.RawMessage, key string) limitLine {
 	case obj.UsedPercentage != nil:
 		out.pct = *obj.UsedPercentage
 	case obj.Utilization != nil:
-		out.pct = *obj.Utilization * 100
+		// /api/oauth/usage 的 utilization 本身就是百分比(例如 8.0 = 8%),不要再 ×100。
+		// (標頭法的 utilization 才是 0-1 小數,那條在 headerLimit 另外處理。)
+		out.pct = *obj.Utilization
 	}
 	if r := parseReset(obj.ResetsAt); r != 0 {
 		out.reset = r
@@ -632,11 +699,98 @@ func fetchUsageFromHeaders(tok string) usageSnapshot {
 	return u
 }
 
+// claudeUsageToken 取查用量用的 OAuth token。
+// 優先用環境變數(若有),否則讀 bridge 實際跑 claude 的認證檔 ~/.claude/.credentials.json。
+// 注意:這個 token 只用於「查用量的 HTTP 呼叫」,不會被放進 claude -p 的環境,故不影響計費。
+func claudeUsageToken() string {
+	if t := os.Getenv("CLAUDE_CODE_OAUTH_TOKEN"); t != "" {
+		return t
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
+	data, err := os.ReadFile(filepath.Join(home, ".claude", ".credentials.json"))
+	if err != nil {
+		return ""
+	}
+	var c struct {
+		ClaudeAiOauth struct {
+			AccessToken string `json:"accessToken"`
+		} `json:"claudeAiOauth"`
+	}
+	if json.Unmarshal(data, &c) != nil {
+		return ""
+	}
+	return c.ClaudeAiOauth.AccessToken
+}
+
+// claudeAccount 是 ~/.claude.json 的 oauthAccount(帳號/方案/計費資訊,供成本管控用)。
+type claudeAccount struct {
+	Email         string `json:"emailAddress"`
+	DisplayName   string `json:"displayName"`
+	OrgType       string `json:"organizationType"`
+	RateLimitTier string `json:"organizationRateLimitTier"`
+	ExtraUsage    bool   `json:"hasExtraUsageEnabled"`
+	BillingType   string `json:"billingType"`
+}
+
+func readClaudeAccount() (claudeAccount, bool) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return claudeAccount{}, false
+	}
+	data, err := os.ReadFile(filepath.Join(home, ".claude.json"))
+	if err != nil {
+		return claudeAccount{}, false
+	}
+	var d struct {
+		OauthAccount claudeAccount `json:"oauthAccount"`
+	}
+	if json.Unmarshal(data, &d) != nil || d.OauthAccount.Email == "" {
+		return claudeAccount{}, false
+	}
+	return d.OauthAccount, true
+}
+
+// maskEmail 保留 local part 前半 + 網域,其餘遮成 ***(能看懂但不全顯)。
+func maskEmail(e string) string {
+	at := strings.IndexByte(e, '@')
+	if at <= 0 {
+		return e
+	}
+	local, domain := e[:at], e[at:]
+	keep := (len(local) + 1) / 2
+	if keep >= len(local) {
+		return e
+	}
+	return local[:keep] + "***" + domain
+}
+
+// prettyPlan 把 organizationType / rateLimitTier 轉成好讀的方案名(如 "Claude Max 20x")。
+func prettyPlan(a claudeAccount) string {
+	plan := a.OrgType
+	switch {
+	case strings.Contains(a.OrgType, "max") || strings.Contains(a.RateLimitTier, "max"):
+		plan = "Claude Max"
+	case strings.Contains(a.OrgType, "team"):
+		plan = "Claude Team"
+	case strings.Contains(a.OrgType, "pro"):
+		plan = "Claude Pro"
+	}
+	if i := strings.LastIndex(a.RateLimitTier, "_"); i >= 0 {
+		if suf := a.RateLimitTier[i+1:]; strings.HasSuffix(suf, "x") {
+			plan += " " + suf // 例如 20x
+		}
+	}
+	return plan
+}
+
 func handleUsageCommand(s *discordgo.Session, channelID string) {
-	tok := os.Getenv("CLAUDE_CODE_OAUTH_TOKEN")
+	tok := claudeUsageToken()
 	u := newUsageSnapshot()
 	if tok == "" {
-		u.note = "找不到 CLAUDE_CODE_OAUTH_TOKEN，無法查詢用量。"
+		u.note = "找不到可用的 OAuth token（環境變數與 ~/.claude/.credentials.json 皆無），無法查詢用量。"
 	} else if oauthU, ok := fetchUsageFromOAuth(tok); ok {
 		u = oauthU
 	} else {
@@ -650,15 +804,33 @@ func handleUsageCommand(s *discordgo.Session, channelID string) {
 		ver += "・模型 " + m
 	}
 
+	var fields []*discordgo.MessageEmbedField
+	// 帳號/方案/計費(成本管控用):有讀到才顯示。
+	if acc, ok := readClaudeAccount(); ok {
+		who := maskEmail(acc.Email)
+		if acc.DisplayName != "" {
+			who += "（" + acc.DisplayName + "）"
+		}
+		overage := "關閉（撞上限只會擋、不會多收費）"
+		if acc.ExtraUsage {
+			overage = "⚠️ 開啟（超額會另計費，注意預算）"
+		}
+		fields = append(fields,
+			&discordgo.MessageEmbedField{Name: "👤 帳號", Value: who},
+			&discordgo.MessageEmbedField{Name: "💳 方案", Value: prettyPlan(acc)},
+			&discordgo.MessageEmbedField{Name: "🛡️ 超額計費", Value: overage},
+		)
+	}
+	fields = append(fields,
+		&discordgo.MessageEmbedField{Name: "🤖 版本", Value: ver},
+		&discordgo.MessageEmbedField{Name: "⏳ 本次工作階段", Value: u.session.String()},
+		&discordgo.MessageEmbedField{Name: "📅 每週上限（所有模型）", Value: u.weekAll.String()},
+		&discordgo.MessageEmbedField{Name: "✨ 每週上限（Fable）", Value: u.fable.String()},
+	)
 	emb := &discordgo.MessageEmbed{
-		Title: "📊 SML_Claude 用量",
-		Color: 0xf9a8d4,
-		Fields: []*discordgo.MessageEmbedField{
-			{Name: "🤖 版本", Value: ver},
-			{Name: "⏳ 本次工作階段", Value: u.session.String()},
-			{Name: "📅 每週上限（所有模型）", Value: u.weekAll.String()},
-			{Name: "✨ 每週上限（Fable）", Value: u.fable.String()},
-		},
+		Title:  "📊 SML_Claude 用量",
+		Color:  0xf9a8d4,
+		Fields: fields,
 	}
 	if u.note != "" {
 		emb.Footer = &discordgo.MessageEmbedFooter{Text: u.note}
@@ -694,8 +866,32 @@ func main() {
 	dg.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
 		// 診斷:每則訊息都先記下來源頻道,再套用過濾
 		log.Printf("MSG ch=%s author=%s bot=%v content=%q", m.ChannelID, m.Author.Username, m.Author.Bot, m.Content)
-		if m.Author.Bot || !allowedMsg(s, m) {
+		// ── bot↔bot 互通(僅限白名單頻道 + 對方那顆 AI bot)──
+		// 預設仍擋掉所有 bot;唯一例外:對方 AI bot 在 DISCUSS_CHANNELS 指定的頻道。
+		isPeerBot := m.Author.Bot && peerBotID != "" && m.Author.ID == peerBotID && discussChannels[m.ChannelID]
+		if m.Author.Bot && !isPeerBot {
 			return
+		}
+		// 迴圈閘門:人類一發言就把該頻道的 bot↔bot 計數歸零(人類=斷路器)。
+		if !m.Author.Bot && discussChannels[m.ChannelID] {
+			botExchMu.Lock()
+			botExchange[m.ChannelID] = 0
+			botExchMu.Unlock()
+		}
+		if !allowedMsg(s, m) {
+			return
+		}
+		// 對方 bot 觸發:超過來回上限就閉嘴,直到人類再開口(防 ping-pong 無限迴圈)。
+		if isPeerBot {
+			botExchMu.Lock()
+			n := botExchange[m.ChannelID]
+			if n >= maxBotExchanges {
+				botExchMu.Unlock()
+				log.Printf("bot↔bot 來回已達上限 %d(ch=%s),暫停回應對方 bot 直到人類發言", maxBotExchanges, m.ChannelID)
+				return
+			}
+			botExchange[m.ChannelID] = n + 1
+			botExchMu.Unlock()
 		}
 		// 文字與附件都空白就忽略
 		if strings.TrimSpace(m.Content) == "" && len(m.Attachments) == 0 {

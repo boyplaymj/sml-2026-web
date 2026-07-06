@@ -96,7 +96,8 @@ const SCHEDULE = {
   ],
 };
 
-const TODAY = '2026-6-23';                 // 今天(用於月曆標示)
+const _now = new Date();                   // 今天(用於月曆標示):動態抓當前日期,高亮框才會跟著日期走
+const TODAY = `${_now.getFullYear()}-${_now.getMonth()+1}-${_now.getDate()}`;  // 格式=年-月-日,月1起算不補零(對齊月曆比對)
 const grpName = g => g==='men' ? '男生組' : '女生組';
 const photo   = n => `assets/players/${n}.png`;
 const fmtPts  = v => v>0 ? '+'+v : (v<0 ? ''+v : '0');

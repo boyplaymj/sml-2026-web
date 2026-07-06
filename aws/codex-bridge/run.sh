@@ -29,4 +29,10 @@ export CHANNEL_WORKDIRS="$(getopt /sml/codex-bridge/channel-workdirs)"
 # 選填:指定 codex 模型(空 = 用 ~/.codex/config.toml 的預設)。
 export CODEX_MODEL="$(getopt /sml/codex-bridge/model)"
 
+# bot↔bot 互通(測試):對方 AI bot = SML_Claude,僅限測試頻道 1522731838458822808。
+# 非機密故直接帶預設值;要改頻道/停用改這裡即可。
+export PEER_BOT_ID="${PEER_BOT_ID:-1519422799238664415}"
+export DISCUSS_CHANNELS="${DISCUSS_CHANNELS:-1522731838458822808}"
+export MAX_BOT_EXCHANGES="${MAX_BOT_EXCHANGES:-3}"
+
 exec /opt/sml/codex-bridge

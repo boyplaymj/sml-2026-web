@@ -101,6 +101,12 @@ var (
 	allowedChannels = csvSet(os.Getenv("ALLOWED_CHANNELS"))
 	allowedGuilds   = csvSet(os.Getenv("ALLOWED_GUILDS"))
 	allowedUsers    = csvSet(os.Getenv("ALLOWED_USERS"))
+	// bot↔bot 互通:只有 PEER_BOT_ID 這顆 AI bot、且在 DISCUSS_CHANNELS 白名單頻道,才准跨 bot 觸發本 bot。
+	peerBotID       = os.Getenv("PEER_BOT_ID")
+	discussChannels = csvSet(os.Getenv("DISCUSS_CHANNELS"))
+	maxBotExchanges = envInt("MAX_BOT_EXCHANGES", 3) // 兩則人類訊息間,bot↔bot 最多來回幾次
+	botExchMu       sync.Mutex
+	botExchange     = map[string]int{} // channelID -> 連續 bot↔bot 來回計數(人類發言歸零)
 	// codex CLI 裝在 nvm 的 node22 底下(與系統 node18 隔離)。run.sh 會用絕對路徑覆蓋，
 	// 這裡的預設值是保險：直接指向 nvm 那顆，即使 PATH 沒帶到也能跑。
 	codexBin        = env("CODEX_BIN", "/home/smlbot/.nvm/versions/node/v22.23.1/bin/codex")
@@ -806,8 +812,32 @@ func main() {
 	dg.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
 		// 診斷:每則訊息都先記下來源頻道,再套用過濾
 		log.Printf("MSG ch=%s author=%s bot=%v content=%q", m.ChannelID, m.Author.Username, m.Author.Bot, m.Content)
-		if m.Author.Bot || !allowedMsg(s, m) {
+		// ── bot↔bot 互通(僅限白名單頻道 + 對方那顆 AI bot)──
+		// 預設仍擋掉所有 bot;唯一例外:對方 AI bot 在 DISCUSS_CHANNELS 指定的頻道。
+		isPeerBot := m.Author.Bot && peerBotID != "" && m.Author.ID == peerBotID && discussChannels[m.ChannelID]
+		if m.Author.Bot && !isPeerBot {
 			return
+		}
+		// 迴圈閘門:人類一發言就把該頻道的 bot↔bot 計數歸零(人類=斷路器)。
+		if !m.Author.Bot && discussChannels[m.ChannelID] {
+			botExchMu.Lock()
+			botExchange[m.ChannelID] = 0
+			botExchMu.Unlock()
+		}
+		if !allowedMsg(s, m) {
+			return
+		}
+		// 對方 bot 觸發:超過來回上限就閉嘴,直到人類再開口(防 ping-pong 無限迴圈)。
+		if isPeerBot {
+			botExchMu.Lock()
+			n := botExchange[m.ChannelID]
+			if n >= maxBotExchanges {
+				botExchMu.Unlock()
+				log.Printf("bot↔bot 來回已達上限 %d(ch=%s),暫停回應對方 bot 直到人類發言", maxBotExchanges, m.ChannelID)
+				return
+			}
+			botExchange[m.ChannelID] = n + 1
+			botExchMu.Unlock()
 		}
 		// 文字與附件都空白就忽略
 		if strings.TrimSpace(m.Content) == "" && len(m.Attachments) == 0 {
