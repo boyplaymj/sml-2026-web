@@ -546,11 +546,11 @@ func allowedInteraction(i *discordgo.InteractionCreate) bool {
 func registerApplicationCommands(s *discordgo.Session, guilds []*discordgo.Guild) {
 	cmd := &discordgo.ApplicationCommand{
 		Name:        "read",
-		Description: "讀取指定 bot 在本頻道最近一段文字,並交給 SML_Codex 回覆",
+		Description: "讀取 SML_Claude 在本頻道最近一段文字,並交給 SML_Codex 回覆",
 		Options: []*discordgo.ApplicationCommandOption{
 			{
 				Type:        discordgo.ApplicationCommandOptionString,
-				Name:        "request",
+				Name:        "q",
 				Description: "你要 SML_Codex 針對該訊息做什麼",
 				Required:    true,
 			},
@@ -699,7 +699,11 @@ func discordMessageURL(guildID, channelID, messageID string) string {
 
 func handleReadCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()
-	request := interactionTextOption(data, "request")
+	request := interactionTextOption(data, "q")
+	if request == "" {
+		// 相容舊版 /read request:... 指令資料。
+		request = interactionTextOption(data, "request")
+	}
 	targetID := interactionUserOption(data, "target")
 	if targetID == "" {
 		targetID = readTargetBotID
