@@ -107,6 +107,9 @@ var (
 	maxBotExchanges = envInt("MAX_BOT_EXCHANGES", 3) // 兩則人類訊息間,bot↔bot 最多來回幾次
 	botExchMu       sync.Mutex
 	botExchange     = map[string]int{} // channelID -> 連續 bot↔bot 來回計數(人類發言歸零)
+	readTargetBotID = env("READ_TARGET_BOT_ID", peerBotID)
+	readFetchLimit  = envInt("READ_FETCH_LIMIT", 50)
+	registerCmdOnce sync.Once
 	// codex CLI 裝在 nvm 的 node22 底下(與系統 node18 隔離)。run.sh 會用絕對路徑覆蓋，
 	// 這裡的預設值是保險：直接指向 nvm 那顆，即使 PATH 沒帶到也能跑。
 	codexBin        = env("CODEX_BIN", "/home/smlbot/.nvm/versions/node/v22.23.1/bin/codex")
@@ -520,6 +523,235 @@ func tryBridgeCommand(s *discordgo.Session, m *discordgo.MessageCreate, stripped
 	return false
 }
 
+func allowedInteraction(i *discordgo.InteractionCreate) bool {
+	if len(allowedGuilds) > 0 {
+		if !allowedGuilds[i.GuildID] && !allowedChannels[i.ChannelID] {
+			return false
+		}
+	} else if len(allowedChannels) > 0 && !allowedChannels[i.ChannelID] {
+		return false
+	}
+	if len(allowedUsers) == 0 {
+		return true
+	}
+	if i.Member != nil && i.Member.User != nil {
+		return allowedUsers[i.Member.User.ID]
+	}
+	if i.User != nil {
+		return allowedUsers[i.User.ID]
+	}
+	return false
+}
+
+func registerApplicationCommands(s *discordgo.Session, guilds []*discordgo.Guild) {
+	cmd := &discordgo.ApplicationCommand{
+		Name:        "read",
+		Description: "讀取指定 bot 在本頻道最近一段文字,並交給 SML_Codex 回覆",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "request",
+				Description: "你要 SML_Codex 針對該訊息做什麼",
+				Required:    true,
+			},
+			{
+				Type:        discordgo.ApplicationCommandOptionUser,
+				Name:        "target",
+				Description: "要讀取的 bot,預設為 SML_Claude",
+				Required:    false,
+			},
+		},
+	}
+
+	guildIDs := map[string]bool{}
+	if len(allowedGuilds) > 0 {
+		for id := range allowedGuilds {
+			guildIDs[id] = true
+		}
+	} else {
+		for _, g := range guilds {
+			if g != nil && g.ID != "" {
+				guildIDs[g.ID] = true
+			}
+		}
+	}
+	for guildID := range guildIDs {
+		if _, err := s.ApplicationCommandCreate(s.State.User.ID, guildID, cmd); err != nil {
+			log.Printf("slash command register error guild=%s: %v", guildID, err)
+			continue
+		}
+		log.Printf("slash command /read registered guild=%s", guildID)
+	}
+}
+
+func optionUserID(opt *discordgo.ApplicationCommandInteractionDataOption) string {
+	if opt == nil || opt.Value == nil {
+		return ""
+	}
+	if s, ok := opt.Value.(string); ok {
+		return s
+	}
+	return fmt.Sprint(opt.Value)
+}
+
+func latestTextBlockFromMessages(messages []*discordgo.Message, targetID string) (string, []*discordgo.Message) {
+	var block []*discordgo.Message
+	var newest time.Time
+	for _, msg := range messages {
+		if msg == nil || msg.Author == nil {
+			continue
+		}
+		content := strings.TrimSpace(msg.Content)
+		if msg.Author.ID == targetID && content != "" {
+			if len(block) == 0 {
+				newest = msg.Timestamp
+			} else if !newest.IsZero() && !msg.Timestamp.IsZero() && newest.Sub(msg.Timestamp) > 2*time.Minute {
+				break
+			}
+			block = append(block, msg)
+			continue
+		}
+		if len(block) > 0 {
+			break
+		}
+	}
+	if len(block) == 0 {
+		return "", nil
+	}
+	for i, j := 0, len(block)-1; i < j; i, j = i+1, j-1 {
+		block[i], block[j] = block[j], block[i]
+	}
+	parts := make([]string, 0, len(block))
+	for _, msg := range block {
+		parts = append(parts, strings.TrimSpace(msg.Content))
+	}
+	return strings.Join(parts, "\n\n"), block
+}
+
+func fetchLatestTextBlock(s *discordgo.Session, channelID, targetID string) (string, []*discordgo.Message, error) {
+	limit := readFetchLimit
+	if limit <= 0 {
+		limit = 50
+	}
+	if limit > 100 {
+		limit = 100
+	}
+	msgs, err := s.ChannelMessages(channelID, limit, "", "", "")
+	if err != nil {
+		return "", nil, err
+	}
+	text, block := latestTextBlockFromMessages(msgs, targetID)
+	if text == "" {
+		return "", nil, fmt.Errorf("找不到指定 bot 在最近 %d 則內的文字訊息", limit)
+	}
+	return text, block, nil
+}
+
+func interactionTextOption(data discordgo.ApplicationCommandInteractionData, name string) string {
+	for _, opt := range data.Options {
+		if opt.Name == name {
+			return strings.TrimSpace(opt.StringValue())
+		}
+	}
+	return ""
+}
+
+func interactionUserOption(data discordgo.ApplicationCommandInteractionData, name string) string {
+	for _, opt := range data.Options {
+		if opt.Name == name {
+			return optionUserID(opt)
+		}
+	}
+	return ""
+}
+
+func splitDiscordChunk(text string, max int) (string, string) {
+	if len(text) <= max {
+		return text, ""
+	}
+	n := max
+	if idx := strings.LastIndexByte(text[:max], '\n'); idx > 200 {
+		n = idx
+	}
+	return text[:n], text[n:]
+}
+
+func editInteractionChunked(s *discordgo.Session, i *discordgo.InteractionCreate, text string) {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		text = "(完成,但沒有文字輸出)"
+	}
+	first, rest := splitDiscordChunk(text, 1900)
+	if _, err := s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{Content: &first}); err != nil {
+		log.Printf("interaction edit error: %v", err)
+		sendChunked(s, i.ChannelID, text)
+		return
+	}
+	sendChunked(s, i.ChannelID, rest)
+}
+
+func discordMessageURL(guildID, channelID, messageID string) string {
+	if guildID == "" {
+		guildID = "@me"
+	}
+	return fmt.Sprintf("https://discord.com/channels/%s/%s/%s", guildID, channelID, messageID)
+}
+
+func handleReadCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	data := i.ApplicationCommandData()
+	request := interactionTextOption(data, "request")
+	targetID := interactionUserOption(data, "target")
+	if targetID == "" {
+		targetID = readTargetBotID
+	}
+	if targetID == "" {
+		editInteractionChunked(s, i, "⚠️ 尚未設定 READ_TARGET_BOT_ID 或 PEER_BOT_ID,無法判斷要讀哪一顆 bot。")
+		return
+	}
+
+	text, block, err := fetchLatestTextBlock(s, i.ChannelID, targetID)
+	if err != nil {
+		editInteractionChunked(s, i, "⚠️ "+err.Error())
+		return
+	}
+	sourceURL := ""
+	if len(block) > 0 {
+		sourceURL = discordMessageURL(i.GuildID, i.ChannelID, block[len(block)-1].ID)
+	}
+	prompt := fmt.Sprintf(`請閱讀以下 Discord 頻道中指定 bot 最近一段文字,再依照使用者需求回覆。
+
+[來源]
+channel_id: %s
+target_bot_id: %s
+message_url: %s
+
+[指定 bot 最近訊息]
+%s
+
+[使用者需求]
+%s`, i.ChannelID, targetID, sourceURL, text, request)
+
+	s.ChannelTyping(i.ChannelID)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutMin)*time.Minute)
+	defer cancel()
+	done := make(chan struct{})
+	go func() {
+		t := time.NewTicker(8 * time.Second)
+		defer t.Stop()
+		for {
+			select {
+			case <-done:
+				return
+			case <-t.C:
+				s.ChannelTyping(i.ChannelID)
+			}
+		}
+	}()
+	reply := runCodex(ctx, i.ChannelID, prompt)
+	close(done)
+	editInteractionChunked(s, i, reply)
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // !用量：顯示 Claude 版本與用量上限（工作階段 / 全模型週上限 / Fable 週上限）。
 //
@@ -668,7 +900,9 @@ func readLimit(m map[string]json.RawMessage, key string) limitLine {
 	case obj.UsedPercentage != nil:
 		out.pct = *obj.UsedPercentage
 	case obj.Utilization != nil:
-		out.pct = *obj.Utilization * 100
+		// /api/oauth/usage 的 utilization 本身就是百分比(例如 8.0 = 8%),不要再 ×100。
+		// (標頭法的 utilization 才是 0-1 小數,那條在 headerLimit 另外處理。)
+		out.pct = *obj.Utilization
 	}
 	if r := parseReset(obj.ResetsAt); r != 0 {
 		out.reset = r
@@ -800,6 +1034,9 @@ func main() {
 
 	dg.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Printf("READY: 已登入為 %s,可見 %d 個伺服器", r.User.String(), len(r.Guilds))
+		registerCmdOnce.Do(func() {
+			registerApplicationCommands(s, r.Guilds)
+		})
 		for chID := range allowedChannels {
 			s.ChannelMessageSend(chID, "✅ SML Codex 已上線(@我或回覆我即可)。大任務前先打「新對話」可清空脈絡；單則處理上限 "+strconv.Itoa(timeoutMin)+" 分鐘。")
 		}
@@ -933,18 +1170,27 @@ func main() {
 
 	// ── 按鈕互動處理 ──
 	dg.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		if i.Type != discordgo.InteractionMessageComponent {
+		// 權限檢查
+		if !allowedInteraction(i) {
 			return
 		}
-		// 權限檢查
-		if len(allowedGuilds) > 0 {
-			if !allowedGuilds[i.GuildID] {
+
+		if i.Type == discordgo.InteractionApplicationCommand {
+			data := i.ApplicationCommandData()
+			if data.Name != "read" {
 				return
 			}
-		} else if len(allowedChannels) > 0 && !allowedChannels[i.ChannelID] {
+			if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+			}); err != nil {
+				log.Printf("slash command ack error: %v", err)
+				return
+			}
+			handleReadCommand(s, i)
 			return
 		}
-		if len(allowedUsers) > 0 && !allowedUsers[i.Member.User.ID] {
+
+		if i.Type != discordgo.InteractionMessageComponent {
 			return
 		}
 
