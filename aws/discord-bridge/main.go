@@ -199,6 +199,18 @@ func firstLine(s string) string {
 	return s
 }
 
+// claudeArgs 組出 claude CLI 參數。
+// 鐵律:所有 options(含 --resume)都必須在 `--` 之前;prompt 放最後、緊接在 `--` 之後。
+// 若 --resume 落到 `--` 之後,會被當成 prompt 文字吞掉 → session 永遠不 resume(每則訊息失憶)。
+// prompt 放 `--` 之後則保證以 "-" 開頭的內容不會被誤判成未知 option。
+func claudeArgs(sid, prompt string) []string {
+	args := []string{"--output-format", "json", "--permission-mode", "bypassPermissions"}
+	if sid != "" {
+		args = append(args, "--resume", sid)
+	}
+	return append(args, "-p", "--", prompt)
+}
+
 // runClaude 在工作目錄跑 headless claude,維持每個頻道的 session。
 func runClaude(ctx context.Context, channelID, prompt string) string {
 	// 同頻道序列化：一次只跑一個 claude。第二則訊息會在這裡等前一則跑完再進場，
@@ -220,10 +232,7 @@ func runClaude(ctx context.Context, channelID, prompt string) string {
 	sid := sessions[channelID]
 	mu.Unlock()
 
-	args := []string{"-p", prompt, "--output-format", "json", "--permission-mode", "bypassPermissions"}
-	if sid != "" {
-		args = append(args, "--resume", sid)
-	}
+	args := claudeArgs(sid, prompt)
 
 	// 執行 claude,最多試 2 次:若進程被系統強殺(signal: killed,通常是記憶體壓力,stderr 空),
 	// 等幾秒讓記憶體釋放後自動重試一次,避免使用者只看到無意義的「unknown error」。
@@ -408,34 +417,52 @@ func parseButtons(text string) (string, []btnDef) {
 	return strings.TrimSpace(clean), btns
 }
 
-// sendWithButtons 偵測按鈕標記後送出帶按鈕的訊息，否則退回純文字分段送出。
+// sendWithButtons 送出回覆:解析 [[BTN]] 標記,並在 bot↔bot 頻道底部自動加「轉傳給對方」按鈕。
 func sendWithButtons(s *discordgo.Session, channelID, text string) {
 	clean, btns := parseButtons(text)
-	if len(btns) == 0 {
-		sendChunked(s, channelID, text)
-		return
-	}
+	var rows []discordgo.MessageComponent
 	// Discord 每列最多 5 顆按鈕
 	if len(btns) > 5 {
 		btns = btns[:5]
 	}
-	var comps []discordgo.MessageComponent
-	for _, b := range btns {
-		comps = append(comps, discordgo.Button{
-			Label:    b.label,
-			Style:    discordgo.PrimaryButton,
-			CustomID: b.id,
-		})
+	if len(btns) > 0 {
+		var comps []discordgo.MessageComponent
+		for _, b := range btns {
+			comps = append(comps, discordgo.Button{Label: b.label, Style: discordgo.PrimaryButton, CustomID: b.id})
+		}
+		rows = append(rows, discordgo.ActionsRow{Components: comps})
 	}
-	msg := &discordgo.MessageSend{
-		Content: clean,
-		Components: []discordgo.MessageComponent{
-			discordgo.ActionsRow{Components: comps},
-		},
+	// bot↔bot 頻道:回覆底部自動掛「➡️ 轉傳給對方」按鈕。
+	if fwd := forwardButtonRow(channelID); fwd != nil {
+		rows = append(rows, fwd...)
 	}
-	if _, err := s.ChannelMessageSendComplex(channelID, msg); err != nil {
-		log.Printf("send with buttons error: %v — falling back to text", err)
+	if len(rows) == 0 {
 		sendChunked(s, channelID, clean)
+		return
+	}
+	sendChunkedWithComponents(s, channelID, clean, rows)
+}
+
+// sendChunkedWithComponents 分段送出文字,把 components(按鈕)掛在最後一段。
+func sendChunkedWithComponents(s *discordgo.Session, channelID, text string, rows []discordgo.MessageComponent) {
+	const max = 1900
+	for len(text) > max {
+		n := max
+		if idx := strings.LastIndexByte(text[:max], '\n'); idx > 200 {
+			n = idx
+		}
+		if _, err := s.ChannelMessageSend(channelID, text[:n]); err != nil {
+			log.Printf("send error: %v", err)
+		}
+		text = text[n:]
+	}
+	if strings.TrimSpace(text) == "" {
+		text = "⬇️"
+	}
+	msg := &discordgo.MessageSend{Content: text, Components: rows}
+	if _, err := s.ChannelMessageSendComplex(channelID, msg); err != nil {
+		log.Printf("send with components error: %v — fallback text", err)
+		sendChunked(s, channelID, text)
 	}
 }
 
@@ -867,13 +894,15 @@ func main() {
 		// 診斷:每則訊息都先記下來源頻道,再套用過濾
 		log.Printf("MSG ch=%s author=%s bot=%v content=%q", m.ChannelID, m.Author.Username, m.Author.Bot, m.Content)
 		// ── bot↔bot 互通(僅限白名單頻道 + 對方那顆 AI bot)──
-		// 預設仍擋掉所有 bot;唯一例外:對方 AI bot 在 DISCUSS_CHANNELS 指定的頻道。
-		isPeerBot := m.Author.Bot && peerBotID != "" && m.Author.ID == peerBotID && discussChannels[m.ChannelID]
+		// 白名單改讀 runtime JSON(免重啟即時生效);讀不到才退回 env 的 discussChannels。
+		b2b := botToBotSet()
+		// 預設仍擋掉所有 bot;唯一例外:對方 AI bot 在白名單頻道。
+		isPeerBot := m.Author.Bot && peerBotID != "" && m.Author.ID == peerBotID && b2b[m.ChannelID]
 		if m.Author.Bot && !isPeerBot {
 			return
 		}
 		// 迴圈閘門:人類一發言就把該頻道的 bot↔bot 計數歸零(人類=斷路器)。
-		if !m.Author.Bot && discussChannels[m.ChannelID] {
+		if !m.Author.Bot && b2b[m.ChannelID] {
 			botExchMu.Lock()
 			botExchange[m.ChannelID] = 0
 			botExchMu.Unlock()
@@ -908,6 +937,8 @@ func main() {
 			if cmd == "!用量" {
 				s.ChannelTyping(m.ChannelID)
 				handleUsageCommand(s, m.ChannelID)
+			} else if cmd == "!白名單" {
+				handleWhitelistCommand(s, m)
 			} else {
 				tryBridgeCommand(s, m, stripped)
 			}
@@ -1004,6 +1035,17 @@ func main() {
 
 		data := i.MessageComponentData()
 		customID := data.CustomID
+
+		// bot↔bot 白名單下拉選單(b2b:enable / b2b:disable):即時改 JSON、重繪訊息,不進 claude。
+		if strings.HasPrefix(customID, "b2b:") {
+			handleWhitelistSelect(s, i, customID)
+			return
+		}
+		// 「轉傳給對方」按鈕:把這則內容重貼成 @對方bot,不進 claude。
+		if customID == "fwd:peer" {
+			handleForward(s, i)
+			return
+		}
 
 		// 從原始訊息找 button label
 		btnLabel := customID

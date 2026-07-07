@@ -176,6 +176,120 @@ func workdirFor(channelID string) string {
 	return workdir
 }
 
+func sharedBrainRoot() string {
+	return env("SML_BRAIN_ROOT", "/mnt/sml-brain")
+}
+
+func readSmallFile(path string, maxBytes int) string {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return ""
+	}
+	truncated := false
+	if maxBytes > 0 && len(data) > maxBytes {
+		data = data[:maxBytes]
+		truncated = true
+	}
+	text := strings.TrimSpace(string(data))
+	if text == "" {
+		return ""
+	}
+	if truncated {
+		text += "\n...[truncated]"
+	}
+	return text
+}
+
+func containsAnyFold(text string, terms ...string) bool {
+	lower := strings.ToLower(text)
+	for _, term := range terms {
+		if strings.Contains(lower, strings.ToLower(term)) {
+			return true
+		}
+	}
+	return false
+}
+
+func shouldLoadAgentPractices(prompt string) bool {
+	return containsAnyFold(prompt,
+		"debug", "root cause", "error", "failed", "failure", "bug", "broken", "verify", "verification",
+		"test", "deploy", "journalctl", "systemctl", "unknown error", "trace", "regression",
+		"除錯", "錯誤", "失敗", "壞掉", "問題", "驗證", "測試", "修", "修好", "上線", "部署", "看下",
+	)
+}
+
+func shouldLoadSharedMemoryPolicy(prompt string) bool {
+	return containsAnyFold(prompt,
+		"sml-brain", "shared brain", "shared memory", "agent-practices", "write-policy", "s3 files",
+		"/mnt/sml-brain", "global/hot", "inbox", "handoff",
+		"共享大腦", "共享記憶", "寫入", "記住", "沉澱", "記憶", "共用目錄",
+	)
+}
+
+func sharedBrainContext(prompt string, newThread bool) string {
+	root := sharedBrainRoot()
+	if root == "" {
+		return ""
+	}
+
+	type item struct {
+		label string
+		path  string
+		limit int
+	}
+	items := []item{}
+
+	// New threads get only lightweight routing indexes so Codex can discover
+	// durable shared memory without loading every hot file on every turn.
+	if newThread {
+		items = append(items,
+			item{"INDEX.claude.md", filepath.Join(root, "INDEX.claude.md"), 2500},
+			item{"INDEX.codex.md", filepath.Join(root, "INDEX.codex.md"), 2500},
+		)
+	}
+
+	if shouldLoadAgentPractices(prompt) {
+		items = append(items,
+			item{"global/hot/agent-practices.md", filepath.Join(root, "global", "hot", "agent-practices.md"), 5000},
+		)
+	}
+
+	if shouldLoadSharedMemoryPolicy(prompt) {
+		items = append(items,
+			item{"global/hot/write-policy.md", filepath.Join(root, "global", "hot", "write-policy.md"), 6500},
+			item{"global/hot/collaboration.md", filepath.Join(root, "global", "hot", "collaboration.md"), 4500},
+		)
+	}
+
+	seen := map[string]bool{}
+	parts := []string{}
+	for _, it := range items {
+		if seen[it.path] {
+			continue
+		}
+		seen[it.path] = true
+		text := readSmallFile(it.path, it.limit)
+		if text == "" {
+			continue
+		}
+		parts = append(parts, "## "+it.label+"\n"+text)
+	}
+	if len(parts) == 0 {
+		return ""
+	}
+	return "Shared-brain context from " + root + " (read-only; explicit user instructions and current repo state win):\n\n" +
+		strings.Join(parts, "\n\n---\n\n")
+}
+
+func augmentPromptWithSharedBrain(channelID, prompt string, newThread bool) string {
+	ctx := sharedBrainContext(prompt, newThread)
+	if ctx == "" {
+		return prompt
+	}
+	log.Printf("shared-brain context injected ch=%s new_thread=%v bytes=%d", channelID, newThread, len(ctx))
+	return ctx + "\n\n---\n\nUser request:\n" + prompt
+}
+
 // codexEvent 是 `codex exec --json` JSONL 串流裡的一個事件。
 // 我們只需要兩種：thread.started（第一行，帶 thread_id → 存為該頻道 session）、
 // 以及 error（把訊息撈出來回報）。最終回覆文字改用 `-o <file>` 直接落地，較穩。
@@ -207,6 +321,7 @@ func runCodex(ctx context.Context, channelID, prompt string) string {
 	mu.Lock()
 	sid := sessions[channelID]
 	mu.Unlock()
+	prompt = augmentPromptWithSharedBrain(channelID, prompt, sid == "")
 
 	// 最終回覆用 -o 寫到暫存檔（比從 JSONL 掃最後一則 agent 訊息穩）。
 	tmp, err := os.CreateTemp("", "codex-out-*.txt")
@@ -218,8 +333,8 @@ func runCodex(ctx context.Context, channelID, prompt string) string {
 	defer os.Remove(outFile)
 
 	// 組指令：
-	//   首次   codex exec        --json --dangerously-... [-m model] -o <file> "<prompt>"
-	//   續接   codex exec resume <thread_id> --json --dangerously-... [-m model] -o <file> "<prompt>"
+	//   首次   codex exec        --json --dangerously-... [-m model] -o <file> -   (prompt 走 stdin)
+	//   續接   codex exec resume <thread_id> --json --dangerously-... [-m model] -o <file> -   (prompt 走 stdin)
 	var args []string
 	if sid != "" {
 		args = []string{"exec", "resume", sid}
@@ -230,10 +345,14 @@ func runCodex(ctx context.Context, channelID, prompt string) string {
 	if codexModel != "" {
 		args = append(args, "-m", codexModel)
 	}
-	args = append(args, prompt)
+	// 用 "-" 讓 codex 從 stdin 讀 prompt(官方文件保證:exec / exec resume 的 [PROMPT] 給 "-" 即讀 stdin),
+	// 而不是把 prompt 當 argv 位置參數。這樣即使 prompt 以 "-" 開頭也不會被 clap 誤判成 option,
+	// 對稱 claude 版把 prompt 放在 `--` 之後的保護。
+	args = append(args, "-")
 
 	cmd := exec.CommandContext(ctx, codexBin, args...)
 	cmd.Dir = workdirFor(channelID)
+	cmd.Stdin = strings.NewReader(prompt)
 	// 把來源頻道 ID 注入對話環境(與 claude 版一致,供 hook 依頻道判斷)。
 	// 同時把 nvm node22 的 bin 掛進 PATH,確保 codex 及其相依可被解析。
 	nodeBin := filepath.Dir(codexBin)
@@ -434,34 +553,52 @@ func parseButtons(text string) (string, []btnDef) {
 	return strings.TrimSpace(clean), btns
 }
 
-// sendWithButtons 偵測按鈕標記後送出帶按鈕的訊息，否則退回純文字分段送出。
+// sendWithButtons 送出回覆:解析 [[BTN]] 標記,並在 bot↔bot 頻道底部自動加「轉傳給對方」按鈕。
 func sendWithButtons(s *discordgo.Session, channelID, text string) {
 	clean, btns := parseButtons(text)
-	if len(btns) == 0 {
-		sendChunked(s, channelID, text)
-		return
-	}
+	var rows []discordgo.MessageComponent
 	// Discord 每列最多 5 顆按鈕
 	if len(btns) > 5 {
 		btns = btns[:5]
 	}
-	var comps []discordgo.MessageComponent
-	for _, b := range btns {
-		comps = append(comps, discordgo.Button{
-			Label:    b.label,
-			Style:    discordgo.PrimaryButton,
-			CustomID: b.id,
-		})
+	if len(btns) > 0 {
+		var comps []discordgo.MessageComponent
+		for _, b := range btns {
+			comps = append(comps, discordgo.Button{Label: b.label, Style: discordgo.PrimaryButton, CustomID: b.id})
+		}
+		rows = append(rows, discordgo.ActionsRow{Components: comps})
 	}
-	msg := &discordgo.MessageSend{
-		Content: clean,
-		Components: []discordgo.MessageComponent{
-			discordgo.ActionsRow{Components: comps},
-		},
+	// bot↔bot 頻道:回覆底部自動掛「➡️ 轉傳給對方」按鈕。
+	if fwd := forwardButtonRow(channelID); fwd != nil {
+		rows = append(rows, fwd...)
 	}
-	if _, err := s.ChannelMessageSendComplex(channelID, msg); err != nil {
-		log.Printf("send with buttons error: %v — falling back to text", err)
+	if len(rows) == 0 {
 		sendChunked(s, channelID, clean)
+		return
+	}
+	sendChunkedWithComponents(s, channelID, clean, rows)
+}
+
+// sendChunkedWithComponents 分段送出文字,把 components(按鈕)掛在最後一段。
+func sendChunkedWithComponents(s *discordgo.Session, channelID, text string, rows []discordgo.MessageComponent) {
+	const max = 1900
+	for len(text) > max {
+		n := max
+		if idx := strings.LastIndexByte(text[:max], '\n'); idx > 200 {
+			n = idx
+		}
+		if _, err := s.ChannelMessageSend(channelID, text[:n]); err != nil {
+			log.Printf("send error: %v", err)
+		}
+		text = text[n:]
+	}
+	if strings.TrimSpace(text) == "" {
+		text = "⬇️"
+	}
+	msg := &discordgo.MessageSend{Content: text, Components: rows}
+	if _, err := s.ChannelMessageSendComplex(channelID, msg); err != nil {
+		log.Printf("send with components error: %v — fallback text", err)
+		sendChunked(s, channelID, text)
 	}
 }
 
@@ -1054,13 +1191,15 @@ func main() {
 		// 診斷:每則訊息都先記下來源頻道,再套用過濾
 		log.Printf("MSG ch=%s author=%s bot=%v content=%q", m.ChannelID, m.Author.Username, m.Author.Bot, m.Content)
 		// ── bot↔bot 互通(僅限白名單頻道 + 對方那顆 AI bot)──
-		// 預設仍擋掉所有 bot;唯一例外:對方 AI bot 在 DISCUSS_CHANNELS 指定的頻道。
-		isPeerBot := m.Author.Bot && peerBotID != "" && m.Author.ID == peerBotID && discussChannels[m.ChannelID]
+		// 白名單改讀 runtime JSON(免重啟即時生效);讀不到才退回 env 的 discussChannels。
+		b2b := botToBotSet()
+		// 預設仍擋掉所有 bot;唯一例外:對方 AI bot 在白名單頻道。
+		isPeerBot := m.Author.Bot && peerBotID != "" && m.Author.ID == peerBotID && b2b[m.ChannelID]
 		if m.Author.Bot && !isPeerBot {
 			return
 		}
 		// 迴圈閘門:人類一發言就把該頻道的 bot↔bot 計數歸零(人類=斷路器)。
-		if !m.Author.Bot && discussChannels[m.ChannelID] {
+		if !m.Author.Bot && b2b[m.ChannelID] {
 			botExchMu.Lock()
 			botExchange[m.ChannelID] = 0
 			botExchMu.Unlock()
@@ -1095,6 +1234,8 @@ func main() {
 			if cmd == "!用量" {
 				s.ChannelTyping(m.ChannelID)
 				handleUsageCommand(s, m.ChannelID)
+			} else if cmd == "!白名單" {
+				handleWhitelistCommand(s, m)
 			} else {
 				tryBridgeCommand(s, m, stripped)
 			}
@@ -1200,6 +1341,17 @@ func main() {
 
 		data := i.MessageComponentData()
 		customID := data.CustomID
+
+		// bot↔bot 白名單下拉選單(b2b:enable / b2b:disable):即時改 JSON、重繪訊息,不進 codex。
+		if strings.HasPrefix(customID, "b2b:") {
+			handleWhitelistSelect(s, i, customID)
+			return
+		}
+		// 「轉傳給對方」按鈕:把這則內容重貼成 @對方bot,不進 codex。
+		if customID == "fwd:peer" {
+			handleForward(s, i)
+			return
+		}
 
 		// 從原始訊息找 button label
 		btnLabel := customID
