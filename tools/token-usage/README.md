@@ -31,6 +31,9 @@
 ### 3. 事後實測
 - **跨頻道/功能佔比**：`python3 tools/token-usage/report.py`
   （讀 `~/.claude/projects/**/*.jsonl` 逐則 usage，按單價加權，對到頻道名）。
+- **單功能完工用量**（做完一個功能就附這份）：
+  `python3 tools/token-usage/report.py --channel <頻道id> [--since YYYY-MM-DD]`
+  或 `--session <sid>` → 印該功能的 token 合計、in/out/快取拆解、起訖時間、AI 回覆則數、模型。
 - **自動化服務逐次帳本**：接 `--output-format json | budget.py --log <kind> <model>`，
   隨時 `python3 budget.py` 看當日實際 token/$（範式在 `/opt/sml/stock-intel/`）。
 
