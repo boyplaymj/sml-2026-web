@@ -19,6 +19,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -124,29 +125,69 @@ func writeInterop(cfg interopConfig) error {
 	return nil
 }
 
+// interopLockPath 跨 process 鎖檔路徑。兩個 bridge 同機共存,對「本機」檔案上 flock 即可可靠序列化;
+// 刻意不對共享 mount(s3fs)上的 JSON 本身 flock —— 那類 FUSE mount 不保證支援 POSIX 鎖。
+func interopLockPath() string {
+	if p := os.Getenv("BOT_INTEROP_LOCK"); p != "" {
+		return p
+	}
+	return filepath.Join(os.TempDir(), "sml-bot-interop.lock")
+}
+
+// withInteropLock 取得跨 process 排他鎖後執行 fn。拿不到鎖(檔案系統不支援等)時退化為直接執行,
+// 至少不比原本無鎖差,並記一筆 log 供事後追。
+func withInteropLock(fn func() error) error {
+	f, err := os.OpenFile(interopLockPath(), os.O_CREATE|os.O_RDWR, 0o644)
+	if err != nil {
+		log.Printf("interop lock 開檔失敗(%v);以無鎖模式繼續", err)
+		return fn()
+	}
+	defer f.Close()
+	if err := syscall.Flock(int(f.Fd()), syscall.LOCK_EX); err != nil {
+		log.Printf("interop flock 失敗(%v);以無鎖模式繼續", err)
+		return fn()
+	}
+	defer syscall.Flock(int(f.Fd()), syscall.LOCK_UN)
+	return fn()
+}
+
+// mutateInterop 在跨 process 鎖內做「讀→改→原子寫」,是所有白名單寫入的唯一入口。
+// 關鍵(修 review #2):readInterop 只有在檔案「不存在」時才當空設定;其他錯誤(JSON 壞掉、
+// 權限、mount I/O)一律往上拋、不覆蓋整份白名單,避免把好好的設定洗成空。
+// 鎖內重讀(修 review #3):兩顆 bridge 併發改也不會 lost update。
+func mutateInterop(apply func(cfg *interopConfig)) error {
+	return withInteropLock(func() error {
+		cfg, err := readInterop()
+		if err != nil {
+			if !os.IsNotExist(err) {
+				return err
+			}
+			cfg = interopConfig{Channels: map[string]interopChannel{}}
+		}
+		if cfg.Channels == nil {
+			cfg.Channels = map[string]interopChannel{}
+		}
+		apply(&cfg)
+		return writeInterop(cfg)
+	})
+}
+
 // toggleInterop 切換某頻道的 bot_to_bot,回傳新狀態。
 func toggleInterop(channelID, name string) (bool, error) {
-	cfg, err := readInterop()
-	if err != nil {
-		if os.IsNotExist(err) {
-			cfg = interopConfig{Channels: map[string]interopChannel{}}
-		} else {
-			return false, err
+	var newState bool
+	err := mutateInterop(func(cfg *interopConfig) {
+		c := cfg.Channels[channelID]
+		c.BotToBot = !c.BotToBot
+		if name != "" {
+			c.Name = name
 		}
-	}
-	if cfg.Channels == nil {
-		cfg.Channels = map[string]interopChannel{}
-	}
-	c := cfg.Channels[channelID]
-	c.BotToBot = !c.BotToBot
-	if name != "" {
-		c.Name = name
-	}
-	cfg.Channels[channelID] = c
-	if err := writeInterop(cfg); err != nil {
+		cfg.Channels[channelID] = c
+		newState = c.BotToBot
+	})
+	if err != nil {
 		return false, err
 	}
-	return c.BotToBot, nil
+	return newState, nil
 }
 
 // isBridgeAdmin 判斷是否為可管理白名單的管理員。
@@ -316,22 +357,17 @@ func handleWhitelistSelect(s *discordgo.Session, i *discordgo.InteractionCreate,
 	state := customID == "b2b:enable"
 	values := i.MessageComponentData().Values
 	if len(values) > 0 {
-		cfg, err := readInterop()
-		if err != nil {
-			cfg = interopConfig{Channels: map[string]interopChannel{}}
-		}
-		if cfg.Channels == nil {
-			cfg.Channels = map[string]interopChannel{}
-		}
-		for _, chID := range values {
-			c := cfg.Channels[chID]
-			c.BotToBot = state
-			if ch, err := s.State.Channel(chID); err == nil && ch.Name != "" {
-				c.Name = ch.Name
+		err := mutateInterop(func(cfg *interopConfig) {
+			for _, chID := range values {
+				c := cfg.Channels[chID]
+				c.BotToBot = state
+				if ch, err := s.State.Channel(chID); err == nil && ch.Name != "" {
+					c.Name = ch.Name
+				}
+				cfg.Channels[chID] = c
 			}
-			cfg.Channels[chID] = c
-		}
-		if err := writeInterop(cfg); err != nil {
+		})
+		if err != nil {
 			log.Printf("b2b select write error: %v", err)
 			s.InteractionRespond(i.Interaction, ephemeralResp("⚠️ 寫入失敗:"+err.Error()))
 			return

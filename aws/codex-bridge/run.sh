@@ -31,9 +31,12 @@ export CODEX_MODEL="$(getopt /sml/codex-bridge/model)"
 
 # bot↔bot 互通(測試):對方 AI bot = SML_Claude,僅限測試頻道 1522731838458822808。
 # 非機密故直接帶預設值;要改頻道/停用改這裡即可。
+# DISCUSS_CHANNELS 只是「runtime JSON 讀不到時的 startup fallback」→ 只留測試頻道(修 review #4)。
+# 正式頻道一律走 runtime JSON(/mnt/sml-brain/_runtime/bot-interop-channels.json、!白名單 管理),
+# 這樣 mount 掛掉/JSON 壞掉時,bot↔bot 只會退回測試頻道,不會在正式頻道自動開。
 export PEER_BOT_ID="${PEER_BOT_ID:-1519422799238664415}"
 export PEER_BOT_NAME="${PEER_BOT_NAME:-Claude}"
-export DISCUSS_CHANNELS="${DISCUSS_CHANNELS:-1522731838458822808,1519443528831336629,1523844413821026455}"
+export DISCUSS_CHANNELS="${DISCUSS_CHANNELS:-1522731838458822808}"
 export MAX_BOT_EXCHANGES="${MAX_BOT_EXCHANGES:-3}"
 export BRIDGE_ADMIN_USERS="${BRIDGE_ADMIN_USERS:-662666377923919881,165872613757943808}"
 
