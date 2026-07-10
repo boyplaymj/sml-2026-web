@@ -179,7 +179,11 @@ bash deploy.sh        # 會 push origin/main + systemctl restart sweetbot-next
 
 ---
 
-## 附：一題完整範例（可直接進題庫）
+## 題庫
+
+完整題庫在同目錄 **`puzzles.json`**（目前 5 題，皆含三層提示與真相，已通過 JSON 驗證）。實作時把它複製/載入到 sweetbot-next（`data/puzzles.json` 或 `config/puzzles/`）。每題多了一個 `difficulty`（1–3）欄位可選用於排序。`!解謎` 無參數時隨機挑一題（排除該玩家已破關的）。**驗收時務必部署到測試頻道 `903327108451950692` 讓使用者實玩。**
+
+## 附：一題完整範例（結構參照，內容同 puzzles.json 第一題）
 
 ```jsonc
 {
