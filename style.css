@@ -279,17 +279,17 @@ footer{position:relative;border-top:1px solid var(--line-soft);padding:60px 0 40
 footer .stardust{opacity:.55;}
 .foot-grid{position:relative;z-index:2;display:flex;justify-content:space-between;gap:40px;flex-wrap:wrap;}
 .foot-tag{max-width:30em;color:var(--muted);line-height:1.8;margin-top:14px;font-size:14px;}
-.socials{display:flex;gap:12px;margin-top:18px;}
+.socials{display:flex;align-items:center;gap:12px;margin-top:18px;flex-wrap:wrap;}
 .socials a{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;border:1px solid var(--line);color:var(--muted);font-weight:900;font-family:var(--ff-disp);font-size:13px;transition:.2s;}
 .socials a:hover{color:var(--gold);border-color:var(--gold);transform:translateY(-3px);}
-/* 加入 LINE 群組小方塊 */
-.line-join{display:inline-flex;align-items:center;gap:10px;margin-top:14px;
-  background:#06C755;color:#fff;border-radius:12px;padding:8px 14px;text-decoration:none;
+/* 加入 LINE 群組小方塊(並排在社群列 FB 右邊;提權蓋過 .socials a 的 44x44 方框規則) */
+.socials a.line-join{width:auto;height:44px;display:inline-flex;align-items:center;gap:10px;
+  background:#06C755;color:#fff;border:none;border-radius:12px;padding:0 14px;text-decoration:none;
   font-family:var(--ff-disp);transition:.2s;box-shadow:0 4px 14px -4px rgba(6,199,85,.5);}
-.line-join:hover{transform:translateY(-3px);background:#05b64d;box-shadow:0 8px 22px -6px rgba(6,199,85,.65);}
+.socials a.line-join:hover{color:#fff;transform:translateY(-3px);background:#05b64d;box-shadow:0 8px 22px -6px rgba(6,199,85,.65);}
 .line-join .line-badge{font-weight:900;font-size:12px;letter-spacing:.05em;
   background:rgba(255,255,255,.22);padding:3px 7px;border-radius:6px;}
-.line-join .line-txt{display:flex;flex-direction:column;line-height:1.15;}
+.line-join .line-txt{display:flex;flex-direction:column;line-height:1.15;text-align:left;}
 .line-join .line-txt b{font-weight:900;font-size:15px;}
 .line-join .line-txt small{font-weight:700;font-size:10px;opacity:.9;font-family:var(--ff-body);letter-spacing:.02em;}
 .copy{color:var(--muted-2);font-size:12px;margin-top:34px;letter-spacing:.04em;}
