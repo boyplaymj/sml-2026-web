@@ -283,7 +283,8 @@
       "aliases": ["八仙", "集滿八花"],
       "asr_confusions": ["八仙過河"],
       "category": "花牌",
-      "note": "集滿全部八張花。"
+      "excludes": ["hua", "zhenghua", "huagang"],
+      "note": "集滿全部八張花;已含所有花,不再逐張/成組另計。"
     },
     {
       "id": "wuhua",
@@ -292,7 +293,8 @@
       "aliases": ["沒有花", "免花"],
       "asr_confusions": ["五花"],
       "category": "花牌",
-      "note": "胡牌時手上無任何花牌(部分家規才計)。"
+      "excludes": ["hua", "zhenghua", "huagang", "baxian"],
+      "note": "胡牌時手上無任何花牌(部分家規才計);與任何花牌台種邏輯互斥,並存代表誤聽。"
     },
 
     {
@@ -312,7 +314,8 @@
       "aliases": ["搶槓", "槓上炮"],
       "asr_confusions": ["槍槓", "搶缸"],
       "category": "時機",
-      "note": "他人加槓時攔胡那張牌。"
+      "requires_discard": true,
+      "note": "他人加槓時攔胡那張牌(胡別人,非自摸)。"
     },
     {
       "id": "haidi_laoyue",
@@ -342,7 +345,8 @@
       "aliases": ["天糊"],
       "asr_confusions": ["田胡", "天湖"],
       "category": "大牌",
-      "note": "莊家起手即胡。台數家規差異大。"
+      "requires_self_draw": true,
+      "note": "莊家起手即胡(自摸性質)。台數家規差異大。"
     },
     {
       "id": "dihu",
@@ -351,6 +355,7 @@
       "aliases": ["地糊"],
       "asr_confusions": ["帝胡", "地湖"],
       "category": "大牌",
+      "requires_self_draw": true,
       "note": "閒家第一巡自摸胡(未經吃碰)。"
     },
     {
@@ -360,7 +365,8 @@
       "aliases": ["人糊"],
       "asr_confusions": ["仁胡", "人湖"],
       "category": "大牌",
-      "note": "閒家第一巡胡別人打的牌;部分家規不設此台。"
+      "requires_discard": true,
+      "note": "閒家第一巡胡別人打的牌(非自摸);部分家規不設此台。"
     }
   ]
 }

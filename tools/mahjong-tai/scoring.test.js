@@ -88,5 +88,61 @@ t('大牌:大三元 排除 小三元', function () {
   assert.strictEqual(r.total, 8 + 1);
 });
 
+// ---- Codex review 修正回歸 ----
+t('F1 數量詞前導不留殘字:十張花', function () {
+  var r = parse('十張花', table);
+  var hua = r.hits.find(function (h) { return h.id === 'hua'; });
+  assert.strictEqual(hua.units, 10);
+  assert.strictEqual(r.unmatched, ''); // 「十張」不可再變殘字
+});
+
+t('F2 不跨邊界偷數字:大四花', function () {
+  var r = parse('大四花', table);
+  var hua = r.hits.find(function (h) { return h.id === 'hua'; });
+  assert.strictEqual(hua.units, 1); // 「四」屬大四喜,不可被讀成 4 張花
+  var sixi = r.hits.find(function (h) { return h.id === 'dasixi'; });
+  assert.ok(sixi);
+});
+
+t('F2 裸數字仍可讀:三花 = 3台', function () {
+  var r = parse('三花', table);
+  var hua = r.hits.find(function (h) { return h.id === 'hua'; });
+  assert.strictEqual(hua.units, 3);
+});
+
+t('F3 無花與花牌互斥(並存代表誤聽,警告)', function () {
+  var r = parse('無花 正花', table);
+  assert.strictEqual(r.warnings.some(function (w) { return w.level === 'exclude'; }), true);
+  // 不可兩者都計台
+  assert.strictEqual(r.hits.filter(function (h) { return h.id === 'wuhua' || h.id === 'zhenghua'; }).length, 1);
+});
+
+t('F3 八仙過海不再疊逐張花', function () {
+  var r = parse('八仙過海 花花花花花花花花', table);
+  assert.strictEqual(r.hits.some(function (h) { return h.id === 'hua'; }), false);
+  assert.strictEqual(r.total, 8 + 1); // 八仙8 + 底1
+});
+
+t('F4 搶槓胡 + 自摸 → 矛盾警告', function () {
+  var r = parse('搶槓胡自摸', table);
+  assert.strictEqual(r.warnings.some(function (w) { return w.level === 'conflict'; }), true);
+});
+
+t('F5 人胡 + 自摸 → 矛盾警告', function () {
+  var r = parse('人胡自摸', table);
+  assert.strictEqual(r.warnings.some(function (w) { return w.level === 'conflict'; }), true);
+});
+
+t('F5 地胡 + 全求人(胡別人)→ 矛盾警告', function () {
+  var r = parse('地胡全求人', table);
+  assert.strictEqual(r.warnings.some(function (w) { return w.level === 'conflict'; }), true);
+});
+
+t('F8 超長輸入截斷 + 警告', function () {
+  var r = parse('門清' + '亂'.repeat(500), table);
+  assert.strictEqual(r.warnings.some(function (w) { return w.level === 'too_long'; }), true);
+  assert.strictEqual(r.hits.some(function (h) { return h.id === 'menqing'; }), true);
+});
+
 console.log('\n結果:' + pass + ' 通過 / ' + fail + ' 失敗');
 process.exit(fail ? 1 : 0);

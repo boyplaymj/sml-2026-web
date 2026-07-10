@@ -35,17 +35,22 @@
     return { terms: terms, byId: byId };
   }
 
-  /** 解析詞前面的數量詞(如「三張花」「兩朵」),回傳 [數量, 消耗的前導字數]。 */
-  function readQuantity(text, endPos) {
-    // endPos = 詞開始位置;往前看 量詞(張/朵/個/支) 與數字
-    var i = endPos - 1;
-    if (i >= 0 && '張朵個支'.indexOf(text[i]) !== -1) i--; // 跳過量詞
-    if (i >= 0) {
-      var ch = text[i];
-      if (CN_NUM[ch]) return [CN_NUM[ch], endPos - i];
-      if (ch >= '0' && ch <= '9') return [parseInt(ch, 10), endPos - i];
+  /**
+   * 解析詞前面的數量詞(如「三張花」「兩朵」),回傳 { qty, start }。
+   * start = 數量詞前綴的起始位置(呼叫端據此標記 consumed);無數量詞則 start=pos。
+   * 關鍵:前導字必須「未被其他台種吃掉」才算數,避免從相鄰台種尾巴偷數字
+   *       (如「大四花」不可把『大四喜』的『四』讀成 4 張花)。
+   */
+  function readQuantity(text, pos, consumed) {
+    var i = pos - 1;
+    var hasMeasure = (i >= 0 && !consumed[i] && '張朵個支'.indexOf(text[i]) !== -1);
+    var numIdx = hasMeasure ? i - 1 : i;
+    if (numIdx >= 0 && !consumed[numIdx]) {
+      var ch = text[numIdx];
+      var n = CN_NUM[ch] || ((ch >= '0' && ch <= '9') ? parseInt(ch, 10) : 0);
+      if (n) return { qty: n, start: numIdx };
     }
-    return [1, 0];
+    return { qty: 1, start: pos };
   }
 
   /**
@@ -55,8 +60,15 @@
    * @param {object} [config] 覆寫 table.config
    * @returns {{hits:Array, total:number, warnings:Array, unmatched:string}}
    */
+  var MAX_LEN = 200; // 語音一句遠短於此;超過視為異常輸入,截斷防拖慢
+
   function parse(text, table, config) {
     if (!text) return { hits: [], total: 0, warnings: [], unmatched: '' };
+    var lenWarn = null;
+    if (text.length > MAX_LEN) {
+      lenWarn = { level: 'too_long', message: '輸入過長(' + text.length + '字),已截斷至前 ' + MAX_LEN + ' 字' };
+      text = text.slice(0, MAX_LEN);
+    }
     var cfg = Object.assign({}, table.config || {}, config || {});
     var idx = buildIndex(table);
     var consumed = new Array(text.length).fill(false);
@@ -75,8 +87,9 @@
         var fan = idx.byId[idx.terms[t].id];
         var qty = 1;
         if (fan.per_unit) {
-          var q = readQuantity(text, pos);
-          qty = q[0];
+          var q = readQuantity(text, pos, consumed);
+          qty = q.qty;
+          for (var qi = q.start; qi < pos; qi++) consumed[qi] = true; // 把數量詞前綴也標為已消耗
         }
         if (!raw[fan.id]) raw[fan.id] = { count: 0, matchedTerms: [] };
         raw[fan.id].count += qty;
@@ -105,6 +118,7 @@
     });
 
     var warnings = [];
+    if (lenWarn) warnings.push(lenWarn);
 
     // 互斥解析:兩個互斥台種同時命中,保留台數高者,低者剔除並警告
     var dropped = {};
