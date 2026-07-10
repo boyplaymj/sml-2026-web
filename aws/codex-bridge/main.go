@@ -581,6 +581,7 @@ func sendWithButtons(s *discordgo.Session, channelID, text string) {
 
 // sendChunkedWithComponents 分段送出文字,把 components(按鈕)掛在最後一段。
 func sendChunkedWithComponents(s *discordgo.Session, channelID, text string, rows []discordgo.MessageComponent) {
+	full := text // 整段回覆(轉傳要用),先存;下面分段會把 text 切掉。
 	const max = 1900
 	for len(text) > max {
 		n := max
@@ -596,10 +597,50 @@ func sendChunkedWithComponents(s *discordgo.Session, channelID, text string, row
 		text = "⬇️"
 	}
 	msg := &discordgo.MessageSend{Content: text, Components: rows}
-	if _, err := s.ChannelMessageSendComplex(channelID, msg); err != nil {
+	sent, err := s.ChannelMessageSendComplex(channelID, msg)
+	if err != nil {
 		log.Printf("send with components error: %v — fallback text", err)
 		sendChunked(s, channelID, text)
+		return
 	}
+	if sent != nil {
+		rememberReply(sent.ID, full) // 讓「轉傳給對方」抓得到整段回覆,不只最後一段
+	}
+}
+
+// disableChoiceButtons 回傳「把選項鈕反灰」後的 components:點過的選項鈕禁用(選中的轉綠標示),
+// 但轉傳(fwd:)與白名單(b2b:)鈕保留可點(那些本來就要重複互動)。用於選項按鈕點擊後避免重送。
+func disableChoiceButtons(msg *discordgo.Message, clickedID string) []discordgo.MessageComponent {
+	if msg == nil {
+		return nil
+	}
+	var rows []discordgo.MessageComponent
+	for _, row := range msg.Components {
+		ar, ok := row.(discordgo.ActionsRow)
+		if !ok {
+			rows = append(rows, row)
+			continue
+		}
+		var comps []discordgo.MessageComponent
+		for _, comp := range ar.Components {
+			btn, ok := comp.(discordgo.Button)
+			if !ok {
+				comps = append(comps, comp)
+				continue
+			}
+			if btn.CustomID == "fwd:peer" || strings.HasPrefix(btn.CustomID, "b2b:") {
+				comps = append(comps, btn) // 轉傳/白名單鈕保持可點
+				continue
+			}
+			btn.Disabled = true
+			if btn.CustomID == clickedID {
+				btn.Style = discordgo.SuccessButton // 標出使用者選了哪個
+			}
+			comps = append(comps, btn)
+		}
+		rows = append(rows, discordgo.ActionsRow{Components: comps})
+	}
+	return rows
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1367,9 +1408,14 @@ func main() {
 			}
 		}
 
-		// 先 ACK 這個 interaction，避免 Discord 顯示「互動失敗」
+		// ACK 並把「選項鈕」反灰(避免重送);轉傳/白名單鈕保留可點。
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseDeferredMessageUpdate,
+			Type: discordgo.InteractionResponseUpdateMessage,
+			Data: &discordgo.InteractionResponseData{
+				Content:    i.Message.Content,
+				Embeds:     i.Message.Embeds,
+				Components: disableChoiceButtons(i.Message, customID),
+			},
 		})
 
 		userName := i.Member.User.Username

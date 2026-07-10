@@ -3,7 +3,9 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
+	"unicode/utf8"
 )
 
 // TestMutateInteropDoesNotClobberOnCorruptJSON 釘住 review #2:
@@ -44,5 +46,53 @@ func TestMutateInteropCreatesWhenMissing(t *testing.T) {
 	}
 	if _, err := os.Stat(p); err != nil {
 		t.Fatalf("應已建立設定檔: %v", err)
+	}
+}
+
+func resetReplyBufForTest() {
+	replyBufMu.Lock()
+	defer replyBufMu.Unlock()
+	replyBuf = map[string]string{}
+	replyBufOrder = nil
+}
+
+func TestRememberReplyRecallFullText(t *testing.T) {
+	resetReplyBufForTest()
+
+	rememberReply("msg-1", "第一段\n\n第二段")
+
+	if got := recallReply("msg-1"); got != "第一段\n\n第二段" {
+		t.Fatalf("recallReply = %q", got)
+	}
+}
+
+func TestRememberReplyEvictsFIFO(t *testing.T) {
+	resetReplyBufForTest()
+
+	for i := 0; i < replyBufMax+1; i++ {
+		rememberReply(string(rune('a'+i)), "x")
+	}
+
+	if got := len(replyBufOrder); got != replyBufMax {
+		t.Fatalf("replyBufOrder len = %d, want %d", got, replyBufMax)
+	}
+	if got := recallReply("a"); got != "" {
+		t.Fatalf("oldest entry should be evicted, got %q", got)
+	}
+}
+
+func TestTruncateRunesKeepsUTF8Valid(t *testing.T) {
+	input := strings.Repeat("測", 10)
+
+	got := truncateRunes(input, 3)
+
+	if !utf8.ValidString(got) {
+		t.Fatalf("truncateRunes returned invalid UTF-8: %q", got)
+	}
+	if !strings.HasPrefix(got, "測測測") {
+		t.Fatalf("truncateRunes prefix = %q", got)
+	}
+	if !strings.Contains(got, "截斷") {
+		t.Fatalf("truncateRunes should append truncation notice: %q", got)
 	}
 }

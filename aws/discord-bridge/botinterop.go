@@ -308,11 +308,58 @@ func forwardButtonRow(channelID string) []discordgo.MessageComponent {
 	}
 }
 
-// handleForward 處理「轉傳給對方」按鈕:把按鈕所在那則訊息的內容,重貼成 @對方bot 的訊息 → 對方讀並回覆。
+// 回覆全文緩衝:分段送出時,按鈕掛在「最後一段」,但轉傳要抓「整段回覆」。
+// 送出時把整段 clean text 以「掛按鈕那則的 messageID」為 key 存起來,handleForward 再回查。
+// 有界(replyBufMax),FIFO 淘汰,避免無限長大。
+var (
+	replyBufMu    sync.Mutex
+	replyBuf      = map[string]string{}
+	replyBufOrder []string
+)
+
+const replyBufMax = 300
+
+func rememberReply(msgID, full string) {
+	if msgID == "" || strings.TrimSpace(full) == "" {
+		return
+	}
+	replyBufMu.Lock()
+	defer replyBufMu.Unlock()
+	if _, ok := replyBuf[msgID]; !ok {
+		replyBufOrder = append(replyBufOrder, msgID)
+		for len(replyBufOrder) > replyBufMax {
+			delete(replyBuf, replyBufOrder[0])
+			replyBufOrder = replyBufOrder[1:]
+		}
+	}
+	replyBuf[msgID] = full
+}
+
+func recallReply(msgID string) string {
+	replyBufMu.Lock()
+	defer replyBufMu.Unlock()
+	return replyBuf[msgID]
+}
+
+// truncateRunes 以「字元」截斷(不切壞多位元組 CJK);Discord 單則上限約 2000 字元。
+func truncateRunes(s string, max int) string {
+	r := []rune(s)
+	if len(r) <= max {
+		return s
+	}
+	return string(r[:max]) + "…（內容過長已截斷）"
+}
+
+// handleForward 處理「轉傳給對方」按鈕:把整段回覆(非只按鈕那則)重貼成 @對方bot 的訊息 → 對方讀並回覆。
 func handleForward(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	content := ""
 	if i.Message != nil {
-		content = i.Message.Content
+		// 優先取「整段回覆」;查不到才退回單則內容(舊訊息/非分段)。
+		if full := recallReply(i.Message.ID); full != "" {
+			content = full
+		} else {
+			content = i.Message.Content
+		}
 	}
 	if strings.TrimSpace(content) == "" {
 		s.InteractionRespond(i.Interaction, ephemeralResp("這則沒有可轉傳的文字內容。"))
@@ -334,10 +381,7 @@ func handleForward(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	botExchMu.Lock()
 	botExchange[i.ChannelID] = 0
 	botExchMu.Unlock()
-	fwd := fmt.Sprintf("<@%s>\n(📨 %s 轉傳給你,請閱讀並回覆)\n%s", peerBotID, who, content)
-	if len(fwd) > 1900 {
-		fwd = fwd[:1900] + "…（內容過長已截斷）"
-	}
+	fwd := truncateRunes(fmt.Sprintf("<@%s>\n(📨 %s 轉傳給你,請閱讀並回覆)\n%s", peerBotID, who, content), 1990)
 	if _, err := s.ChannelMessageSend(i.ChannelID, fwd); err != nil {
 		log.Printf("forward send error: %v", err)
 	}

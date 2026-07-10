@@ -90,3 +90,37 @@ func TestLatestTextBlockFromMessagesStopsAtOtherAuthor(t *testing.T) {
 		t.Fatalf("block ids = %#v, want [4]", block)
 	}
 }
+
+func TestDisableChoiceButtonsDisablesChoicesButKeepsForward(t *testing.T) {
+	msg := &discordgo.Message{
+		Components: []discordgo.MessageComponent{
+			discordgo.ActionsRow{Components: []discordgo.MessageComponent{
+				discordgo.Button{Label: "A", CustomID: "choice:a", Style: discordgo.PrimaryButton},
+				discordgo.Button{Label: "B", CustomID: "choice:b", Style: discordgo.PrimaryButton},
+			}},
+			discordgo.ActionsRow{Components: []discordgo.MessageComponent{
+				discordgo.Button{Label: "轉傳", CustomID: "fwd:peer", Style: discordgo.SecondaryButton},
+			}},
+		},
+	}
+
+	rows := disableChoiceButtons(msg, "choice:b")
+
+	if len(rows) != 2 {
+		t.Fatalf("rows len = %d, want 2", len(rows))
+	}
+	choiceRow := rows[0].(discordgo.ActionsRow)
+	a := choiceRow.Components[0].(discordgo.Button)
+	b := choiceRow.Components[1].(discordgo.Button)
+	if !a.Disabled || !b.Disabled {
+		t.Fatalf("choice buttons should be disabled: a=%v b=%v", a.Disabled, b.Disabled)
+	}
+	if b.Style != discordgo.SuccessButton {
+		t.Fatalf("clicked button style = %v, want SuccessButton", b.Style)
+	}
+	fwdRow := rows[1].(discordgo.ActionsRow)
+	fwd := fwdRow.Components[0].(discordgo.Button)
+	if fwd.Disabled {
+		t.Fatal("fwd:peer button should remain enabled")
+	}
+}

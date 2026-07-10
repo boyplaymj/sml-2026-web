@@ -203,8 +203,16 @@ func firstLine(s string) string {
 // 鐵律:所有 options(含 --resume)都必須在 `--` 之前;prompt 放最後、緊接在 `--` 之後。
 // 若 --resume 落到 `--` 之後,會被當成 prompt 文字吞掉 → session 永遠不 resume(每則訊息失憶)。
 // prompt 放 `--` 之後則保證以 "-" 開頭的內容不會被誤判成未知 option。
+// buttonHint 注入 system prompt,讓「每個」session 都知道離散選項要用 [[BTN]] 按鈕
+// (修「其他 session 幾乎不吐按鈕」——原本純靠軟記憶,觸發率近 0)。
+// env BRIDGE_BUTTON_HINT 可覆蓋;設為空字串即停用。
+var buttonHint = env("BRIDGE_BUTTON_HINT", "當你要使用者在少數(約2-5個)離散選項之間做選擇時,在回覆末尾用標記 [[BTN:顯示文字:custom_id]] 提供按鈕(內文要先逐項說明每個選項是什麼,不能只給標籤)。使用者可以點按鈕、也可以直接打字,兩條路都要能用,絕不卡著等按鈕。custom_id 不要用 b2b: 或 fwd: 開頭。開放式輸入(要對方打一段內容)不要用按鈕。")
+
 func claudeArgs(sid, prompt string) []string {
 	args := []string{"--output-format", "json", "--permission-mode", "bypassPermissions"}
+	if h := strings.TrimSpace(buttonHint); h != "" {
+		args = append(args, "--append-system-prompt", h)
+	}
 	if sid != "" {
 		args = append(args, "--resume", sid)
 	}
@@ -445,6 +453,7 @@ func sendWithButtons(s *discordgo.Session, channelID, text string) {
 
 // sendChunkedWithComponents 分段送出文字,把 components(按鈕)掛在最後一段。
 func sendChunkedWithComponents(s *discordgo.Session, channelID, text string, rows []discordgo.MessageComponent) {
+	full := text // 整段回覆(轉傳要用),先存;下面分段會把 text 切掉。
 	const max = 1900
 	for len(text) > max {
 		n := max
@@ -460,10 +469,50 @@ func sendChunkedWithComponents(s *discordgo.Session, channelID, text string, row
 		text = "⬇️"
 	}
 	msg := &discordgo.MessageSend{Content: text, Components: rows}
-	if _, err := s.ChannelMessageSendComplex(channelID, msg); err != nil {
+	sent, err := s.ChannelMessageSendComplex(channelID, msg)
+	if err != nil {
 		log.Printf("send with components error: %v — fallback text", err)
 		sendChunked(s, channelID, text)
+		return
 	}
+	if sent != nil {
+		rememberReply(sent.ID, full) // 讓「轉傳給對方」抓得到整段回覆,不只最後一段
+	}
+}
+
+// disableChoiceButtons 回傳「把選項鈕反灰」後的 components:點過的選項鈕禁用(選中的轉綠標示),
+// 但轉傳(fwd:)與白名單(b2b:)鈕保留可點(那些本來就要重複互動)。用於選項按鈕點擊後避免重送。
+func disableChoiceButtons(msg *discordgo.Message, clickedID string) []discordgo.MessageComponent {
+	if msg == nil {
+		return nil
+	}
+	var rows []discordgo.MessageComponent
+	for _, row := range msg.Components {
+		ar, ok := row.(discordgo.ActionsRow)
+		if !ok {
+			rows = append(rows, row)
+			continue
+		}
+		var comps []discordgo.MessageComponent
+		for _, comp := range ar.Components {
+			btn, ok := comp.(discordgo.Button)
+			if !ok {
+				comps = append(comps, comp)
+				continue
+			}
+			if btn.CustomID == "fwd:peer" || strings.HasPrefix(btn.CustomID, "b2b:") {
+				comps = append(comps, btn) // 轉傳/白名單鈕保持可點
+				continue
+			}
+			btn.Disabled = true
+			if btn.CustomID == clickedID {
+				btn.Style = discordgo.SuccessButton // 標出使用者選了哪個
+			}
+			comps = append(comps, btn)
+		}
+		rows = append(rows, discordgo.ActionsRow{Components: comps})
+	}
+	return rows
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1061,9 +1110,14 @@ func main() {
 			}
 		}
 
-		// 先 ACK 這個 interaction，避免 Discord 顯示「互動失敗」
+		// ACK 並把「選項鈕」反灰(避免重送);轉傳/白名單鈕保留可點。
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseDeferredMessageUpdate,
+			Type: discordgo.InteractionResponseUpdateMessage,
+			Data: &discordgo.InteractionResponseData{
+				Content:    i.Message.Content,
+				Embeds:     i.Message.Embeds,
+				Components: disableChoiceButtons(i.Message, customID),
+			},
 		})
 
 		userName := i.Member.User.Username
