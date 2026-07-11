@@ -5,17 +5,13 @@
 <style>
   *{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Sans CJK TC",sans-serif;}
   .phone{ width:720px; height:1480px; background:#b3c9e0; position:relative; display:flex; flex-direction:column; }
-  /* 狀態列 */
-  .status{ height:44px; background:#7a95b8; display:flex; align-items:center; justify-content:space-between;
-    padding:0 26px; color:#fff; font-size:22px; font-weight:600; }
+  .status{ height:44px; background:#7a95b8; display:flex; align-items:center; justify-content:space-between; padding:0 26px; color:#fff; font-size:22px; font-weight:600; }
   .status .r{ letter-spacing:2px; }
-  /* 聊天頭 */
   .head{ height:74px; background:#6f8bad; display:flex; align-items:center; padding:0 20px; color:#fff; gap:14px; }
   .head .back{ font-size:30px; }
   .head .name{ font-size:26px; font-weight:700; flex:1; }
   .head .name small{ display:block; font-size:15px; font-weight:400; opacity:.8; }
   .head .ic{ font-size:26px; opacity:.9; }
-  /* 訊息區 */
   .msgs{ flex:1; padding:22px 22px 30px; display:flex; flex-direction:column; gap:14px; overflow:hidden; }
   .day{ align-self:center; background:rgba(0,0,0,.28); color:#fff; font-size:16px; padding:5px 16px; border-radius:14px; margin:4px 0; }
   .row{ display:flex; align-items:flex-end; gap:8px; max-width:80%; }
@@ -32,30 +28,30 @@
 </head>
 <body>
   <div class="phone">
-    <div class="status"><div>03:14</div><div class="r">📶 5G 🔋28%</div></div>
+    <div class="status"><div>10:03</div><div class="r">📶 5G 🔋64%</div></div>
     <div class="head">
       <div class="back">‹</div>
-      <div class="av">敏</div>
-      <div class="name">小敏<small>最後上線 03:14</small></div>
+      <div class="av">君</div>
+      <div class="name">怡君<small>最後上線 昨天 03:14</small></div>
       <div class="ic">☰</div>
     </div>
     <div class="msgs">
       <div class="day">昨天</div>
 
-      <div class="row me"><div class="time">23:02</div><div class="bubble">我今天開始上那個超商夜班了 中山路那間</div></div>
-      <div class="row them"><div class="av">敏</div><div class="bubble">就那個時薪480的喔 也太好賺😆</div><div class="time">23:03</div></div>
-      <div class="row me"><div class="time">23:40</div><div class="bubble">對啊 可是有點怪 我剛想導航過去<br>地圖上根本查不到中山路213號</div></div>
-      <div class="row me"><div class="time">23:41</div><div class="bubble">店裡超安靜 整晚一個客人都沒有</div></div>
-      <div class="row them"><div class="av">敏</div><div class="bubble">蛤 那你還好嗎…感覺毛毛的</div><div class="time">23:45</div></div>
+      <div class="row them"><div class="av">君</div><div class="bubble">我今天開始上那個超商夜班了 中山路那間</div><div class="time">23:02</div></div>
+      <div class="row me"><div class="time">23:03</div><div class="bubble">就那個時薪480的喔 也太好賺😆</div></div>
+      <div class="row them"><div class="av">君</div><div class="bubble">我剛來的時候用導航 結果地圖上根本查不到中山路213號<br>是憑印象摸過來的</div><div class="time">23:40</div></div>
+      <div class="row them"><div class="av">君</div><div class="bubble">店裡超安靜 整晚一個客人都沒有</div><div class="time">23:41</div></div>
+      <div class="row me"><div class="time">23:45</div><div class="bubble">蛤 那你還好嗎…感覺毛毛的</div></div>
 
       <div class="day">今天</div>
-      <div class="row me"><div class="time">02:50</div><div class="bubble">老闆交代 凌晨三點後聽到敲門不要理<br>後倉也不准開</div></div>
-      <div class="row me"><div class="time">03:08</div><div class="bubble">剛剛後倉的門真的有人在敲<br>敲很久 一直沒停</div></div>
-      <div class="row me"><div class="time">03:12</div><div class="bubble">如果我明天沒回你訊息<br>幫我報警好不好</div><div class="read">已讀</div></div>
+      <div class="row them"><div class="av">君</div><div class="bubble">老闆交代 凌晨三點後聽到敲門不要理<br>後倉也不准開</div><div class="time">02:50</div></div>
+      <div class="row them"><div class="av">君</div><div class="bubble">剛剛後倉的門真的有人在敲<br>敲很久 一直沒停</div><div class="time">03:08</div></div>
+      <div class="row them"><div class="av">君</div><div class="bubble">如果我明天沒回你訊息<br>幫我報警好不好</div><div class="time">03:12</div></div>
 
-      <div class="row them"><div class="av">敏</div><div class="bubble">？？怡君你還好嗎</div><div class="time">08:20</div></div>
-      <div class="row them"><div class="av">敏</div><div class="bubble">回我一下 我很擔心</div><div class="time">08:21</div></div>
-      <div class="row them"><div class="av">敏</div><div class="bubble">你已讀了 為什麼不回…</div><div class="time">10:03</div></div>
+      <div class="row me"><div class="time">08:20</div><div class="bubble">？？怡君你還好嗎</div></div>
+      <div class="row me"><div class="time">08:21</div><div class="bubble">回我一下 我很擔心</div></div>
+      <div class="row me"><div class="time">10:03</div><div class="bubble">你已讀了 為什麼都不回…</div></div>
     </div>
   </div>
 </body>
