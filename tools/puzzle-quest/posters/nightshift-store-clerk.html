@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { background:#231f1a; }
+  .stage {
+    width:900px; height:1220px; position:relative; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    background:#231f1a; perspective:2200px;
+    font-family:"Noto Serif CJK TC","Noto Sans CJK TC",serif;
+  }
+  .bg{ position:absolute; inset:-40px;
+    background:#2f2c28 url('bg_corkboard.png') center/cover no-repeat;
+    filter:blur(2.5px) brightness(.8) saturate(.9); }
+  .flyer {
+    position:relative; width:620px; padding:50px 46px 40px;
+    background:#efe7d4 url('paper_aged.png') center/cover;
+    color:#211d15;
+    transform:rotateX(4deg) rotateZ(1.2deg) rotateY(2deg);
+    box-shadow:0 2px 4px rgba(0,0,0,.4), 0 26px 55px rgba(0,0,0,.62), 0 60px 90px rgba(0,0,0,.4);
+    display:flex; flex-direction:column;
+  }
+  .flyer::before{
+    content:""; position:absolute; inset:0; pointer-events:none; z-index:2;
+    background:
+      linear-gradient(115deg, rgba(255,250,235,.32) 0%, transparent 30%, transparent 70%, rgba(60,45,20,.22) 100%),
+      radial-gradient(circle at 70% 10%, rgba(255,250,240,.22), transparent 42%);
+    mix-blend-mode:soft-light;
+  }
+  .flyer > *{ position:relative; z-index:1; }
+  .tape{ position:absolute; width:158px; height:44px; z-index:3;
+    background:linear-gradient(180deg, rgba(222,214,180,.6), rgba(200,190,150,.48));
+    box-shadow:0 3px 7px rgba(0,0,0,.35); }
+  .tape.tl{ top:-16px; left:44px; transform:rotate(-21deg); }
+  .tape.tr{ top:-16px; right:44px; transform:rotate(23deg); }
+
+  .kicker{ text-align:center; letter-spacing:8px; font-size:14px; color:#6e5326; margin-bottom:6px; }
+  .title{ text-align:center; font-weight:900; font-size:50px; letter-spacing:3px; color:#161310;
+    text-shadow:0 1px 0 rgba(255,255,255,.22); }
+  .title .urg{ color:#9d1c1c; }
+  .hr{ height:3px; background:#211d15; margin:18px 4px 20px; opacity:.85; }
+  .pay{ text-align:center; font-size:21px; font-weight:800; margin-bottom:4px; color:#1a160f; }
+  .pay b{ color:#9d1c1c; font-size:28px; }
+  .sub{ text-align:center; font-size:16px; color:#3a352c; margin-bottom:22px; }
+  .noteHead{ font-weight:800; font-size:18px; margin:4px 0 10px; letter-spacing:1px; color:#231d13; }
+  ol.rules{ list-style:none; }
+  ol.rules li{ font-size:18px; line-height:2.0; padding-left:4px; color:#2a2419; }
+  ol.rules li .n{ font-weight:900; color:#9d1c1c; margin-right:6px; }
+  .contact{ margin-top:22px; font-size:17px; line-height:1.9; color:#2a2419; }
+  .contact .muted{ color:#6a6045; font-size:14px; }
+  .addr{ margin-top:6px; font-size:17px; }
+  .stamp{ position:absolute; right:34px; bottom:60px; width:116px; height:116px; z-index:2;
+    border:5px solid rgba(140,26,26,.55); border-radius:50%; color:rgba(140,26,26,.6);
+    display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:900;
+    transform:rotate(-15deg); }
+
+  .light{ position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(ellipse at 66% 8%, rgba(255,244,220,.15), transparent 55%); }
+  .vignette{ position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(ellipse at center, transparent 42%, rgba(15,10,4,.62) 100%); }
+  .grain{ position:absolute; inset:0; pointer-events:none; opacity:.14; mix-blend-mode:overlay; }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="bg"></div>
+    <div class="flyer">
+      <div class="tape tl"></div>
+      <div class="tape tr"></div>
+      <div class="kicker">超商夜間人員 · 長期</div>
+      <div class="title">【<span class="urg">急徵</span>】夜間顧店</div>
+      <div class="hr"></div>
+      <div class="pay">23:00 – 06:00　時薪 <b>480</b>　日領</div>
+      <div class="sub">工作輕鬆，無須露臉，坐著看店即可。</div>
+      <div class="noteHead">◆ 注意事項（務必遵守）</div>
+      <ol class="rules">
+        <li><span class="n">一、</span>凌晨三點後，聽到敲門聲請勿回應、勿開門。</li>
+        <li><span class="n">二、</span>後倉的門不要開，那不是你的工作。</li>
+        <li><span class="n">三、</span>櫃檯的登記本，每小時簽一次名，別漏。</li>
+      </ol>
+      <div class="contact">
+        聯絡人：林先生<br>
+        <span class="muted">（前一位顧店的陳小姐已離職，勿再詢問）</span>
+        <div class="addr">地址：中山路 213 號</div>
+      </div>
+      <div class="stamp">急徵</div>
+    </div>
+    <div class="light"></div>
+    <div class="vignette"></div>
+    <svg class="grain" width="900" height="1220"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
+  </div>
+</body>
+</html>

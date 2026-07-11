@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>城中日報 數位典藏 ｜ 中山路超商歇業紀事</title>
+<style>
+  :root{ --ink:#2b2b28; --line:#d8d2c4; --paper:#f6f2e8; --accent:#7a1f1f; }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{ background:#e7e2d6; color:var(--ink); font-family:"Noto Serif CJK TC",serif; line-height:1.9;
+    -webkit-font-smoothing:antialiased; }
+  .masthead{ background:#3a352c; color:#f3ecd9; padding:14px 18px; text-align:center; border-bottom:4px double #6b6252; }
+  .masthead .logo{ font-size:26px; font-weight:900; letter-spacing:6px; }
+  .masthead .sub{ font-size:12px; letter-spacing:3px; opacity:.8; margin-top:4px; }
+  .bar{ background:#d9d2c1; font-size:12px; color:#5a5344; padding:8px 18px; border-bottom:1px solid var(--line); }
+  .bar a{ color:#5a5344; text-decoration:none; }
+  .wrap{ max-width:760px; margin:0 auto; background:var(--paper); box-shadow:0 0 30px rgba(0,0,0,.12);
+    background-image:radial-gradient(circle at 20% 10%, rgba(120,100,60,.05), transparent 30%); }
+  .article{ padding:30px 26px 44px; }
+  .kicker{ color:var(--accent); font-size:13px; letter-spacing:2px; font-weight:700; }
+  h1{ font-size:30px; line-height:1.35; margin:8px 0 12px; letter-spacing:1px; }
+  .meta{ font-size:13px; color:#7a7261; border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    padding:9px 0; margin-bottom:22px; display:flex; flex-wrap:wrap; gap:14px; }
+  .meta b{ color:#5a5344; font-weight:700; }
+  p{ font-size:18px; margin:0 0 16px; text-align:justify; }
+  .drop::first-letter{ font-size:46px; float:left; line-height:.9; padding:4px 8px 0 0; color:var(--accent); font-weight:900; }
+  .box{ background:#fff8ea; border-left:4px solid var(--accent); padding:12px 16px; margin:20px 0; font-size:16px; color:#4a4335; }
+  .reg{ width:100%; border-collapse:collapse; margin:6px 0 4px; font-size:15px; }
+  .reg td{ border:1px solid var(--line); padding:8px 12px; }
+  .reg td.k{ background:#eee6d3; color:#5a5344; width:38%; font-weight:700; }
+  .reg .halt{ color:var(--accent); font-weight:800; }
+  .foot{ border-top:1px solid var(--line); margin-top:26px; padding-top:14px; font-size:12px; color:#8a8271; }
+  .stamp{ display:inline-block; border:2px solid rgba(122,31,31,.5); color:rgba(122,31,31,.6); border-radius:6px;
+    padding:3px 10px; font-size:13px; letter-spacing:2px; transform:rotate(-3deg); margin-top:10px; }
+
+  /* 互動:收合／查詢按鈕 */
+  .toggle{ display:inline-flex; align-items:center; gap:8px; cursor:pointer; user-select:none;
+    background:#efe7d2; border:1px solid #cdbf9c; color:#5a4a2a; font:inherit; font-size:15px; font-weight:700;
+    padding:10px 16px; border-radius:8px; margin:6px 0 2px; transition:background .15s; }
+  .toggle:hover{ background:#e7dcc0; }
+  .toggle .caret{ transition:transform .2s; font-size:13px; }
+  .toggle.open .caret{ transform:rotate(90deg); }
+  .panel{ max-height:0; overflow:hidden; transition:max-height .3s ease; }
+  .panel.open{ max-height:1200px; }
+  .panel-inner{ padding:6px 0 4px; }
+  .scan{ background:#efe7d2; border:1px solid var(--line); padding:16px 18px; margin:8px 0; font-size:15px;
+    color:#413b2e; position:relative; }
+  .scan::after{ content:"典藏掃描件"; position:absolute; top:8px; right:10px; font-size:11px; color:#a99; letter-spacing:2px; }
+  .related{ background:#ece5d3; padding:14px 26px 24px; font-size:14px; }
+  .related a{ display:block; color:#40382a; text-decoration:none; padding:6px 0; border-bottom:1px dashed #cfc7b4; }
+  .related a:hover{ color:var(--accent); }
+</style>
+</head>
+<body>
+  <div class="masthead">
+    <div class="logo">城 中 日 報</div>
+    <div class="sub">地方新聞數位典藏計畫 · CHENGCHUNG DAILY ARCHIVE</div>
+  </div>
+  <div class="bar"><a href="#">首頁</a> ／ <a href="#">數位典藏</a> ／ <a href="#">社會 · 地方</a> ／ 中山路超商歇業紀事</div>
+
+  <div class="wrap">
+    <div class="article">
+      <div class="kicker">社 會 地 方 版</div>
+      <h1>中山路老超商悄然熄燈　夜班女店員離奇失蹤成懸案</h1>
+      <div class="meta">
+        <span><b>刊出日期</b>　民國 87 年 8 月 11 日</span>
+        <span><b>版次</b>　第 7 版</span>
+        <span><b>典藏編號</b>　CC-1998-0811-07</span>
+      </div>
+
+      <p class="drop">位於本市中山路底的「和光超商 中山路店」，已於上月底無預警歇業，鐵門深鎖至今。街坊表示，該店開業僅一年餘，入夜後幾無人客，「常常整晚只亮著一盞燈」。</p>
+
+      <p>更令人不安的是，該店最後一位夜班店員陳姓女子（廿三歲），於七月十四日凌晨值班後即無故失蹤，家屬報案多日仍遍尋未著。警方調閱周邊，卻遍尋不著該店確切門牌——戶政資料顯示，中山路現有門牌<b>僅編至一九九號</b>，所謂「二一三號」查無此址。</p>
+
+      <div class="box">
+        「我妹傳的最後一則訊息說，後倉一直有人在敲門。」陳女胞姊受訪時哽咽，「可是那間店……根本不該有後倉。」
+      </div>
+
+      <p>記者持該店登記資料向商業主管機關查詢，結果如下：</p>
+
+      <div class="toggle" onclick="tg(this)"><span class="caret">▶</span><span>🔍 點此查詢商業登記資料</span></div>
+      <div class="panel">
+        <div class="panel-inner">
+          <table class="reg">
+            <tr><td class="k">商號名稱</td><td>和光超商 中山路店</td></tr>
+            <tr><td class="k">登記地址</td><td>中山路 213 號</td></tr>
+            <tr><td class="k">核准設立</td><td>民國 86 年 3 月</td></tr>
+            <tr><td class="k">現況</td><td class="halt">已廢止登記（民國 87 年 7 月 · 歇業）</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <p style="margin-top:20px;">該址於歇業後未再有商家進駐。惟近年仍有民眾反映，偶於深夜見該店「燈亮、有人於櫃檯後靜坐」，並張貼徵人告示招募夜班人員；經查，告示所留聯絡人與地址均無從查證。警方呼籲民眾切勿應徵前往。</p>
+
+      <div class="toggle" onclick="tg(this)"><span class="caret">▶</span><span>▾ 展開典藏掃描原文（部分字跡模糊）</span></div>
+      <div class="panel">
+        <div class="panel-inner">
+          <div class="scan">
+            〔本則報導由城中日報數位典藏計畫自民國八十七年紙本掃描保存。部分字跡因原件泛黃、蟲蛀而模糊，恕難辨識之處以□標示。〕<br><br>
+            「……簽到簿仍逐時有人代為簽名，筆跡與失蹤之陳女相同……館方不敢再派人前往清點……□□□□」
+          </div>
+        </div>
+      </div>
+
+      <div class="stamp">典藏 · 禁止轉載</div>
+      <div class="foot">© 城中日報數位典藏計畫　本文僅供學術與紀念用途　瀏覽數：1,3&#8203;07</div>
+    </div>
+
+    <div class="related">
+      <div class="toggle" onclick="tg(this)"><span class="caret">▶</span><span>◆ 相關典藏（3 筆）</span></div>
+      <div class="panel">
+        <div class="panel-inner">
+          <a href="#">民國87年 · 中山路都市計畫變更說明（門牌編訂範圍：1–199號）</a>
+          <a href="#">讀者投書：那間「不存在的超商」，我也收過它的徵人傳單</a>
+          <a href="#">尋人 · 陳○君（廿三歲）自中山路一帶失蹤，家屬懸賞尋線索</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function tg(el){
+      el.classList.toggle('open');
+      var p = el.nextElementSibling;
+      if (p && p.classList.contains('panel')) p.classList.toggle('open');
+    }
+  </script>
+</body>
+</html>
