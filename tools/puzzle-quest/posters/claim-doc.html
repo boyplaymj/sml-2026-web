@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1220px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#2a2723;perspective:2400px;font-family:"Noto Serif CJK TC","Noto Sans CJK TC",serif;}
+  .desk{position:absolute;inset:0;background:radial-gradient(circle at 40% 30%,#45403a,#221f1b 80%);}
+  .doc{position:relative;width:640px;min-height:920px;padding:48px 50px 44px;background:#fdfdfb;color:#1a1a1a;transform:rotateX(4deg) rotateZ(1.2deg) rotateY(-1.5deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 60px rgba(0,0,0,.6);}
+  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5) 0%,transparent 25%,transparent 75%,rgba(60,55,45,.14) 100%);mix-blend-mode:soft-light;}
+  .co{text-align:center;font-size:26px;font-weight:900;letter-spacing:3px;}
+  .ttl{text-align:center;font-size:22px;letter-spacing:6px;margin:4px 0 6px;border-bottom:3px double #111;padding-bottom:10px;}
+  .no{text-align:right;font-size:13px;color:#555;margin:6px 0 12px;}
+  table{width:100%;border-collapse:collapse;font-size:16px;}
+  td{border:1px solid #9a9a9a;padding:9px 11px;}
+  td.k{background:#eef0f2;font-weight:800;width:32%;white-space:nowrap;}
+  .red{color:#b01818;font-weight:800;}
+  .note{font-size:13px;color:#666;margin-top:14px;line-height:1.7;}
+  .sigrow{display:flex;justify-content:space-between;margin-top:26px;font-size:15px;}
+  .sig{border-top:1px solid #333;padding-top:6px;width:44%;text-align:center;}
+  .stamp{position:absolute;right:64px;bottom:96px;width:110px;height:110px;border:3px solid rgba(30,80,150,.5);border-radius:50%;color:rgba(30,80,150,.55);display:flex;align-items:center;justify-content:center;text-align:center;font-size:16px;font-weight:900;line-height:1.3;transform:rotate(-12deg);}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,rgba(10,8,4,.55) 100%);}
+  .grain{position:absolute;inset:0;pointer-events:none;opacity:.1;mix-blend-mode:overlay;}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="desk"></div>
+    <div class="doc">
+      <div class="co">城 中 人 壽 保 險 股 份 有 限 公 司</div>
+      <div class="ttl">身 故 保 險 金 理 賠 申 請 書</div>
+      <div class="no">受理編號：CL-106-08847</div>
+      <table>
+        <tr><td class="k">被保險人</td><td>吳 ○ 德　（男 · 42 歲 · 歿）</td></tr>
+        <tr><td class="k">事故原因</td><td>交通事故（駕車自撞護欄）身故</td></tr>
+        <tr><td class="k">事故日期</td><td>一〇六年九月二十九日</td></tr>
+        <tr><td class="k">投保險種</td><td>意外身故保險　<span class="red">保額 新臺幣 4,600 萬元</span></td></tr>
+        <tr><td class="k">投保日期</td><td class="red">一〇六年七月（事故前約兩個月投保）</td></tr>
+        <tr><td class="k">身故受益人</td><td>蔡 ○ 純（配偶）· 陳 ○ 裕（雇主）<span class="red">〔投保後變更〕</span></td></tr>
+        <tr><td class="k">申請金額</td><td>新臺幣 4,600 萬元整</td></tr>
+      </table>
+      <div class="note">※ 檢附文件：死亡證明書、相驗屍體證明書、道路交通事故證明、保險單正本、受益人身分證明。<br>※ 本公司得就事故原因進行調查，申請人應據實告知，如有隱匿或不實，依約解除契約並拒絕給付。</div>
+      <div class="sigrow"><div class="sig">申請人（受益人）簽章</div><div class="sig">保險公司 核賠專員</div></div>
+      <div class="stamp">城中人壽<br>理賠部<br>收件</div>
+    </div>
+    <div class="vig"></div>
+    <svg class="grain" width="900" height="1220"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
+  </div>
+</body></html>

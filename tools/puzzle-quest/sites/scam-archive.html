@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>165 全民防騙網 · 假冒檢警詐騙專區</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Sans CJK TC",serif;}
+  body{background:#eef1f4;color:#25303a;line-height:1.85;}
+  .gov{background:#153a6b;color:#fff;padding:14px 18px;text-align:center;}
+  .gov .logo{font-size:24px;font-weight:900;letter-spacing:3px;}
+  .gov .sub{font-size:12px;letter-spacing:2px;opacity:.85;margin-top:3px;}
+  .rib{background:#d94b2b;color:#fff;text-align:center;font-size:16px;font-weight:800;padding:9px;letter-spacing:2px;}
+  .wrap{max-width:720px;margin:0 auto;background:#fff;box-shadow:0 0 24px rgba(0,0,0,.08);}
+  .inner{padding:24px 24px 40px;}
+  h1{font-size:26px;margin-bottom:6px;letter-spacing:1px;color:#153a6b;}
+  .lead{font-size:17px;color:#3a4753;}
+  .card{border:1px solid #e0e6ec;border-left:5px solid #d94b2b;background:#fdf5f2;padding:16px 18px;margin:18px 0;border-radius:6px;}
+  .card h2{font-size:19px;color:#c0341a;margin-bottom:8px;}
+  ul.no{list-style:none;} ul.no li{font-size:17px;padding:7px 0 7px 30px;position:relative;border-bottom:1px dashed #eadfd9;}
+  ul.no li::before{content:"✕";position:absolute;left:4px;color:#d94b2b;font-weight:900;}
+  ul.no li b{color:#c0341a;}
+  .toggle{display:inline-flex;align-items:center;gap:8px;cursor:pointer;background:#eef2f7;border:1px solid #cdd8e4;color:#153a6b;font:inherit;font-size:15px;font-weight:700;padding:11px 16px;border-radius:8px;margin:10px 0 2px;}
+  .toggle .caret{transition:transform .2s;font-size:12px;} .toggle.open .caret{transform:rotate(90deg);}
+  .panel{max-height:0;overflow:hidden;transition:max-height .3s;} .panel.open{max-height:600px;}
+  .lookup{background:#f5f7fa;border:1px solid #e0e6ec;padding:14px 16px;margin-top:8px;font-size:16px;}
+  .lookup .q{color:#555;} .lookup .res{color:#c0341a;font-weight:800;font-size:18px;margin-top:8px;}
+  .tip{background:#eaf3ea;border-left:5px solid #2e8b57;padding:12px 16px;margin:18px 0;font-size:16px;color:#2b5a3b;}
+  .foot{border-top:1px solid #e0e6ec;margin-top:24px;padding-top:14px;font-size:12px;color:#9aa4ae;text-align:center;}
+</style></head>
+<body>
+  <div class="gov"><div class="logo">165 全民防騙網</div><div class="sub">內政部警政署反詐騙諮詢專線 · ANTI-FRAUD</div></div>
+  <div class="rib">◆ 假冒檢警／地檢署詐騙 專區 ◆</div>
+  <div class="wrap"><div class="inner">
+    <h1>接到「地檢署」通知你涉案？先冷靜，這是詐騙</h1>
+    <p class="lead">近期詐騙集團假冒檢察官、警察，寄發偽造公文、來電恐嚇民眾涉及洗錢，要求「監管帳戶」匯款。請牢記以下原則：</p>
+
+    <div class="card">
+      <h2>檢警調「不會」這樣做</h2>
+      <ul class="no">
+        <li>不會用<b>電話、LINE</b> 通知你涉案、辦案</li>
+        <li>世上<b>沒有</b>「監管帳戶」「安全帳戶」，更不會要你<b>把存款匯出去</b></li>
+        <li>不會要求你<b>對家人、行員保密</b>，或教你騙銀行說是買房</li>
+        <li>不會用<b>手機門號</b>當「檢察官專線」聯繫</li>
+        <li>不會用「<b>二十四小時內、否則通緝</b>」恐嚇你立刻匯款</li>
+      </ul>
+    </div>
+
+    <div class="toggle" onclick="tg(this)"><span class="caret">▶</span><span>🔍 公文真偽查詢（輸入來文字號）</span></div>
+    <div class="panel"><div class="panel-inner">
+      <div class="lookup">
+        <div class="q">查詢字號：一〇六年度金融偵字第 1147 號　（臺灣城中地方檢察署）</div>
+        <div class="res">✕ 查無此案號 · 本署並無此文書；經比對，該「函」之格式、關防、用語均與正式公文不符，研判為偽造。</div>
+      </div>
+    </div></div>
+
+    <div class="tip">✔ 正確做法：接到這類電話、公文、或有人要你「匯錢自清」，<b>掛掉、別匯、打 165</b> 或就近至派出所查證。真正的檢警不會叫你把錢交出去。</div>
+
+    <div class="toggle" onclick="tg(this)"><span class="caret">▶</span><span>◆ 近期相關案件</span></div>
+    <div class="panel"><div class="panel-inner">
+      <p style="margin-top:8px;">· 民眾收到「城中地檢署偵查監管執行命令」，依指示匯款至「監管專戶」後失聯，已受理報案。該偽造公文承辦人「王檢察官」查無其人。</p>
+    </div></div>
+
+    <div class="foot">© 內政部警政署 165 反詐騙　防詐資訊僅供參考，遇可疑情形請撥 165</div>
+  </div></div>
+  <script>function tg(el){el.classList.toggle('open');var p=el.nextElementSibling;if(p&&p.classList.contains('panel'))p.classList.toggle('open');}</script>
+</body></html>

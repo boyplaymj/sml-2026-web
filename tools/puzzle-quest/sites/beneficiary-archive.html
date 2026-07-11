@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>城中醫院 · 病歷診斷證明查詢</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Serif CJK TC",serif;}
+  body{background:#eef2f1;color:#233;line-height:1.85;}
+  .top{background:#0f6e63;color:#fff;padding:16px 18px;text-align:center;}
+  .top .logo{font-size:24px;font-weight:900;letter-spacing:4px;}
+  .top .sub{font-size:12px;letter-spacing:2px;opacity:.85;margin-top:3px;}
+  .wrap{max-width:720px;margin:0 auto;background:#fff;box-shadow:0 0 24px rgba(0,0,0,.08);}
+  .inner{padding:26px 26px 40px;}
+  .cert{border:2px solid #cfe0dc;border-top:5px solid #0f6e63;padding:22px;}
+  .cert h1{text-align:center;font-size:24px;letter-spacing:4px;margin-bottom:4px;}
+  .cert .sn{text-align:center;font-size:13px;color:#789;margin-bottom:16px;}
+  .reg{width:100%;border-collapse:collapse;font-size:16px;}
+  .reg td{border:1px solid #d5e2de;padding:9px 12px;}
+  .reg td.k{background:#eef5f3;color:#0f6e63;width:32%;font-weight:700;}
+  .reg .hl{color:#b3341f;font-weight:800;}
+  p{font-size:17px;margin:16px 0 0;color:#34433f;}
+  .box{background:#fbf2ef;border-left:4px solid #b3341f;padding:12px 16px;margin:18px 0;font-size:16px;color:#7a2b20;}
+  .toggle{display:inline-flex;align-items:center;gap:8px;cursor:pointer;background:#eef5f3;border:1px solid #cbe0da;color:#0f6e63;font:inherit;font-size:15px;font-weight:700;padding:10px 16px;border-radius:8px;margin:8px 0 2px;}
+  .toggle .caret{transition:transform .2s;font-size:12px;} .toggle.open .caret{transform:rotate(90deg);}
+  .panel{max-height:0;overflow:hidden;transition:max-height .3s;} .panel.open{max-height:700px;}
+  .foot{border-top:1px solid #dfe8e5;margin-top:24px;padding-top:14px;font-size:12px;color:#9aa;text-align:center;}
+</style></head>
+<body>
+  <div class="top"><div class="logo">城 中 醫 院</div><div class="sub">病歷診斷證明查詢系統 · MEDICAL RECORD</div></div>
+  <div class="wrap"><div class="inner">
+    <div class="cert">
+      <h1>診 斷 證 明 書</h1>
+      <div class="sn">病歷號：0938471　·　開立日期：一〇六年五月</div>
+      <table class="reg">
+        <tr><td class="k">病人姓名</td><td>林 ○ 川（男 · 76 歲）</td></tr>
+        <tr><td class="k">診斷</td><td>大範圍缺血性腦中風、意識昏迷（GCS E1V1M2）、長期臥床</td></tr>
+        <tr><td class="k">昏迷起始</td><td class="hl">一〇六年一月十四日起持續昏迷，至今未清醒</td></tr>
+        <tr><td class="k">意識狀態</td><td class="hl">無自主意識 · 無法言語、書寫、簽名</td></tr>
+        <tr><td class="k">照護情形</td><td>入住加護病房，氣管插管、鼻胃管留置</td></tr>
+      </table>
+    </div>
+
+    <div class="box">主治醫師註記：病人自一〇六年一月中風入院起，即陷入昏迷、無任何自主行為能力，無法進行簽署或表達意思，此一狀態<b>持續至今未曾改變</b>。</div>
+
+    <p>本院受家屬委託，就病人於一〇六年三月間之意識與行為能力狀態出具證明。相關期間病人之意識狀態明細如下：</p>
+    <div class="toggle" onclick="tg(this)"><span class="caret">▶</span><span>🔍 展開一至五月意識狀態紀錄</span></div>
+    <div class="panel"><div class="panel-inner">
+      <table class="reg" style="margin-top:8px;">
+        <tr><td class="k">一月十四日</td><td>急診入院，昏迷，插管</td></tr>
+        <tr><td class="k">二月</td><td>持續昏迷，加護病房</td></tr>
+        <tr><td class="k" style="background:#fbeae6;">三月</td><td class="hl">仍昏迷，無意識、無法簽名（同月保單受益人「經本人簽名」變更）</td></tr>
+        <tr><td class="k">四～五月</td><td>意識未恢復，轉普通病房續行照護</td></tr>
+      </table>
+    </div></div>
+
+    <div class="foot">© 城中醫院病歷室　本證明依病歷據實開立</div>
+  </div></div>
+  <script>function tg(el){el.classList.toggle('open');var p=el.nextElementSibling;if(p&&p.classList.contains('panel'))p.classList.toggle('open');}</script>
+</body></html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Sans CJK TC",sans-serif;}
+  .phone{ width:720px; height:1480px; background:#b3c9e0; position:relative; display:flex; flex-direction:column; }
+  .status{ height:44px; background:#7a95b8; display:flex; align-items:center; justify-content:space-between; padding:0 26px; color:#fff; font-size:22px; font-weight:600; }
+  .head{ height:74px; background:#6f8bad; display:flex; align-items:center; padding:0 20px; color:#fff; gap:14px; }
+  .head .name{ font-size:24px; font-weight:700; flex:1; } .head .name small{ display:block; font-size:15px; font-weight:400; opacity:.85; }
+  .head .ic{ font-size:26px; opacity:.9; }
+  .msgs{ flex:1; padding:20px 20px 30px; display:flex; flex-direction:column; gap:12px; overflow:hidden; }
+  .day{ align-self:center; background:rgba(0,0,0,.28); color:#fff; font-size:16px; padding:5px 16px; border-radius:14px; margin:4px 0; }
+  .row{ display:flex; align-items:flex-end; gap:8px; max-width:84%; }
+  .row.me{ align-self:flex-end; flex-direction:row-reverse; }
+  .bubble{ padding:12px 16px; font-size:21px; line-height:1.45; border-radius:18px; }
+  .them .bubble{ background:#fff; color:#1a1a1a; border-top-left-radius:6px; }
+  .me .bubble{ background:#8de05a; color:#12300a; border-top-right-radius:6px; }
+  .time{ font-size:13px; color:#4a5a70; margin:0 2px 2px; white-space:nowrap; } .me .time{ color:#41633a; }
+  .av{ width:44px; height:44px; border-radius:50%; background:#4a5d7a; flex:none; display:flex; align-items:center; justify-content:center; font-size:22px; color:#fff; }
+</style></head>
+<body>
+  <div class="phone">
+    <div class="status"><div>10:41</div><div>📶 5G 🔋46%</div></div>
+    <div class="head"><div class="av">⚖</div><div class="name">城中地檢 王檢察官<small>公務聯繫專用</small></div><div class="ic">☰</div></div>
+    <div class="msgs">
+      <div class="day">今天</div>
+      <div class="row them"><div class="av">⚖</div><div class="bubble">我是城中地檢署王檢察官。經查你的銀行帳戶涉及一起洗錢案件，情節重大。</div><div class="time">10:12</div></div>
+      <div class="row me"><div class="time">10:15</div><div class="bubble">蛤？我沒有做什麼啊…</div></div>
+      <div class="row them"><div class="av">⚖</div><div class="bubble">所以才要請你配合證明清白。這是偵查不公開的案件，你不能跟任何人講，包括家人。</div><div class="time">10:16</div></div>
+      <div class="row them"><div class="av">⚖</div><div class="bubble">請把名下存款轉入本署的「監管專戶」，我們清查後會全額退還給你。</div><div class="time">10:18</div></div>
+      <div class="row me"><div class="time">10:22</div><div class="bubble">要…全部嗎</div></div>
+      <div class="row them"><div class="av">⚖</div><div class="bubble">是。越快越好，不然我這邊要簽拘票了，到時候凍結財產、通緝，很麻煩。</div><div class="time">10:23</div></div>
+      <div class="row me"><div class="time">10:35</div><div class="bubble">我去匯的時候 銀行行員一直勸我不要匯…</div></div>
+      <div class="row them"><div class="av">⚖</div><div class="bubble">別聽他們的，他們也可能是共犯。行員問你，就說是要買房子的錢。記住，一個字都不能透露。</div><div class="time">10:37</div></div>
+    </div>
+  </div>
+</body></html>
