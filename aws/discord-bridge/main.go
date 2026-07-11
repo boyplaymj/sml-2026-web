@@ -829,6 +829,68 @@ func readClaudeAccount() (claudeAccount, bool) {
 	return d.OauthAccount, true
 }
 
+// fetchAccountFromOAuth 用切換後的 token 打 /api/oauth/profile 拿「目前實際生效」的帳號。
+// 這跟查用量用的是同一顆 token,所以切帳號後即時正確,不會像 ~/.claude.json 那樣停在舊帳號。
+func fetchAccountFromOAuth(tok string) (claudeAccount, bool) {
+	if tok == "" {
+		return claudeAccount{}, false
+	}
+	req, err := http.NewRequest("GET", "https://api.anthropic.com/api/oauth/profile", nil)
+	if err != nil {
+		return claudeAccount{}, false
+	}
+	req.Header.Set("Authorization", "Bearer "+tok)
+	req.Header.Set("anthropic-beta", "oauth-2025-04-20")
+	resp, err := usageHTTP.Do(req)
+	if err != nil {
+		return claudeAccount{}, false
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+	if resp.StatusCode != 200 {
+		log.Printf("oauth/profile http %d: %s", resp.StatusCode, firstLine(string(body)))
+		return claudeAccount{}, false
+	}
+	var p struct {
+		Account struct {
+			Email       string `json:"email"`
+			DisplayName string `json:"display_name"`
+			FullName    string `json:"full_name"`
+		} `json:"account"`
+		Organization struct {
+			OrgType       string `json:"organization_type"`
+			RateLimitTier string `json:"rate_limit_tier"`
+			BillingType   string `json:"billing_type"`
+			ExtraUsage    bool   `json:"has_extra_usage_enabled"`
+		} `json:"organization"`
+	}
+	if json.Unmarshal(body, &p) != nil || p.Account.Email == "" {
+		return claudeAccount{}, false
+	}
+	dn := p.Account.DisplayName
+	if dn == "" {
+		dn = p.Account.FullName
+	}
+	return claudeAccount{
+		Email:         p.Account.Email,
+		DisplayName:   dn,
+		OrgType:       p.Organization.OrgType,
+		RateLimitTier: p.Organization.RateLimitTier,
+		ExtraUsage:    p.Organization.ExtraUsage,
+		BillingType:   p.Organization.BillingType,
+	}, true
+}
+
+// currentAccount 取「目前實際生效」的帳號:優先用 token 打 profile(切帳號後即時正確),
+// 打不到才退回讀 ~/.claude.json——但那個檔切帳號時不會被換,故回傳的 stale=true 代表可能是舊帳號。
+func currentAccount(tok string) (acc claudeAccount, ok, stale bool) {
+	if acc, ok := fetchAccountFromOAuth(tok); ok {
+		return acc, true, false
+	}
+	acc, ok = readClaudeAccount()
+	return acc, ok, ok
+}
+
 // maskEmail 保留 local part 前半 + 網域,其餘遮成 ***(能看懂但不全顯)。
 func maskEmail(e string) string {
 	at := strings.IndexByte(e, '@')
@@ -881,8 +943,8 @@ func handleUsageCommand(s *discordgo.Session, channelID string) {
 	}
 
 	var fields []*discordgo.MessageEmbedField
-	// 帳號/方案/計費(成本管控用):有讀到才顯示。
-	if acc, ok := readClaudeAccount(); ok {
+	// 帳號/方案/計費(成本管控用):優先用 token 打 profile(與用量同源、切帳號後即時正確)。
+	if acc, ok, stale := currentAccount(tok); ok {
 		who := maskEmail(acc.Email)
 		if acc.DisplayName != "" {
 			who += "（" + acc.DisplayName + "）"
@@ -896,6 +958,9 @@ func handleUsageCommand(s *discordgo.Session, channelID string) {
 			&discordgo.MessageEmbedField{Name: "💳 方案", Value: prettyPlan(acc)},
 			&discordgo.MessageEmbedField{Name: "🛡️ 超額計費", Value: overage},
 		)
+		if stale {
+			u.note = strings.TrimSpace(u.note + " 帳號資訊讀自 ~/.claude.json,切帳號後可能非最新(profile API 無法取得)。")
+		}
 	}
 	fields = append(fields,
 		&discordgo.MessageEmbedField{Name: "🤖 版本", Value: ver},
@@ -986,8 +1051,10 @@ func main() {
 			if cmd == "!用量" {
 				s.ChannelTyping(m.ChannelID)
 				handleUsageCommand(s, m.ChannelID)
-			} else if cmd == "!白名單" {
-				handleWhitelistCommand(s, m)
+			} else if action, slot, ok := parseAccountCommand(stripped); ok {
+				handleAccountCommand(s, m, action, slot)
+			} else if action, ok := parseB2BCommand(stripped); ok {
+				handleB2BCommand(s, m, action)
 			} else {
 				tryBridgeCommand(s, m, stripped)
 			}
