@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<style>
+  @font-face { font-family:'PlateCN'; src:url('fonts/platech.ttf'); }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { background:#000; }
+  .stage { position:relative; width:1216px; height:832px;
+           background:url('car_base3.png') center/cover no-repeat; }
+  .plate-face { position:absolute; left:129px; top:194px; width:958px; height:458px;
+                display:flex; align-items:center; justify-content:center; }
+  .num {
+    font-family:'PlateCN','Arial Black',sans-serif;
+    font-size:210px; letter-spacing:6px; color:#15181e; white-space:nowrap;
+    -webkit-text-stroke:2px #0b0d11;
+    text-shadow:
+      -1.5px -1.5px 0 rgba(255,255,255,.6),
+       1px    1px   0 rgba(0,0,0,.4),
+       2px    3px   2px rgba(0,0,0,.35),
+       4px    6px   6px rgba(0,0,0,.25);
+  }
+</style>
+</head>
+<body>
+  <div class="stage"><div class="plate-face"><div class="num" id="num"></div></div></div>
+<script>
+  const raw = new URLSearchParams(location.search).get('code') || 'ABP-123';
+  // 白名單過濾:只留合法字元,徹底杜絕注入
+  const code = raw.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+  const [pre, ...rest] = code.split(/[-\s_]+/);
+  const num = document.getElementById('num');
+  num.textContent = pre;                       // 安全:textContent 不解析標記
+  const dot = document.createElement('span');
+  dot.style.cssText = 'display:inline-block;width:.18em;height:.18em;background:#15181e;border-radius:50%;vertical-align:.55em;margin:0 .08em;';
+  num.appendChild(dot);
+  num.appendChild(document.createTextNode(rest.join('')));
+</script>
+</body>
+</html>

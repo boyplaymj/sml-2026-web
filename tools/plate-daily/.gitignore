@@ -1,0 +1,10 @@
+# 生成內容 / 素材 / 快取 — 不進版控(含渲染出的番號圖與參考素材)
+__pycache__/
+cache/
+fonts/
+glyphs/
+glyphs_clean/
+refs/
+*.png
+demo*.html
+compose_car*.html
