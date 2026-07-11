@@ -19,7 +19,6 @@ const ATLAS_BUCKET = process.env.ATLAS_BUCKET || 'boyplaymj-image';
 const ATLAS_KEY = process.env.ATLAS_KEY || 'plate-meta/atlas.json';
 const DAILY_CHANNEL = process.env.DAILY_CHANNEL || '1525321679922921522';
 const FIREBASE_PROJECT = process.env.FIREBASE_PROJECT || 'sml2026newscore';
-const ADMIN_DOC_URL = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT}/databases/(default)/documents/config/gameAdmins`;
 // 白名單:env ALLOWED_EMAILS 為權威來源(設了就以它為準)。
 // 為什麼不直接信 Firestore config/gameAdmins:那份文件目前世界可寫(firestore.rules catch-all),
 // 若當唯一授權來源會被下毒繞過認證。env 拿掉這個可被竄改的信任錨點。
@@ -94,21 +93,11 @@ async function verifyIdToken (token) {
   return payload;
 }
 
-let allowCache = { at: 0, emails: [] };
-async function getAllowlist () {
-  // env 權威:設了 ALLOWED_EMAILS 就是唯一真相,完全不碰(世界可寫的)Firestore。
-  if (ENV_EMAILS.length) return ENV_EMAILS;
-  // 只有沒設 env 時才退回 Firestore config/gameAdmins(方便來源;⚠️目前公開可寫,務必設 env)。
-  if (Date.now() - allowCache.at < 5 * 60 * 1000 && allowCache.emails.length) return allowCache.emails;
-  try {
-    const docJson = await httpGetJson(ADMIN_DOC_URL);
-    const vals = docJson?.fields?.emails?.arrayValue?.values || [];
-    const emails = vals.map(v => String(v.stringValue || '').toLowerCase()).filter(Boolean);
-    if (emails.length) allowCache = { at: Date.now(), emails };
-  } catch (e) {
-    // 讀不到就保留舊 cache;沒 cache 也沒 env → 回空陣列 → fail-closed(deny all)。
-  }
-  return allowCache.emails;
+function getAllowlist () {
+  // env ALLOWED_EMAILS 是唯一授權來源;沒設就 fail-closed(回空 → deny all)。
+  // 刻意不 fallback Firestore config/gameAdmins:那份文件世界可寫(firestore.rules catch-all),
+  // 當授權來源會被下毒繞過認證。管理員名單一律走 Lambda env。
+  return ENV_EMAILS;
 }
 
 const VALID = /^[A-Z]{2,6}-\d{2,5}$/;
