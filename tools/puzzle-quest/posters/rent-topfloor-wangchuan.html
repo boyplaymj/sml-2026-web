@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { background:#231f1a; }
+  .stage {
+    width:900px; height:1220px; position:relative; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    background:#231f1a; perspective:2200px;
+    font-family:"Noto Serif CJK TC","Noto Sans CJK TC",serif;
+  }
+  /* 背景軟木板:輕微景深模糊 */
+  .bg{ position:absolute; inset:-40px;
+    background:#2f2c28 url('bg_corkboard.png') center/cover no-repeat;
+    filter:blur(2.5px) brightness(.82) saturate(.9); }
+
+  /* 傳單:真實紙材 + 相機視角傾斜 + 投影 */
+  .flyer {
+    position:relative; width:600px; padding:52px 46px 0;
+    background:#efe7d4 url('paper_aged.png') center/cover;
+    color:#211d15;
+    transform:rotateX(4deg) rotateZ(-1.4deg) rotateY(-2deg);
+    box-shadow:
+      0 2px 4px rgba(0,0,0,.4),
+      0 26px 55px rgba(0,0,0,.62),
+      0 60px 90px rgba(0,0,0,.4);
+    display:flex; flex-direction:column;
+  }
+  /* 紙面受光不均 + 折痕陰影 */
+  .flyer::before{
+    content:""; position:absolute; inset:0; pointer-events:none; z-index:2;
+    background:
+      linear-gradient(115deg, rgba(255,250,235,.35) 0%, transparent 30%, transparent 70%, rgba(60,45,20,.22) 100%),
+      radial-gradient(circle at 30% 12%, rgba(255,250,240,.25), transparent 40%);
+    mix-blend-mode:soft-light;
+  }
+  .flyer > *{ position:relative; z-index:1; }
+  .tape{ position:absolute; width:158px; height:44px; z-index:3;
+    background:linear-gradient(180deg, rgba(222,214,180,.62), rgba(200,190,150,.5));
+    box-shadow:0 3px 7px rgba(0,0,0,.35); }
+  .tape.tl{ top:-16px; left:44px; transform:rotate(-23deg); }
+  .tape.tr{ top:-16px; right:44px; transform:rotate(19deg); }
+
+  .kicker{ text-align:center; letter-spacing:9px; font-size:14px; color:#6e5326; margin-bottom:4px; }
+  .title{ text-align:center; font-weight:900; font-size:44px; letter-spacing:2px; color:#161310; line-height:1.24;
+    text-shadow:0 1px 0 rgba(255,255,255,.25); }
+  .title .rent{ color:#1d6238; }
+  .cheap{ text-align:center; font-size:19px; color:#9d2020; font-weight:800; margin-top:6px; letter-spacing:2px; }
+  .hr{ height:3px; background:#211d15; margin:18px 6px 22px; opacity:.86; }
+
+  .rows{ font-size:20px; line-height:2.15; padding:0 6px; color:#2a2419; }
+  .rows .row .k{ color:#5a5136; font-weight:800; margin-right:10px; }
+  .rows .row .em{ color:#9d2020; font-weight:800; }
+  .addr{ margin-top:14px; font-size:20px; padding:0 6px; color:#2a2419; }
+  .addr .k{ color:#5a5136; font-weight:800; margin-right:10px; }
+  .note{ text-align:right; font-size:14px; color:#6a6045; margin:8px 6px 0; }
+
+  .phoneline{ text-align:center; font-size:21px; font-weight:800; margin:20px 0 6px; letter-spacing:1px; color:#1a160f; }
+  .phoneline .num{ font-size:25px; letter-spacing:2px; }
+
+  .tabs{ display:flex; margin-top:12px; border-top:1.5px dashed #8a7d5c; }
+  .tab{ flex:1; border-right:1.5px dashed #8a7d5c; padding:12px 0 14px; text-align:center;
+    writing-mode:vertical-rl; height:150px; font-size:14px; color:#3a3320; letter-spacing:2px; font-weight:700; }
+  .tab:last-child{ border-right:none; }
+
+  /* 打光 + 暗角 + 顆粒:整體照片感 */
+  .light{ position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(ellipse at 32% 8%, rgba(255,244,220,.16), transparent 55%); }
+  .vignette{ position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(ellipse at center, transparent 42%, rgba(15,10,4,.62) 100%); }
+  .grain{ position:absolute; inset:0; pointer-events:none; opacity:.14; mix-blend-mode:overlay; }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="bg"></div>
+    <div class="flyer">
+      <div class="tape tl"></div>
+      <div class="tape tr"></div>
+      <div class="kicker">社 區 佈 告 欄 · 房 屋 出 租</div>
+      <div class="title">【<span class="rent">出租</span>】市區套房<br>頂樓加蓋</div>
+      <div class="cheap">租 金 便 宜 · 隨 時 可 看</div>
+      <div class="hr"></div>
+      <div class="rows">
+        <div class="row"><span class="k">坪　數</span>8 坪，開放式衛浴，<span class="em">限女性</span></div>
+        <div class="row"><span class="k">屋　況</span>屋齡 12 年，前房客已搬走，押一付三</div>
+        <div class="row"><span class="k">採　光</span>採光佳，下午四點後日照最強</div>
+      </div>
+      <div class="addr"><span class="k">地　址</span>忘川路 3 巷 7 號 頂加</div>
+      <div class="note">非誠勿擾</div>
+      <div class="phoneline">意者電洽　<span class="num">0912-070-408</span></div>
+      <div class="tabs">
+        <div class="tab">出租 0912-070-408</div>
+        <div class="tab">出租 0912-070-408</div>
+        <div class="tab">出租 0912-070-408</div>
+        <div class="tab">出租 0912-070-408</div>
+        <div class="tab">出租 0912-070-408</div>
+        <div class="tab">出租 0912-070-408</div>
+        <div class="tab">出租 0912-070-408</div>
+      </div>
+    </div>
+    <div class="light"></div>
+    <div class="vignette"></div>
+    <svg class="grain" width="900" height="1220"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
+  </div>
+</body>
+</html>

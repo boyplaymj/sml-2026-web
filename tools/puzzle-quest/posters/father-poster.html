@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { background:#231f1a; }
+  .stage{ width:900px; height:1220px; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#231f1a; perspective:2200px; font-family:"Noto Serif CJK TC","Noto Sans CJK TC",serif; }
+  .bg{ position:absolute; inset:-40px; background:#2f2c28 url('bg_corkboard.png') center/cover no-repeat; filter:blur(2.5px) brightness(.8) saturate(.9); }
+  .flyer{ position:relative; width:620px; padding:48px 46px 40px; background:#efe7d4 url('paper_aged.png') center/cover; color:#211d15; transform:rotateX(3deg) rotateZ(-1deg) rotateY(-1.5deg); box-shadow:0 2px 4px rgba(0,0,0,.4), 0 26px 55px rgba(0,0,0,.62), 0 60px 90px rgba(0,0,0,.4); display:flex; flex-direction:column; }
+  .flyer::before{ content:""; position:absolute; inset:0; pointer-events:none; z-index:2; background:linear-gradient(115deg, rgba(255,250,235,.32) 0%, transparent 30%, transparent 70%, rgba(60,45,20,.22) 100%), radial-gradient(circle at 30% 10%, rgba(255,250,240,.22), transparent 42%); mix-blend-mode:soft-light; }
+  .flyer > *{ position:relative; z-index:1; }
+  .tape{ position:absolute; width:158px; height:44px; z-index:3; background:linear-gradient(180deg, rgba(222,214,180,.6), rgba(200,190,150,.48)); box-shadow:0 3px 7px rgba(0,0,0,.35); }
+  .tape.tl{ top:-16px; left:44px; transform:rotate(-20deg); } .tape.tr{ top:-16px; right:44px; transform:rotate(22deg); }
+  .kicker{ text-align:center; letter-spacing:6px; font-size:15px; color:#6e5326; margin-bottom:4px; }
+  .title{ text-align:center; font-weight:900; font-size:52px; letter-spacing:6px; color:#161310; text-shadow:0 1px 0 rgba(255,255,255,.22); }
+  .photo{ width:150px; height:180px; margin:16px auto 8px; border:3px solid #7a6a48; background:linear-gradient(160deg,#cfc3a6,#b7a988); display:flex; align-items:center; justify-content:center; color:#6a5e42; font-size:14px; letter-spacing:2px; filter:sepia(.3) contrast(.95); }
+  .hr{ height:3px; background:#211d15; margin:14px 4px 18px; opacity:.85; }
+  .rows{ font-size:20px; line-height:2.05; padding:0 6px; color:#2a2419; }
+  .rows .k{ color:#5a5136; font-weight:800; margin-right:10px; }
+  .plead{ font-size:19px; line-height:1.9; margin:14px 6px 0; color:#2a2419; }
+  .em{ color:#7a2618; font-weight:800; }
+  .contact{ margin-top:18px; font-size:17px; color:#3a352c; }
+  .contact .muted{ color:#6a6045; font-size:14px; }
+  .light{ position:absolute; inset:0; pointer-events:none; background:radial-gradient(ellipse at 34% 8%, rgba(255,244,220,.15), transparent 55%); }
+  .vignette{ position:absolute; inset:0; pointer-events:none; background:radial-gradient(ellipse at center, transparent 42%, rgba(15,10,4,.62) 100%); }
+  .grain{ position:absolute; inset:0; pointer-events:none; opacity:.14; mix-blend-mode:overlay; }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="bg"></div>
+    <div class="flyer">
+      <div class="tape tl"></div><div class="tape tr"></div>
+      <div class="kicker">懇 請 協 尋 · 感 激 不 盡</div>
+      <div class="title">協　尋</div>
+      <div class="photo">﹝照片已褪色﹞</div>
+      <div class="hr"></div>
+      <div class="rows">
+        <div><span class="k">姓　名</span>陳文和　男　78 歲</div>
+        <div><span class="k">特　徵</span>身形削瘦，患有輕度失智</div>
+        <div><span class="k">衣　著</span>深藍色西裝（結婚時訂做的那套）</div>
+      </div>
+      <div class="plead">
+        家父總說要「回大同町的老家」，但那裡早就不在了。<br>
+        <span class="em">他每年都會在今天回來</span>，只是今年還沒到。<br>
+        若見到他，懇請帶他回家。
+      </div>
+      <div class="contact">如有消息請撥 (02) 1234-5678<div class="muted">（大同町已停用之號碼，仍請一試）</div></div>
+    </div>
+    <div class="light"></div><div class="vignette"></div>
+    <svg class="grain" width="900" height="1220"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
+  </div>
+</body>
+</html>

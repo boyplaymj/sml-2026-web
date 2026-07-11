@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Sans CJK TC",sans-serif;}
+  .phone{ width:720px; height:1480px; background:#b3c9e0; position:relative; display:flex; flex-direction:column; }
+  .status{ height:44px; background:#7a95b8; display:flex; align-items:center; justify-content:space-between; padding:0 26px; color:#fff; font-size:22px; font-weight:600; }
+  .head{ height:74px; background:#6f8bad; display:flex; align-items:center; padding:0 20px; color:#fff; gap:14px; }
+  .head .name{ font-size:26px; font-weight:700; flex:1; }
+  .head .name small{ display:block; font-size:15px; font-weight:400; opacity:.8; }
+  .head .ic{ font-size:26px; opacity:.9; }
+  .msgs{ flex:1; padding:22px 22px 30px; display:flex; flex-direction:column; gap:14px; overflow:hidden; }
+  .day{ align-self:center; background:rgba(0,0,0,.28); color:#fff; font-size:16px; padding:5px 16px; border-radius:14px; margin:4px 0; }
+  .row{ display:flex; align-items:flex-end; gap:8px; max-width:82%; }
+  .row.me{ align-self:flex-end; flex-direction:row-reverse; }
+  .bubble{ padding:13px 17px; font-size:22px; line-height:1.45; border-radius:20px; }
+  .them .bubble{ background:#fff; color:#1a1a1a; border-top-left-radius:6px; }
+  .me .bubble{ background:#8de05a; color:#12300a; border-top-right-radius:6px; }
+  .time{ font-size:14px; color:#4a5a70; margin:0 2px 2px; white-space:nowrap; } .me .time{ color:#41633a; }
+  .av{ width:44px; height:44px; border-radius:50%; background:#cdd8e6; flex:none; display:flex; align-items:center; justify-content:center; font-size:20px; color:#6f8bad; }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="status"><div>18:44</div><div>📶 5G 🔋52%</div></div>
+    <div class="head"><div class="av">姊</div><div class="name">表姊<small>最後上線 18:43</small></div><div class="ic">☰</div></div>
+    <div class="msgs">
+      <div class="day">今天</div>
+      <div class="row them"><div class="av">姊</div><div class="bubble">嬤今天又出門了 我在社區佈告欄看到那張紙</div><div class="time">18:30</div></div>
+      <div class="row me"><div class="time">18:33</div><div class="bubble">又貼了喔…這是第幾年了</div></div>
+      <div class="row them"><div class="av">姊</div><div class="bubble">我數不清了 每年就這一天 她一定要出去貼</div><div class="time">18:35</div></div>
+      <div class="row them"><div class="av">姊</div><div class="bubble">她還在準備阿公愛吃的菜 說他今天會回來</div><div class="time">18:36</div></div>
+      <div class="row me"><div class="time">18:38</div><div class="bubble">你有沒有…試著跟她說</div></div>
+      <div class="row them"><div class="av">姊</div><div class="bubble">我不敢 上次才提一句 她就發好大的脾氣 罵我們咒他</div><div class="time">18:40</div></div>
+      <div class="row them"><div class="av">姊</div><div class="bubble">她把阿公那件深藍西裝燙好 掛在門口了</div><div class="time">18:41</div></div>
+      <div class="row me"><div class="time">18:42</div><div class="bubble">結婚那套喔…</div></div>
+      <div class="row them"><div class="av">姊</div><div class="bubble">對 她說他回來要穿。我看著那件衣服 一句話都說不出口</div><div class="time">18:43</div></div>
+    </div>
+  </div>
+</body>
+</html>

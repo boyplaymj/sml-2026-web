@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Sans CJK TC",sans-serif;}
+  .phone{ width:720px; height:1480px; background:#b3c9e0; position:relative; display:flex; flex-direction:column; }
+  .status{ height:44px; background:#7a95b8; display:flex; align-items:center; justify-content:space-between; padding:0 26px; color:#fff; font-size:22px; font-weight:600; }
+  .head{ height:74px; background:#6f8bad; display:flex; align-items:center; padding:0 20px; color:#fff; gap:14px; }
+  .head .name{ font-size:25px; font-weight:700; flex:1; } .head .name small{ display:block; font-size:15px; font-weight:400; opacity:.8; }
+  .head .ic{ font-size:26px; opacity:.9; }
+  .msgs{ flex:1; padding:20px 20px 30px; display:flex; flex-direction:column; gap:12px; overflow:hidden; }
+  .day{ align-self:center; background:rgba(0,0,0,.28); color:#fff; font-size:16px; padding:5px 16px; border-radius:14px; margin:4px 0; }
+  .row{ display:flex; align-items:flex-end; gap:8px; max-width:84%; }
+  .row.me{ align-self:flex-end; flex-direction:row-reverse; }
+  .nm{ font-size:14px; color:#3f5a7a; margin:0 0 3px 2px; }
+  .bubble{ padding:12px 16px; font-size:21px; line-height:1.45; border-radius:18px; }
+  .them .bubble{ background:#fff; color:#1a1a1a; border-top-left-radius:6px; }
+  .me .bubble{ background:#8de05a; color:#12300a; border-top-right-radius:6px; }
+  .time{ font-size:13px; color:#4a5a70; margin:0 2px 2px; white-space:nowrap; } .me .time{ color:#41633a; }
+  .av{ width:42px; height:42px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center; font-size:18px; color:#fff; }
+  .a1{background:#e08a5a;} .a2{background:#5aa0e0;} .a3{background:#8a7ad0;}
+</style></head>
+<body>
+  <div class="phone">
+    <div class="status"><div>17:20</div><div>📶 5G 🔋74%</div></div>
+    <div class="head"><div class="av a1">堤</div><div class="name">河堤國小 · 家長會<small>成員 38 人</small></div><div class="ic">☰</div></div>
+    <div class="msgs">
+      <div class="day">今天</div>
+      <div class="row them"><div class="av a1">美</div><div><div class="nm">怡君媽</div><div class="bubble">提醒大家 最近河堤那邊怪怪的 小孩放學別自己走</div></div><div class="time">17:02</div></div>
+      <div class="row them"><div class="av a2">華</div><div><div class="nm">小華爸</div><div class="bubble">怎麼了嗎？</div></div><div class="time">17:04</div></div>
+      <div class="row them"><div class="av a1">美</div><div><div class="nm">怡君媽</div><div class="bubble">有個男的天天蹲在大樹下 說撿到書包要還人<br>一直要小朋友自己過去拿</div></div><div class="time">17:05</div></div>
+      <div class="row them"><div class="av a3">婷</div><div><div class="nm">婷婷媽</div><div class="bubble">我也看到！他還在入口貼了張「失物招領」</div></div><div class="time">17:07</div></div>
+      <div class="row me"><div class="time">17:09</div><div class="bubble">我家妹妹昨天回來說 那個叔叔問她<br>「你的水壺袋是不是粉紅色的」…</div></div>
+      <div class="row them"><div class="av a1">美</div><div><div class="nm">怡君媽</div><div class="bubble">天啊 這太不對勁了</div></div><div class="time">17:12</div></div>
+      <div class="row them"><div class="av a2">華</div><div><div class="nm">小華爸</div><div class="bubble">重點是根本沒有小孩掉書包啊 哪來的失主</div></div><div class="time">17:14</div></div>
+      <div class="row me"><div class="time">17:18</div><div class="bubble">拜託大家 千萬別讓孩子單獨過去<br>我已經報警了</div></div>
+    </div>
+  </div>
+</body></html>

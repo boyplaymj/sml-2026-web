@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>失蹤人口協尋公告 · 兒少專區</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Sans CJK TC",serif;}
+  body{background:#eceff3;color:#25303a;line-height:1.85;}
+  .gov{background:#1f3a5f;color:#fff;padding:14px 18px;text-align:center;}
+  .gov .logo{font-size:22px;font-weight:900;letter-spacing:4px;}
+  .gov .sub{font-size:12px;letter-spacing:2px;opacity:.85;margin-top:3px;}
+  .rib{background:#c0392b;color:#fff;text-align:center;font-size:15px;font-weight:700;padding:8px;letter-spacing:2px;}
+  .wrap{max-width:720px;margin:0 auto;background:#fff;box-shadow:0 0 24px rgba(0,0,0,.1);}
+  .inner{padding:24px 24px 40px;}
+  .head{display:flex;gap:18px;align-items:flex-start;}
+  .ph{width:150px;height:190px;border:2px solid #cfd6de;background:linear-gradient(160deg,#dfe4ea,#c2ccd6);flex:none;display:flex;align-items:center;justify-content:center;color:#8a97a5;font-size:14px;text-align:center;}
+  .ti .st{color:#c0392b;font-size:14px;font-weight:800;letter-spacing:2px;}
+  .ti h1{font-size:30px;margin:6px 0 4px;letter-spacing:2px;}
+  .ti .meta{font-size:16px;color:#55636f;}
+  .reg{width:100%;border-collapse:collapse;margin:20px 0 6px;font-size:16px;}
+  .reg td{border:1px solid #dde3e9;padding:9px 12px;}
+  .reg td.k{background:#eef2f6;color:#1f3a5f;width:34%;font-weight:700;}
+  .reg .hl{color:#c0392b;font-weight:800;}
+  p{font-size:17px;margin:16px 0 0;text-align:justify;color:#37424c;}
+  .box{background:#fdf2f2;border-left:4px solid #c0392b;padding:12px 16px;margin:20px 0;font-size:16px;color:#7a2b25;}
+  .toggle{display:inline-flex;align-items:center;gap:8px;cursor:pointer;background:#eef2f6;border:1px solid #cbd5df;color:#1f3a5f;font:inherit;font-size:15px;font-weight:700;padding:10px 16px;border-radius:8px;margin:8px 0 2px;}
+  .toggle .caret{transition:transform .2s;font-size:12px;} .toggle.open .caret{transform:rotate(90deg);}
+  .panel{max-height:0;overflow:hidden;transition:max-height .3s;} .panel.open{max-height:900px;}
+  .foot{border-top:1px solid #dde3e9;margin-top:24px;padding-top:14px;font-size:12px;color:#9aa4ae;text-align:center;}
+</style></head>
+<body>
+  <div class="gov"><div class="logo">失蹤人口協尋公告</div><div class="sub">兒少專區 · MISSING PERSONS BULLETIN</div></div>
+  <div class="rib">◆ 協尋中 · 懇請民眾提供線索 ◆</div>
+  <div class="wrap"><div class="inner">
+    <div class="head">
+      <div class="ph">﹝協尋照片﹞<br>眉眼清秀<br>短髮</div>
+      <div class="ti">
+        <div class="st">兒少失蹤 · 高風險案件</div>
+        <h1>許雅雯　女童</h1>
+        <div class="meta">國小三年級 · 約 9 歲 · 身高約 125 公分 · 身形削瘦</div>
+      </div>
+    </div>
+
+    <div class="toggle" onclick="tg(this)"><span class="caret">▶</span><span>🔍 展開失蹤時特徵明細</span></div>
+    <div class="panel"><div class="panel-inner">
+      <table class="reg">
+        <tr><td class="k">失蹤地點</td><td>白沙嶺自然步道（校外教學途中）</td></tr>
+        <tr><td class="k">衣著</td><td>白色短袖制服、深藍色短褲、白色布鞋</td></tr>
+        <tr><td class="k">隨身物品</td><td class="hl">背有一個粉紅色水壺袋</td></tr>
+        <tr><td class="k">狀態</td><td class="hl">失蹤中 · 尚未尋獲</td></tr>
+      </table>
+    </div></div>
+
+    <div class="box">⚠️ 治安通報：近日接獲民眾反映，有一名成年男子於河堤一帶自稱「拾獲女童書包」，並張貼失物招領、要求孩童單獨前往領取。警方特別呼籲：<b>切勿私下接觸，發現類似情形請立即報案。</b></div>
+
+    <p>本童失蹤時所背之粉紅色水壺袋，為協尋辨識重點之一。若您曾見到此物品，或有任何相關線索，懇請與警方聯繫。</p>
+
+    <div class="toggle" onclick="tg(this)"><span class="caret">▶</span><span>◆ 相關通報紀錄</span></div>
+    <div class="panel"><div class="panel-inner">
+      <p style="margin-top:8px;">· 河堤入口出現「失物招領（藍色書包 · 內含粉紅色水壺袋）」告示乙則，張貼者身分不明，堅持不留電話、要求失主親自到場。已列為追查對象。</p>
+    </div></div>
+
+    <div class="foot">© 失蹤人口協尋系統　本頁供協尋辨識之用</div>
+  </div></div>
+  <script>function tg(el){el.classList.toggle('open');var p=el.nextElementSibling;if(p&&p.classList.contains('panel'))p.classList.toggle('open');}</script>
+</body></html>

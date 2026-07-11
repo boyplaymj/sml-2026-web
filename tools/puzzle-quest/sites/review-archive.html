@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>買家中心 · 用戶評價紀錄</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Sans CJK TC",sans-serif;}
+  body{background:#f2f3f5;color:#2a2a2a;line-height:1.85;}
+  .nav{background:#ff5722;color:#fff;padding:16px 18px;font-size:20px;font-weight:700;letter-spacing:1px;text-align:center;}
+  .wrap{max-width:720px;margin:0 auto;}
+  .profile{background:#fff;padding:22px 22px 18px;display:flex;gap:16px;align-items:center;border-bottom:1px solid #eee;}
+  .ava{width:70px;height:70px;border-radius:50%;background:#ffd8cc;display:flex;align-items:center;justify-content:center;color:#ff5722;font-size:30px;font-weight:800;}
+  .pinfo .u{font-size:24px;font-weight:700;} .pinfo .m{font-size:15px;color:#888;margin-top:4px;}
+  .stat{display:flex;background:#fff;border-bottom:8px solid #eceef0;}
+  .stat div{flex:1;text-align:center;padding:14px 0;} .stat b{display:block;font-size:22px;color:#333;} .stat span{font-size:14px;color:#999;}
+  .warn{background:#fff4ec;color:#c1440e;font-size:15px;padding:12px 22px;border-bottom:1px solid #f3ddcd;}
+  .sechd{padding:16px 22px 6px;font-size:18px;font-weight:700;color:#333;}
+  .rvcard{background:#fff;margin:0 0 8px;padding:14px 22px 16px;}
+  .rvhd{display:flex;justify-content:space-between;align-items:center;color:#999;font-size:15px;}
+  .rvhd .prod{color:#444;font-weight:600;}
+  .stars{color:#ffb400;font-size:18px;margin:6px 0;}
+  .toggle{display:inline-flex;align-items:center;gap:8px;cursor:pointer;background:#f4f6f8;border:1px solid #dde3e8;color:#3d4b55;font:inherit;font-size:15px;font-weight:700;padding:9px 14px;border-radius:8px;margin-top:8px;}
+  .toggle .caret{transition:transform .2s;font-size:12px;} .toggle.open .caret{transform:rotate(90deg);}
+  .panel{max-height:0;overflow:hidden;transition:max-height .3s;} .panel.open{max-height:600px;}
+  .rvtext{font-size:19px;line-height:2;color:#2a2a2a;padding:8px 0 2px;}
+  .foot{padding:20px 22px;color:#aaa;font-size:14px;text-align:center;}
+</style></head>
+<body>
+  <div class="nav">買家中心 · 用戶評價紀錄</div>
+  <div class="wrap">
+    <div class="profile">
+      <div class="ava">匿</div>
+      <div class="pinfo"><div class="u">匿名買家 h****9</div><div class="m">註冊：2026-07-09 02:51　·　最後上線：2026-07-09 03:14</div></div>
+    </div>
+    <div class="stat">
+      <div><b>3</b><span>評價</span></div><div><b>0</b><span>追蹤</span></div><div><b>16 分鐘</b><span>帳號活躍時長</span></div>
+    </div>
+    <div class="warn">⚠️ 系統偵測：此帳號於註冊當晚短時間內連續發表 3 則評價後即無任何登入紀錄。</div>
+
+    <div class="sechd">全部評價（依時間排序）</div>
+
+    <div class="rvcard">
+      <div class="rvhd"><span class="prod">輕量大容量行李箱 28吋</span><span>03:07</span></div>
+      <div class="stars">★★★★★</div>
+      <div class="toggle" onclick="tg(this)"><span class="caret">▶</span><span>展開評價內容</span></div>
+      <div class="panel"><div class="rvtext">救星般的好物，終於等到它到貨。<br>命中注定要買這一款行李箱，真的。<br>我用了整整兩週，質感無可挑剔。<br>在機場超好認，滾輪順到不行。<br>三種顏色我全都想收藏起來。<br>樓下鄰居看到也問我在哪裡買的。</div></div>
+    </div>
+
+    <div class="rvcard">
+      <div class="rvhd"><span class="prod">折疊收納箱 大容量</span><span>03:11</span></div>
+      <div class="stars">★★★★★</div>
+      <div class="toggle" onclick="tg(this)"><span class="caret">▶</span><span>展開評價內容</span></div>
+      <div class="panel"><div class="rvtext">門把設計很好握，質感一流。<br>被子收納袋隨箱附贈，很貼心。<br>他牌的我買過，完全比不上這個。<br>鎖扣牢固，怎麼搖都不會開。<br>了不起的做工，一定會回購。</div></div>
+    </div>
+
+    <div class="rvcard">
+      <div class="rvhd"><span class="prod">桌上型檯燈 USB充電</span><span>03:14</span></div>
+      <div class="stars">★★★★★</div>
+      <div class="toggle" onclick="tg(this)"><span class="caret">▶</span><span>展開評價內容</span></div>
+      <div class="panel"><div class="rvtext">快遞包裝完整，送得很快。<br>打開就能用，說明很清楚。<br>一體成型，做工紮實。<br>一分錢一分貨，值得。<br>九成新的質感，推薦。</div></div>
+    </div>
+
+    <div class="foot">© 購物買家中心　評價內容由用戶自行提供</div>
+  </div>
+  <script>function tg(el){el.classList.toggle('open');var p=el.nextElementSibling;if(p&&p.classList.contains('panel'))p.classList.toggle('open');}</script>
+</body></html>

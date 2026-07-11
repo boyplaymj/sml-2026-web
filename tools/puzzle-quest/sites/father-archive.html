@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>永思園 · 追思塔位查詢</title>
+<style>
+  :root{ --ink:#2c2c2c; --line:#dcdcdc; --paper:#fbfbf9; --accent:#4a5d6b; }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{ background:#eef1f0; color:var(--ink); font-family:"Noto Serif CJK TC",serif; line-height:1.9; }
+  .masthead{ background:#3d4b55; color:#eef3f5; padding:16px 18px; text-align:center; }
+  .masthead .logo{ font-size:24px; font-weight:900; letter-spacing:8px; }
+  .masthead .sub{ font-size:12px; letter-spacing:3px; opacity:.85; margin-top:4px; }
+  .bar{ background:#dfe5e6; font-size:12px; color:#4a5d6b; padding:8px 18px; border-bottom:1px solid var(--line); }
+  .wrap{ max-width:720px; margin:0 auto; background:var(--paper); box-shadow:0 0 30px rgba(0,0,0,.08); }
+  .inner{ padding:28px 26px 40px; }
+  .memo{ border:1px solid var(--line); border-top:4px solid var(--accent); padding:24px; text-align:center; background:#fff; }
+  .memo .title{ font-size:14px; color:var(--accent); letter-spacing:4px; }
+  .memo .name{ font-size:40px; font-weight:900; letter-spacing:8px; margin:10px 0 4px; }
+  .memo .name small{ font-size:16px; font-weight:400; color:#7a7a7a; letter-spacing:2px; }
+  .dates{ font-size:18px; color:#3a3a3a; margin:12px 0; }
+  .dates .anni{ color:#8a3b2f; font-weight:800; }
+  .reg{ width:100%; border-collapse:collapse; margin:22px 0 6px; font-size:15px; }
+  .reg td{ border:1px solid var(--line); padding:9px 12px; }
+  .reg td.k{ background:#eef2f3; color:#4a5d6b; width:36%; font-weight:700; }
+  p{ font-size:17px; margin:16px 0 0; text-align:justify; color:#3a3a3a; }
+  .box{ background:#f3f6f6; border-left:4px solid var(--accent); padding:12px 16px; margin:20px 0; font-size:16px; color:#43494b; }
+  .toggle{ display:inline-flex; align-items:center; gap:8px; cursor:pointer; user-select:none; background:#e9eeef; border:1px solid #c4d0d4; color:#3d4b55; font:inherit; font-size:15px; font-weight:700; padding:10px 16px; border-radius:8px; margin:8px 0 2px; }
+  .toggle .caret{ transition:transform .2s; font-size:13px; } .toggle.open .caret{ transform:rotate(90deg); }
+  .panel{ max-height:0; overflow:hidden; transition:max-height .3s ease; } .panel.open{ max-height:1000px; }
+  .foot{ border-top:1px solid var(--line); margin-top:24px; padding-top:14px; font-size:12px; color:#9a9a9a; text-align:center; }
+</style>
+</head>
+<body>
+  <div class="masthead"><div class="logo">永 思 園</div><div class="sub">追思 · 塔位查詢系統　MEMORIAL ARCHIVE</div></div>
+  <div class="bar">首頁 ／ 塔位查詢 ／ 查詢結果</div>
+  <div class="wrap"><div class="inner">
+    <div class="memo">
+      <div class="title">追　思</div>
+      <div class="name">陳文和 <small>先生</small></div>
+      <div class="dates">生於 民國 二十 年　·　卒於 <span class="anni">民國 一〇六 年 · 農曆七月十四</span></div>
+    </div>
+
+    <p>本園謹存錄先生塔位資料，供家屬親友追思憑弔。以下為登記明細：</p>
+    <div class="toggle" onclick="tg(this)"><span class="caret">▶</span><span>🔍 點此查詢塔位登記明細</span></div>
+    <div class="panel"><div class="panel-inner">
+      <table class="reg">
+        <tr><td class="k">姓名</td><td>陳文和（歿）</td></tr>
+        <tr><td class="k">卒　日</td><td>民國一〇六年 · 農曆七月十四（享壽七十八）</td></tr>
+        <tr><td class="k">塔位</td><td>思親樓 三區 · 已入厝</td></tr>
+        <tr><td class="k">立牌者</td><td>妻（現由子女代辦；立牌人記憶已不清）</td></tr>
+      </table>
+    </div></div>
+
+    <div class="box">園方備註：每年農曆七月十四，皆有一位年長女士獨自前來，堅持先生「今日返家」，並囑本園「勿收供品，他晚點就到」。家屬曾致歉說明，長者患有失智，望諒。</div>
+
+    <p>先生生前常提及欲返「大同町」舊居；惟該地於數十年前市地重劃時已拆除，今無此地名。</p>
+
+    <div class="toggle" onclick="tg(this)"><span class="caret">▶</span><span>◆ 相關紀錄</span></div>
+    <div class="panel"><div class="panel-inner">
+      <p style="margin-top:8px;">· 每逢忌日，社區佈告欄可見一則「協尋家父」告示，所載特徵、衣著與本位先生相符；張貼日期歷年皆為同一日。</p>
+    </div></div>
+
+    <div class="foot">© 永思園追思系統　本頁僅供家屬追思之用</div>
+  </div></div>
+  <script>function tg(el){el.classList.toggle('open');var p=el.nextElementSibling;if(p&&p.classList.contains('panel'))p.classList.toggle('open');}</script>
+</body>
+</html>
