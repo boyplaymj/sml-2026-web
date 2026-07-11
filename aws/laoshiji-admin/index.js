@@ -11,9 +11,13 @@ const {
   PutCommand,
   DeleteCommand
 } = require('@aws-sdk/lib-dynamodb');
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
 
 const REGION = process.env.AWS_REGION || 'ap-southeast-1';
 const TABLE = process.env.TABLE_NAME || 'sml-plate-codes';
+const ATLAS_BUCKET = process.env.ATLAS_BUCKET || 'boyplaymj-image';
+const ATLAS_KEY = process.env.ATLAS_KEY || 'plate-meta/atlas.json';
+const DAILY_CHANNEL = process.env.DAILY_CHANNEL || '1525321679922921522';
 const FIREBASE_PROJECT = process.env.FIREBASE_PROJECT || 'sml2026newscore';
 const ADMIN_DOC_URL = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT}/databases/(default)/documents/config/gameAdmins`;
 // 白名單:env ALLOWED_EMAILS 為權威來源(設了就以它為準)。
@@ -24,6 +28,7 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://sweetbot-games.
   .split(',').map(s => s.trim()).filter(Boolean);
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: REGION }));
+const s3 = new S3Client({ region: REGION });
 
 function corsHeaders (event) {
   const origin = event.headers?.origin || event.headers?.Origin || '';
@@ -155,6 +160,11 @@ async function addCodes (rawCodes) {
     err.statusCode = 400;
     throw err;
   }
+  if (rawCodes.length > 500) {
+    const err = new Error('too many codes (max 500)');
+    err.statusCode = 400;
+    throw err;
+  }
   const now = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
   const added = [];
   const skipped = [];
@@ -187,6 +197,23 @@ async function addCodes (rawCodes) {
   return { added, skipped, invalid };
 }
 
+// 字庫覆蓋:讀 EC2 發佈到 S3 的 atlas.json(EC2 publish_atlas.py 產出)
+async function getAtlas () {
+  const r = await s3.send(new GetObjectCommand({ Bucket: ATLAS_BUCKET, Key: ATLAS_KEY }));
+  const body = await r.Body.transformToString();
+  return JSON.parse(body);
+}
+
+// 每日推播·預覽(唯讀):複刻 db.py pick_for_today 的排序,回今日會選的 4 個。
+// 註:實際 daily.py 對同級用隨機 tie-break,預覽用穩定排序,故僅為指示性。
+async function dailyPreview () {
+  const items = (await scanCodes()).filter(it => (it.status || 'active') === 'active');
+  items.sort((a, b) =>
+    (Number(a.postedCount || 0) - Number(b.postedCount || 0)) ||
+    String(a.lastPostedAt || '').localeCompare(String(b.lastPostedAt || '')));
+  return { channel: DAILY_CHANNEL, picks: items.slice(0, 4), pool: items.length };
+}
+
 function routeOf (event) {
   const method = event.requestContext?.http?.method || event.httpMethod || '';
   const path = event.rawPath || event.path || '/';
@@ -200,12 +227,21 @@ exports.handler = async (event) => {
   try {
     await requireAdmin(event);
   } catch (e) {
-    return reply(event, 403, { ok: false, error: 'forbidden: ' + e.message });
+    console.log('auth denied:', e.message);   // 細節只留伺服器端,不回前端
+    return reply(event, 403, { ok: false, error: 'forbidden' });
   }
 
   try {
     if (method === 'GET' && path === '/codes') {
       return reply(event, 200, { items: await scanCodes() });
+    }
+
+    if (method === 'GET' && path === '/atlas') {
+      return reply(event, 200, await getAtlas());
+    }
+
+    if (method === 'GET' && path === '/daily/preview') {
+      return reply(event, 200, await dailyPreview());
     }
 
     if (method === 'POST' && path === '/codes') {
@@ -227,6 +263,8 @@ exports.handler = async (event) => {
     return reply(event, 404, { ok: false, error: 'not found' });
   } catch (e) {
     const status = e.statusCode || 500;
-    return reply(event, status, { ok: false, error: e.message });
+    console.log('handler error:', e.message);
+    // 400 類保留有用訊息(bad json / invalid code / too many codes);500 類不外洩內部
+    return reply(event, status, { ok: false, error: status < 500 ? e.message : 'internal error' });
   }
 };
