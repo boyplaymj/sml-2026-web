@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2b2824;}
+  .stage{width:760px;height:1120px;background:radial-gradient(circle at 45% 30%,#403b34,#201d19 82%);display:flex;align-items:center;justify-content:center;position:relative;font-family:"Noto Sans Mono CJK TC","Noto Sans CJK TC",monospace;perspective:1800px;}
+  .rc{width:430px;background:#fbfaf6;color:#1c1c1c;padding:34px 34px 20px;position:relative;transform:rotateX(3deg) rotateZ(-1.2deg);box-shadow:0 6px 12px rgba(0,0,0,.4),0 34px 60px rgba(0,0,0,.6);}
+  .rc::before,.rc::after{content:"";position:absolute;left:0;right:0;height:14px;background:radial-gradient(circle at 8px -3px,transparent 8px,#fbfaf6 8px) repeat-x;background-size:20px 14px;}
+  .rc::before{top:-13px;}
+  .rc::after{bottom:-13px;transform:scaleY(-1);}
+  .sh{position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,rgba(255,255,255,.5),transparent 30%,transparent 78%,rgba(60,55,45,.14));mix-blend-mode:soft-light;}
+  .ttl{text-align:center;font-size:22px;font-weight:800;letter-spacing:2px;}
+  .sub{text-align:center;font-size:14px;color:#444;margin:2px 0 12px;}
+  .dsh{border-top:2px dashed #999;margin:10px 0;}
+  .kv{display:flex;justify-content:space-between;font-size:15px;line-height:1.9;}
+  .kv .em{font-weight:800;}
+  .big{text-align:center;font-size:30px;font-weight:900;letter-spacing:4px;margin:6px 0;}
+  .item{display:flex;justify-content:space-between;font-size:16px;line-height:2.05;}
+  .item .n{max-width:280px;}
+  .tot{display:flex;justify-content:space-between;font-size:19px;font-weight:800;margin-top:4px;}
+  .barcode{height:52px;margin:14px 0 4px;background:repeating-linear-gradient(90deg,#111 0,#111 2px,#fff 2px,#fff 5px,#111 5px,#111 6px,#fff 6px,#fff 10px);}
+  .car{font-size:13px;color:#555;text-align:center;letter-spacing:1px;}
+  .note{position:absolute;right:-26px;bottom:60px;width:250px;background:#fff6c6;color:#2a2410;font-family:"Noto Sans CJK TC",sans-serif;font-size:16px;line-height:1.5;padding:12px 14px;transform:rotate(4deg);box-shadow:0 6px 14px rgba(0,0,0,.4);border:1px solid #e6d98a;}
+  .note b{color:#8a1414;}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 44%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="rc">
+      <div class="sh"></div>
+      <div class="ttl">電子發票證明聯</div>
+      <div class="sub">昇曜對面 · 中山門市</div>
+      <div class="dsh"></div>
+      <div class="kv"><span>發票號碼</span><span class="em">KX-4471 0882</span></div>
+      <div class="kv"><span>交易時間</span><span class="em">06/17（二） 22:47</span></div>
+      <div class="kv"><span>店號 / 機</span><span>0417-08 / 03</span></div>
+      <div class="dsh"></div>
+      <div class="item"><span class="n">工業用手套（厚）</span><span>×2　　116</span></div>
+      <div class="item"><span class="n">大型垃圾袋 90L</span><span>×1　　 89</span></div>
+      <div class="item"><span class="n">封箱膠帶（透明）</span><span>×1　　 45</span></div>
+      <div class="item"><span class="n">藥用酒精 500ml</span><span>×1　　 79</span></div>
+      <div class="dsh"></div>
+      <div class="tot"><span>合計</span><span>329</span></div>
+      <div class="tot" style="font-weight:600;font-size:15px;"><span>現金</span><span>500</span></div>
+      <div class="tot" style="font-weight:600;font-size:15px;"><span>找零</span><span>171</span></div>
+      <div class="barcode"></div>
+      <div class="car">載具　/XX●●●●（末四碼遮蔽）　　統編：—</div>
+    </div>
+    <div class="note">〔證物袋標籤〕<br><b>拾獲地點：後棟一樓垃圾桶</b><br>採集：現場採證　No.7</div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>

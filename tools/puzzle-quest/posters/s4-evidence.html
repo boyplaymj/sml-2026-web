@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Sans CJK TC",sans-serif;}
+  html,body{background:#15130f;}
+  .stage{width:820px;height:1120px;position:relative;background:radial-gradient(circle at 50% 26%,#2a2620,#100e0b 82%);padding:40px 44px;color:#e8e2d5;overflow:hidden;}
+  .hd{display:flex;align-items:center;gap:12px;border-bottom:2px solid #4a463c;padding-bottom:12px;}
+  .badge{width:46px;height:46px;border:3px solid #b9a86a;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#b9a86a;font-weight:900;font-size:20px;}
+  .hd .t{font-size:22px;font-weight:900;letter-spacing:1px;}
+  .hd .t small{display:block;font-size:13px;color:#a49a80;font-weight:400;}
+  .meta{display:flex;justify-content:space-between;font-size:13.5px;color:#a49a80;margin-top:10px;}
+  .grid{display:flex;gap:22px;margin-top:22px;}
+  .bag{flex:1;background:linear-gradient(150deg,rgba(210,220,230,.14),rgba(150,160,170,.06));border:1px solid rgba(200,210,220,.35);border-radius:10px;padding:16px;position:relative;box-shadow:0 10px 26px rgba(0,0,0,.5);}
+  .bag .zip{height:14px;border-bottom:2px dashed rgba(220,230,240,.5);margin:-4px -4px 12px;}
+  .bag .tag{background:#f4efe0;color:#1a1710;font-size:12px;border-radius:4px;padding:8px 10px;line-height:1.55;}
+  .bag .tag b{letter-spacing:1px;}
+  .bag .obj{height:220px;border-radius:8px;margin:14px 0;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+  .glove{background:radial-gradient(circle at 40% 30%,#3a4650,#181d22);}
+  .glove::before{content:"";position:absolute;width:150px;height:120px;background:#c9cfd4;clip-path:polygon(20% 100%,10% 40%,22% 38%,26% 12%,36% 12%,38% 36%,46% 8%,56% 8%,56% 36%,64% 12%,74% 14%,72% 40%,82% 44%,78% 100%);opacity:.82;transform:rotate(-8deg);}
+  .glove .blood{position:absolute;width:60px;height:44px;background:radial-gradient(circle,#6e1414,#3a0a0a);border-radius:50% 50% 45% 55%;bottom:60px;right:50px;filter:blur(1px);opacity:.9;}
+  .tape{background:radial-gradient(circle at 40% 30%,#3a4650,#181d22);}
+  .tape::before{content:"";position:absolute;width:180px;height:60px;background:linear-gradient(#c9b98a,#a99a68);transform:rotate(-14deg);opacity:.85;border:1px solid #8a7c50;}
+  .obj .lbl{position:absolute;bottom:8px;left:8px;font-size:12px;background:rgba(0,0,0,.55);padding:3px 7px;border-radius:4px;color:#eee;letter-spacing:1px;}
+  .foot{margin-top:22px;font-size:14px;line-height:1.85;color:#c8c0ae;background:rgba(255,255,255,.05);border-left:3px solid #8a1414;padding:10px 14px;}
+  .foot .em{color:#e88;font-weight:800;}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 42%,rgba(0,0,0,.6));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="hd"><div class="badge">證</div><div class="t">現場遺留物 採證紀錄<small>昇曜生技 後棟一樓 · 垃圾桶 No.7</small></div></div>
+    <div class="meta"><span>採證編號：EV-0619-07</span><span>採集：鑑識組　6/19</span></div>
+    <div class="grid">
+      <div class="bag">
+        <div class="zip"></div>
+        <div class="obj glove"><div class="blood"></div><div class="lbl">物證 A</div></div>
+        <div class="tag"><b>物證 A｜工業用手套（殘片）</b><br>右手手套撕裂殘片，掌面採得<b style="color:#8a1414;">疑似血跡</b>反應。DNA 送驗中。</div>
+      </div>
+      <div class="bag">
+        <div class="zip"></div>
+        <div class="obj tape"><div class="lbl">物證 B</div></div>
+        <div class="tag"><b>物證 B｜封箱膠帶</b><br>透明封箱膠帶一截，邊緣採得纖維與指紋，比對中。</div>
+      </div>
+    </div>
+    <div class="foot">鑑識附註：上述物品採自後棟一樓垃圾桶，<span class="em">品項與案發當晚（6/17 22:47）超商電子發票所購「工業手套、封箱膠帶」相符</span>；手套血跡 DNA 及指紋比對結果另行陳報。</div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 28%,#46413a,#221f1b 82%);perspective:2200px;font-family:"Noto Sans CJK TC",sans-serif;}
+  .doc{position:relative;width:700px;min-height:920px;padding:42px 46px;background:#fdfdfb;color:#1a1a1a;transform:rotateX(3deg) rotateZ(-1deg) rotateY(1deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);}
+  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 26%,transparent 76%,rgba(60,55,45,.13));mix-blend-mode:soft-light;}
+  .hdr{display:flex;align-items:center;gap:12px;border-bottom:3px solid #17130d;padding-bottom:10px;}
+  .badge{width:50px;height:50px;border:3px solid #1d5a8a;border-radius:50%;color:#1d5a8a;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;}
+  .hdr .t{font-size:22px;font-weight:900;}.hdr .t small{display:block;font-size:13px;color:#6a6155;font-weight:400;}
+  .meta{display:flex;justify-content:space-between;font-size:13.5px;color:#555;margin-top:8px;}
+  .sub{font-size:16px;line-height:1.7;margin-top:12px;background:#f3f6f9;border-left:4px solid #1d5a8a;padding:9px 13px;}
+  .sub b{color:#a01414;}
+  table{width:100%;border-collapse:collapse;margin-top:14px;font-size:14px;}
+  th,td{border:1px solid #b8b0a0;padding:8px 8px;text-align:left;vertical-align:top;}
+  th{background:#eef2f6;font-weight:800;}
+  .bat{font-weight:800;}
+  .st{color:#a01414;font-weight:700;}
+  .foot{margin-top:16px;font-size:13px;color:#666;line-height:1.7;}
+  .stamp{position:absolute;right:52px;bottom:110px;width:120px;height:120px;border:4px solid rgba(29,90,138,.45);border-radius:50%;color:rgba(29,90,138,.55);display:flex;align-items:center;justify-content:center;text-align:center;font-size:15px;font-weight:900;line-height:1.3;transform:rotate(-10deg);}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="hdr"><div class="badge">消</div><div class="t">城中市 消費者保護官辦公室<small>食品安全申訴 · 案件彙整表</small></div></div>
+      <div class="meta"><span>彙整編號：CP-06-0221</span><span>製表日：6/20</span></div>
+      <div class="sub">近期就<b>「元氣飲」提神保健飲品（批號 <span class="bat">A-1128</span>）</b>之集體申訴案彙整。多名民眾反映飲用後出現急性肝、腎損傷，症狀與時序相近，已函請衛生主管機關併案調查。</div>
+      <table>
+        <tr><th>編號</th><th>申訴人</th><th>購買/發病</th><th>症狀</th><th>批號</th><th>狀態</th></tr>
+        <tr><td>01</td><td>林○宏（男）</td><td>6/03 購 / 6/09 發</td><td>急性肝炎、洗腎</td><td class="bat">A-1128</td><td class="st">住院中</td></tr>
+        <tr><td>02</td><td>王○婷（女）</td><td>6/05 購 / 6/11 發</td><td>急性腎衰竭</td><td class="bat">A-1128</td><td class="st">加護</td></tr>
+        <tr><td>03</td><td>陳○全（男）</td><td>6/06 購 / 6/12 發</td><td>肝功能異常、黃疸</td><td class="bat">A-1128</td><td class="st">治療中</td></tr>
+        <tr><td>04</td><td>張○（女）</td><td>6/08 購 / 6/14 發</td><td>噁心、肝指數飆高</td><td class="bat">A-1128</td><td class="st">門診追蹤</td></tr>
+        <tr><td>…</td><td colspan="5">另有 3 件受理中，症狀類同，共 7 案</td></tr>
+      </table>
+      <div class="foot">說明：申訴人主張產品原料重金屬（砷）超標。已請廠商提供批號 A-1128 之原料檢驗與流向紀錄。＊個資已去識別化。</div>
+      <div class="stamp">消保官<br>受理<br>戳記</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>

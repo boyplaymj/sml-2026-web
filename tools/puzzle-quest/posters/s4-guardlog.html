@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 28%,#46413a,#221f1b 82%);perspective:2200px;font-family:"Noto Sans CJK TC",sans-serif;}
+  .pad{position:relative;width:660px;min-height:900px;padding:40px 46px 60px;background:#fbf7e8;color:#20304a;transform:rotateX(3deg) rotateZ(-1.2deg) rotateY(1deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);
+    background-image:repeating-linear-gradient(#fbf7e8 0 40px,#c9d6e0 40px 41px);background-position:0 96px;}
+  .pad::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 26%,transparent 76%,rgba(60,55,45,.13));mix-blend-mode:soft-light;}
+  .redline{position:absolute;left:78px;top:0;bottom:0;width:2px;background:rgba(200,60,60,.4);}
+  .ttl{text-align:center;font-weight:900;font-size:26px;letter-spacing:3px;color:#1a2740;padding-bottom:8px;}
+  .sub{text-align:center;font-size:15px;color:#41506a;margin-bottom:10px;}
+  .meta{display:flex;justify-content:space-between;font-size:15px;color:#41506a;border-bottom:2px solid #8a97ab;padding-bottom:6px;}
+  .hand{font-family:"Noto Serif CJK TC",serif;color:#1c2b52;}
+  .ent{display:flex;gap:16px;font-size:20px;line-height:40px;margin-left:20px;}
+  .ent .t{font-weight:800;width:78px;flex:none;}
+  .ent .x{flex:1;transform:skewX(-4deg);}
+  .em{color:#8a1414;font-weight:800;}
+  .sig{margin-top:30px;text-align:right;font-size:19px;transform:skewX(-6deg) rotate(-2deg);}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="pad">
+      <div class="redline"></div>
+      <div class="ttl">後棟　警衛值班日誌</div>
+      <div class="sub">昇曜生技 保全室 · 夜班</div>
+      <div class="meta"><span>日期：6/17（星期二）　夜班</span><span>值班：警衛 老張</span></div>
+      <div class="hand" style="margin-top:14px;">
+        <div class="ent"><span class="t">21:40</span><span class="x">巡後棟一切正常，5F 品保室仍有燈（周課長加班）。</span></div>
+        <div class="ent"><span class="t">22:00</span><span class="x">依總務公告，<span class="em">後棟監視錄影暫停維護</span>（門禁刷卡如常）。</span></div>
+        <div class="ent"><span class="t">23:1x</span><span class="x">聞後棟梯間有聲響，內線詢問無人回應，記錄待查。</span></div>
+        <div class="ent"><span class="t">23:51</span><span class="x"><span class="em">郭協理自後棟離開</span>，手提大型垃圾袋一只，<span class="em">神色匆忙</span>，未多言。</span></div>
+        <div class="ent"><span class="t">00:05</span><span class="x">巡樓，5F 品保室燈已熄。一切「正常」。</span></div>
+        <div class="ent"><span class="t">08:2x</span><span class="x">晨班交接後，後棟一樓發現墜樓者，通報 119、報警。</span></div>
+      </div>
+      <div class="sig hand">值班簽名　張水木</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>

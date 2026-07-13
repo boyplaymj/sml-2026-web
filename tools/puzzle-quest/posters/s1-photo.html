@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Sans CJK TC",sans-serif;}
+  html,body{background:#111;}
+  .stage{width:640px;background:#fff;color:#111;position:relative;overflow:hidden;}
+  /* IG header */
+  .hd{display:flex;align-items:center;gap:12px;padding:12px 14px;}
+  .av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#f09433,#dc2743,#bc1888);padding:2px;}
+  .av i{display:block;width:100%;height:100%;border-radius:50%;background:#ccc center/cover;}
+  .nm{flex:1;line-height:1.25;}
+  .nm b{font-size:18px;}
+  .nm small{display:block;font-size:13px;color:#555;}
+  .more{font-size:22px;color:#333;letter-spacing:2px;}
+  /* photo */
+  .photo{width:640px;height:640px;position:relative;background:#0a0d10 url('s1-photo-base.png') center/cover;overflow:hidden;}
+  .warm{position:absolute;inset:0;background:radial-gradient(circle at 18% 40%,rgba(255,200,120,.16),transparent 45%);pointer-events:none;}
+  /* hidden clue 1: 檢驗報告 paper on desk */
+  .rpt{position:absolute;left:33%;top:60%;width:200px;background:#efeae0;color:#1c1a16;padding:9px 11px;transform:rotate(-7deg) skewX(-3deg);box-shadow:0 6px 14px rgba(0,0,0,.55);filter:brightness(.92);}
+  .rpt .h{font-size:12.5px;font-weight:800;border-bottom:1px solid #8a8072;padding-bottom:3px;margin-bottom:4px;letter-spacing:.5px;}
+  .rpt .l{font-size:11.5px;line-height:1.5;display:flex;justify-content:space-between;}
+  .rpt .bad{color:#a01414;font-weight:800;}
+  .rpt .bat{font-size:14px;font-weight:900;letter-spacing:1px;margin-top:2px;}
+  /* hidden clue 2: desk calendar with red circle */
+  .cal{position:absolute;right:7%;top:30%;width:118px;background:#fbfaf6;color:#222;transform:rotate(4deg);box-shadow:0 5px 12px rgba(0,0,0,.5);filter:brightness(.9);}
+  .cal .top{background:#7a1414;color:#fff;font-size:12px;text-align:center;padding:3px;letter-spacing:2px;}
+  .cal .bd{padding:6px 8px;font-size:12px;line-height:1.55;}
+  .cal .mark{color:#111;font-weight:800;position:relative;display:inline-block;}
+  .cal .mark::after{content:"";position:absolute;inset:-6px -8px;border:2.5px solid #d21414;border-radius:50%;transform:rotate(-8deg);}
+  /* hidden clue 3: energy drink bottle */
+  .drink{position:absolute;right:20%;top:52%;width:26px;height:74px;background:linear-gradient(#d9a441,#b5791f);border-radius:6px 6px 3px 3px;box-shadow:0 4px 9px rgba(0,0,0,.5);transform:rotate(2deg);}
+  .drink .cap{height:10px;background:#3a2a10;border-radius:4px 4px 0 0;}
+  .drink .lb{margin-top:22px;font-size:8px;color:#3a2a10;text-align:center;font-weight:800;writing-mode:horizontal-tb;line-height:1.1;}
+  .grain{position:absolute;inset:0;pointer-events:none;opacity:.12;mix-blend-mode:overlay;background:repeating-radial-gradient(circle at 30% 40%,#000 0,transparent 2px);}
+  /* IG actions + caption */
+  .act{display:flex;gap:16px;padding:12px 14px 6px;font-size:24px;}
+  .act .sp{flex:1;}
+  .likes{padding:0 14px;font-size:15px;font-weight:700;}
+  .cap{padding:6px 14px 4px;font-size:16px;line-height:1.5;}
+  .cap b{margin-right:6px;}
+  .tm{padding:2px 14px 16px;font-size:12px;color:#8a8a8a;letter-spacing:1px;}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="hd">
+      <div class="av"><i></i></div>
+      <div class="nm"><b>meng_hua.chou</b><small>昇曜生技 · 城中</small></div>
+      <div class="more">···</div>
+    </div>
+    <div class="photo">
+      <div class="warm"></div>
+      <div class="rpt">
+        <div class="h">原料檢驗報告</div>
+        <div class="l"><span>品名</span><span>麥芽糊精</span></div>
+        <div class="l"><span>As 砷</span><span class="bad">超標 ✕</span></div>
+        <div class="l"><span>判定</span><span class="bad">不合格</span></div>
+        <div class="bat">批號 A-1128</div>
+      </div>
+      <div class="cal">
+        <div class="top">六 月</div>
+        <div class="bd">一 二 <span class="mark">三</span><br><span class="mark">(三) 9:30<br>食藥署</span></div>
+      </div>
+      <div class="drink"><div class="cap"></div><div class="lb">元氣<br>飲</div></div>
+      <div class="grain"></div>
+    </div>
+    <div class="act">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="1.8"><path d="M20.8 4.6a5 5 0 0 0-7 0L12 6.3l-1.8-1.7a5 5 0 1 0-7 7L12 20l8.8-8.4a5 5 0 0 0 0-7z"/></svg>
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="1.8"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.9-.9L3 20l1-4.1A8.4 8.4 0 1 1 21 11.5z"/></svg>
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="1.8"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></svg>
+      <span class="sp"></span>
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="1.8"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+    </div>
+    <div class="likes">17 人說讚</div>
+    <div class="cap"><b>meng_hua.chou</b>又是一個人的加班夜。做完這批就好了。</div>
+    <div class="tm">3 小時前</div>
+  </div>
+</body>
+</html>

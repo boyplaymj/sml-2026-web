@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 	"unicode/utf8"
 )
 
@@ -46,6 +47,61 @@ func TestMutateInteropCreatesWhenMissing(t *testing.T) {
 	}
 	if _, err := os.Stat(p); err != nil {
 		t.Fatalf("應已建立設定檔: %v", err)
+	}
+}
+
+func resetInteropCacheForTest() {
+	interopMu.Lock()
+	defer interopMu.Unlock()
+	interopMtime = time.Time{}
+	interopCache = nil
+	interopLoaded = false
+}
+
+func TestSetInteropStateEnablesCurrentChannel(t *testing.T) {
+	dir := t.TempDir()
+	p := filepath.Join(dir, "interop.json")
+	t.Setenv("BOT_INTEROP_PATH", p)
+	t.Setenv("BOT_INTEROP_LOCK", filepath.Join(dir, "lock"))
+	resetInteropCacheForTest()
+
+	if err := setInteropState("ch-1", "語音輸入牌型", true); err != nil {
+		t.Fatalf("setInteropState enable error: %v", err)
+	}
+	resetInteropCacheForTest()
+	if !botToBotSet()["ch-1"] {
+		t.Fatal("botToBotSet should include enabled channel")
+	}
+
+	if err := setInteropState("ch-1", "語音輸入牌型", false); err != nil {
+		t.Fatalf("setInteropState disable error: %v", err)
+	}
+	resetInteropCacheForTest()
+	if botToBotSet()["ch-1"] {
+		t.Fatal("botToBotSet should not include disabled channel")
+	}
+}
+
+func TestParseB2BCommand(t *testing.T) {
+	cases := []struct {
+		in     string
+		action string
+		ok     bool
+	}{
+		{"!白名單", "whitelist", true},
+		{"!b2b", "status", true},
+		{"!b2b on", "enable", true},
+		{"!b2b off", "disable", true},
+		{"!互通 開", "enable", true},
+		{"!互通 關", "disable", true},
+		{"!b2b list", "whitelist", true},
+		{"!不是", "", false},
+	}
+	for _, tc := range cases {
+		action, ok := parseB2BCommand(tc.in)
+		if ok != tc.ok || action != tc.action {
+			t.Fatalf("parseB2BCommand(%q) = (%q,%v), want (%q,%v)", tc.in, action, ok, tc.action, tc.ok)
+		}
 	}
 }
 

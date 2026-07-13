@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 28%,#46413a,#221f1b 82%);perspective:2200px;font-family:"Noto Serif CJK TC","Noto Sans CJK TC",serif;}
+  .doc{position:relative;width:668px;min-height:900px;padding:48px 52px;background:#fbfbf8;color:#1a1a1a;transform:rotateX(3deg) rotateZ(-1deg) rotateY(1deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);}
+  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 26%,transparent 76%,rgba(60,55,45,.13));mix-blend-mode:soft-light;}
+  .org{text-align:center;font-size:24px;font-weight:900;letter-spacing:3px;}
+  .doctype{text-align:center;font-size:18px;letter-spacing:8px;color:#555;margin:4px 0 12px;}
+  .conf{text-align:center;color:#a01414;font-weight:800;font-size:14px;letter-spacing:4px;border:2px solid #a01414;display:inline-block;padding:2px 12px;position:absolute;top:44px;right:48px;transform:rotate(6deg);}
+  .rows{font-size:15px;line-height:1.9;border-top:2px solid #17130d;border-bottom:1px solid #999;padding:10px 0;margin-top:6px;font-family:"Noto Sans CJK TC";}
+  .rows .r{display:flex;gap:8px;}.rows .k{font-weight:800;width:96px;}
+  .sec{margin-top:18px;font-size:16.5px;line-height:2.05;font-family:"Noto Sans CJK TC";}
+  .sec .h{font-weight:900;letter-spacing:1px;margin-bottom:4px;}
+  .sec ol{margin-left:24px;}
+  .sec li{margin-bottom:10px;}
+  .em{color:#a01414;font-weight:800;}
+  .concl{margin-top:18px;background:#f6f1ea;border-left:4px solid #a01414;padding:12px 16px;font-size:17px;line-height:1.9;font-family:"Noto Sans CJK TC";}
+  .sign{margin-top:28px;text-align:right;font-size:15px;line-height:1.8;color:#333;font-family:"Noto Sans CJK TC";}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="conf">機密 · 偵字卷</div>
+      <div class="org">城中地方檢察署　法醫相驗</div>
+      <div class="doctype">相 驗 摘 要 報 告</div>
+      <div class="rows">
+        <div class="r"><span class="k">死者</span><span>周孟樺（女，38）</span></div>
+        <div class="r"><span class="k">案由</span><span>墜樓死亡（後棟樓梯間一樓）</span></div>
+        <div class="r"><span class="k">相驗日</span><span>6/19–6/20</span></div>
+      </div>
+      <div class="sec">
+        <div class="h">相驗發現：</div>
+        <ol>
+          <li>頭部右顳有一致命性鈍挫傷，其周邊組織<span class="em">出血反應明顯，顯示該傷於墜落之前即已形成</span>。</li>
+          <li>左前臂見多處<span class="em">抵抗性挫傷</span>，指甲採得非本人皮屑組織（送 DNA）。</li>
+          <li>地面血跡噴濺型態與<span class="em">單純高處墜落不相符</span>，疑有拖行、二次移動跡象。</li>
+          <li>墜落造成之骨折多屬<b>死後性</b>骨折（無明顯生前出血反應）。</li>
+        </ol>
+      </div>
+      <div class="concl">綜合研判：死者<span class="em">於墜落前即已無生命跡象</span>，死亡方式與「單純意外墜樓／自高處跳下」不符，<b>不排除他為介入致死後再自高處拋落</b>。建議以他殺方向偵辦。</div>
+      <div class="sign">相驗法醫　李文彬<br>檢察官　偵字第 06-441 號</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>

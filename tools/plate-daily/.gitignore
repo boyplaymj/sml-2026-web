@@ -8,3 +8,5 @@ refs/
 *.png
 demo*.html
 compose_car*.html
+.ref_token
+_staging/

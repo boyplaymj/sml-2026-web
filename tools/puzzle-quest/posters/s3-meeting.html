@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Sans CJK TC",sans-serif;}
+  html,body{background:#222;}
+  .phone{width:720px;height:1180px;background:#b7c3b0;position:relative;display:flex;flex-direction:column;}
+  .status{height:44px;background:#7d8a72;display:flex;align-items:center;justify-content:space-between;padding:0 26px;color:#fff;font-size:22px;font-weight:600;}
+  .head{height:80px;background:#6f7d64;display:flex;align-items:center;padding:0 20px;color:#fff;gap:14px;}
+  .head .back{font-size:30px;}
+  .head .av{width:48px;height:48px;border-radius:50%;background:#cdd3c0;flex:none;display:flex;align-items:center;justify-content:center;font-size:20px;color:#5a6650;}
+  .head .name{font-size:24px;font-weight:700;flex:1;}
+  .head .name small{display:block;font-size:15px;font-weight:400;opacity:.85;}
+  .msgs{flex:1;padding:22px 22px 30px;display:flex;flex-direction:column;gap:12px;overflow:hidden;}
+  .day{align-self:center;background:rgba(0,0,0,.24);color:#fff;font-size:16px;padding:5px 16px;border-radius:14px;margin:2px 0;}
+  .row{display:flex;align-items:flex-start;gap:9px;max-width:84%;}
+  .row.me{align-self:flex-end;flex-direction:row-reverse;}
+  .av2{width:44px;height:44px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;}
+  .a1{background:#c88a4a;}.a2{background:#5f8fae;}.a3{background:#8a5aa0;}
+  .col{display:flex;flex-direction:column;gap:3px;}
+  .who{font-size:15px;color:#33413a;margin-left:4px;}
+  .line{display:flex;align-items:flex-end;gap:8px;}
+  .row.me .line{flex-direction:row-reverse;}
+  .bubble{padding:13px 17px;font-size:21px;line-height:1.5;border-radius:20px;}
+  .them .bubble{background:#fff;color:#1a1a1a;border-top-left-radius:6px;}
+  .me .bubble{background:#8de05a;color:#12300a;border-top-right-radius:6px;}
+  .boss .bubble{background:#fff6d8;border:1px solid #e6d38a;}
+  .time{font-size:14px;color:#3a463a;white-space:nowrap;}
+</style></head>
+<body>
+  <div class="phone">
+    <div class="status"><div>18:22</div><div style="display:flex;align-items:center;gap:7px;font-size:20px;"><svg width="24" height="18" viewBox="0 0 24 18" fill="#fff"><path d="M12 4C7.5 4 3.7 6.4 1.5 9.2L12 17 22.5 9.2C20.3 6.4 16.5 4 12 4z"/></svg><span>5G</span><span style="display:inline-block;width:30px;height:15px;border:2px solid #fff;border-radius:3px;position:relative;"><span style="position:absolute;right:-4px;top:4px;width:3px;height:5px;background:#fff;"></span><span style="display:block;height:100%;width:60%;background:#fff;"></span></span></div></div>
+    <div class="head"><div class="back">‹</div><div class="av">產</div><div class="name">生產部 主管群<small>成員 6 人</small></div></div>
+    <div class="msgs">
+      <div class="day">6月15日 星期日</div>
+      <div class="row them"><div class="av2 a1">昌</div><div class="col"><div class="who">物流 阿昌</div>
+        <div class="line"><div class="bubble">A-1128 品保那邊卡住不放行 說砷超標要退貨</div><div class="time">18:03</div></div></div></div>
+      <div class="row them"><div class="av2 a2">生</div><div class="col"><div class="who">生管 大森</div>
+        <div class="line"><div class="bubble">退貨重驗的話 這批成本＋交期全爆<br>這個月 KPI 直接掛</div><div class="time">18:07</div></div>
+        <div class="line"><div class="bubble">客戶那邊已經排好上架了…</div><div class="time">18:08</div></div></div></div>
+      <div class="row them"><div class="av2 a1">昌</div><div class="col"><div class="who">物流 阿昌</div>
+        <div class="line"><div class="bubble">那周課長那關怎麼過？她死都不肯簽</div><div class="time">18:14</div></div></div></div>
+      <div class="row them boss"><div class="av2 a3">郭</div><div class="col"><div class="who">郭立文（協理）</div>
+        <div class="line"><div class="bubble">照原標示放行，出貨先走。<br>品保那邊我來處理，你們不用管。</div><div class="time">18:19</div></div>
+        <div class="line"><div class="bubble">這批的事，群組講到這裡就好。</div><div class="time">18:20</div></div></div></div>
+    </div>
+  </div>
+</body>
+</html>

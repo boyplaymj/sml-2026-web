@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>麻將語音判台 Demo(免費瀏覽器 ASR)</title>
+<style>
+  :root { --bg:#0f1420; --card:#1b2333; --line:#2c3853; --txt:#e8edf7; --dim:#8ea0c0;
+          --green:#3fb984; --amber:#e0a83b; --red:#e05b5b; --blue:#4a8fe0; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Noto Sans TC",system-ui,sans-serif; background:var(--bg); color:var(--txt);
+         display:flex; justify-content:center; padding:24px 14px; }
+  .wrap { width:100%; max-width:560px; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:var(--dim); font-size:13px; margin-bottom:20px; line-height:1.6; }
+  .mic { width:100%; border:none; border-radius:16px; padding:22px; font-size:19px; font-weight:700;
+         color:#fff; background:var(--blue); cursor:pointer; transition:.15s; }
+  .mic.rec { background:var(--red); animation:pulse 1.1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.62} }
+  .mic:disabled { background:#39445c; cursor:not-allowed; }
+  .status { text-align:center; color:var(--dim); font-size:13px; margin:10px 0 18px; min-height:18px; }
+  .manual { display:flex; gap:8px; margin-bottom:18px; }
+  .manual input { flex:1; background:var(--card); border:1px solid var(--line); color:var(--txt);
+                  border-radius:10px; padding:11px 12px; font-size:15px; }
+  .manual button { border:none; border-radius:10px; padding:0 16px; background:#39445c; color:#fff;
+                   font-size:14px; cursor:pointer; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:14px; }
+  .card.hidden { display:none; }
+  .heard { font-size:13px; color:var(--dim); margin-bottom:12px; }
+  .heard b { color:var(--txt); font-weight:600; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+  .chip { display:flex; align-items:center; gap:7px; background:#233049; border:1px solid var(--line);
+          border-radius:20px; padding:6px 8px 6px 13px; font-size:14px; }
+  .chip .tai { color:var(--green); font-weight:700; }
+  .chip .x { cursor:pointer; color:var(--dim); border:none; background:none; font-size:16px; line-height:1;
+             padding:0 3px; }
+  .chip .x:hover { color:var(--red); }
+  .total { display:flex; justify-content:space-between; align-items:baseline;
+           border-top:1px solid var(--line); padding-top:13px; }
+  .total .n { font-size:34px; font-weight:800; color:var(--green); }
+  .warn { border-radius:9px; padding:9px 11px; font-size:13px; margin-top:9px; line-height:1.5; }
+  .warn.exclude,.warn.conflict { background:rgba(224,168,59,.13); border:1px solid var(--amber); color:#f0cf8a; }
+  .warn.too_long { background:rgba(74,143,224,.12); border:1px solid var(--blue); color:#a9cbf2; }
+  .unmatched { margin-top:9px; font-size:13px; color:var(--red); }
+  .confirm { width:100%; border:none; border-radius:12px; padding:15px; font-size:16px; font-weight:700;
+             color:#06210f; background:var(--green); cursor:pointer; margin-top:4px; }
+  .empty { color:var(--dim); text-align:center; padding:8px 0; }
+  .err { background:rgba(224,91,91,.12); border:1px solid var(--red); color:#f0a3a3;
+         border-radius:10px; padding:12px; font-size:13.5px; line-height:1.6; }
+  code { background:#0c1017; padding:1px 6px; border-radius:5px; font-size:12.5px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🀄 麻將語音判台 Demo</h1>
+  <p class="sub">按鈕後直接說出牌型(例:<b>「門清 正花 獨聽」</b>),
+     系統辨識 → 判台 → 顯示結果讓你<b>確認</b>再送出。<br>
+     ASR = 瀏覽器內建 Web Speech API(<b>免費、零後端</b>),需 Chrome/Edge。</p>
+
+  <div id="err" class="err" style="display:none"></div>
+
+  <button id="mic" class="mic">🎤 按住講話</button>
+  <div id="status" class="status"></div>
+
+  <div class="manual">
+    <input id="manualInput" placeholder="或直接打字測試判讀,如:大四喜 門清自摸">
+    <button id="manualBtn">判讀</button>
+  </div>
+
+  <div id="result" class="card hidden"></div>
+</div>
+
+<script src="scoring.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+let TABLE = null;
+let currentHits = null; // 供「移除某台種」後重算
+
+// 載入對照表
+fetch('./fan_table.json').then(r => r.json()).then(t => { TABLE = t; })
+  .catch(() => showErr('讀不到 fan_table.json — 請用本機伺服器開啟(見下方說明),不要用 file:// 直接開。'));
+
+function showErr(msg) { const e = $('#err'); e.style.display = 'block'; e.innerHTML = msg; }
+
+// ---- 判讀 + 渲染確認卡 ----
+function analyze(text) {
+  if (!TABLE) { showErr('對照表尚未載入'); return; }
+  const res = MahjongTai.parse(text, TABLE);
+  currentHits = res.hits.slice();
+  render(text, res);
+}
+
+function render(heardText, res) {
+  const card = $('#result');
+  card.classList.remove('hidden');
+  let html = `<div class="heard">聽到:<b>${escapeHtml(heardText) || '(空)'}</b></div>`;
+
+  if (!res.hits.length) {
+    html += `<div class="empty">沒有判讀到任何台種,請重講或改用打字。</div>`;
+  } else {
+    html += `<div class="chips">` + res.hits.map(h => {
+      const unit = h.units > 1 ? ` ×${h.units}` : '';
+      return `<span class="chip" data-id="${h.id}">${h.name}${unit}
+                <span class="tai">${h.tai}台</span>
+                <button class="x" data-id="${h.id}" title="移除">×</button></span>`;
+    }).join('') + `</div>`;
+  }
+
+  html += `<div class="total"><span>合計(含底 ${res.base})</span><span class="n">${res.total} 台</span></div>`;
+
+  res.warnings.forEach(w => {
+    html += `<div class="warn ${w.level}">⚠️ ${escapeHtml(w.message)}</div>`;
+  });
+  if (res.unmatched) html += `<div class="unmatched">未識別殘字:${escapeHtml(res.unmatched)}(可能是漏收錄的詞或誤聽)</div>`;
+
+  html += `<button class="confirm" id="confirmBtn">✅ 確認送出 ${res.total} 台</button>`;
+  card.innerHTML = html;
+
+  // 移除某台種 → 重算(示範「確認關卡可微調」)
+  card.querySelectorAll('.x').forEach(btn => btn.onclick = () => {
+    currentHits = currentHits.filter(h => h.id !== btn.dataset.id);
+    const total = currentHits.reduce((s,h)=>s+h.tai,0) + (res.base||0);
+    render(heardText, { hits: currentHits, total, base: res.base, warnings: res.warnings, unmatched: res.unmatched });
+  });
+  $('#confirmBtn').onclick = () => {
+    const total = currentHits.reduce((s,h)=>s+h.tai,0) + (res.base||0);
+    $('#status').textContent = `已確認送出:${total} 台(Demo 不接後端,僅示意)`;
+    card.classList.add('hidden');
+  };
+}
+
+function escapeHtml(s){ return (s||'').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+// ---- 打字測試 ----
+$('#manualBtn').onclick = () => { const v = $('#manualInput').value.trim(); if (v) analyze(v); };
+$('#manualInput').addEventListener('keydown', e => { if (e.key==='Enter') $('#manualBtn').click(); });
+
+// ---- Web Speech API 語音辨識 ----
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (!SR) {
+  $('#mic').disabled = true;
+  showErr('此瀏覽器不支援 Web Speech API。請用 <b>Chrome</b> 或 <b>Edge</b>(桌機);下方打字判讀仍可測試。');
+} else {
+  const rec = new SR();
+  rec.lang = 'zh-TW';
+  rec.interimResults = true;
+  rec.continuous = false;
+  let recording = false, finalText = '';
+
+  const mic = $('#mic');
+  const start = () => { if (recording) return; finalText=''; try { rec.start(); } catch(e){} };
+  const stop  = () => { if (recording) rec.stop(); };
+
+  // 按住講話(桌機滑鼠 + 手機觸控)
+  mic.addEventListener('mousedown', start);
+  mic.addEventListener('mouseup', stop);
+  mic.addEventListener('mouseleave', stop);
+  mic.addEventListener('touchstart', e => { e.preventDefault(); start(); });
+  mic.addEventListener('touchend', e => { e.preventDefault(); stop(); });
+
+  rec.onstart = () => { recording=true; mic.classList.add('rec'); mic.textContent='🔴 聆聽中…放開結束'; $('#status').textContent=''; };
+  rec.onerror = e => { $('#status').textContent = '辨識錯誤:' + e.error + (e.error==='not-allowed'?'(請允許麥克風權限)':''); };
+  rec.onresult = e => {
+    let interim = '';
+    for (let i=e.resultIndex; i<e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) finalText += t; else interim += t;
+    }
+    $('#status').textContent = '辨識中:' + finalText + interim;
+  };
+  rec.onend = () => {
+    recording=false; mic.classList.remove('rec'); mic.textContent='🎤 按住講話';
+    const text = finalText.trim();
+    if (text) { $('#status').textContent=''; analyze(text); }
+    else if (!$('#status').textContent) $('#status').textContent='沒聽到內容,再試一次';
+  };
+}
+</script>
+</body>
+</html>

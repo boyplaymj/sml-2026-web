@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 28%,#46413a,#221f1b 82%);perspective:2200px;font-family:"Noto Sans CJK TC",sans-serif;}
+  .doc{position:relative;width:700px;min-height:900px;padding:42px 44px;background:#fcfdfd;color:#1a1a1a;transform:rotateX(3deg) rotateZ(-1deg) rotateY(1deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);}
+  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 26%,transparent 76%,rgba(60,55,45,.13));mix-blend-mode:soft-light;}
+  .hdr{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #17130d;padding-bottom:10px;}
+  .co{font-size:21px;font-weight:900;}.co small{display:block;font-size:12px;color:#6a6155;font-weight:400;}
+  .ttl{font-size:19px;font-weight:800;letter-spacing:2px;}
+  .meta{display:flex;justify-content:space-between;font-size:13.5px;color:#555;margin-top:8px;}
+  .sysbar{margin-top:14px;background:#fdecea;border:1px solid #e0a9a2;color:#8a1414;font-size:15px;padding:9px 13px;font-weight:700;}
+  table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14.5px;font-family:"Noto Sans Mono CJK TC","Noto Sans CJK TC",monospace;}
+  th,td{border:1px solid #c2ccc8;padding:7px 9px;text-align:left;}
+  th{background:#eaf1ef;font-weight:800;font-family:"Noto Sans CJK TC";}
+  tr.key td{background:#fff6d8;font-weight:800;}
+  .in{color:#1d6a3a;}.out{color:#8a5a14;}
+  .note{margin-top:16px;font-size:14px;line-height:1.85;color:#333;background:#f4f6f6;border-left:4px solid #8a1414;padding:9px 13px;font-family:"Noto Sans CJK TC";}
+  .note .em{color:#a01414;font-weight:800;}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="hdr"><div class="co">昇曜生技 保全系統<small>後棟 B1–5F · 門禁 / 監視 稽核匯出</small></div><div class="ttl">通行紀錄</div></div>
+      <div class="meta"><span>查詢區間：6/17（二）22:00 – 24:00</span><span>匯出：保全室</span></div>
+      <div class="sysbar">⚠ 監視錄影：22:00–24:00 依維護公告<b>暫停錄影（本時段無影像）</b>　·　門禁刷卡系統：正常運作、逐筆記錄</div>
+      <table>
+        <tr><th>時間</th><th>門</th><th>卡號 / 持卡人</th><th>事件</th></tr>
+        <tr><td>22:14</td><td>後棟1F</td><td>0271 / 清潔 陳阿姨</td><td class="out">離開</td></tr>
+        <tr class="key"><td>23:03</td><td>後棟5F</td><td>0088 / 生產部 郭立文</td><td class="in">刷卡進入</td></tr>
+        <tr><td>23:29</td><td>後棟5F梯間</td><td>0088 / 郭立文</td><td class="in">通行</td></tr>
+        <tr class="key"><td>23:54</td><td>後棟1F</td><td>0088 / 郭立文</td><td class="out">刷卡離開</td></tr>
+        <tr><td>—</td><td>—</td><td>周孟樺（0103）</td><td>該時段無新進出紀錄（日間即在勤）</td></tr>
+      </table>
+      <div class="note">稽核附註：本時段監視錄影因維護暫停，<b>無影像可調閱</b>；惟門禁刷卡完整記錄 <span class="em">生產部協理 郭立文 於 23:03 進入後棟該樓層、23:54 離開</span>。此與郭員筆錄所稱「案發時間本人在廠區外」<span class="em">明顯不符</span>。</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Sans CJK TC",sans-serif;}
+  html,body{background:#222;}
+  .phone{width:720px;height:1180px;background:#c7d4c2;position:relative;display:flex;flex-direction:column;}
+  .status{height:44px;background:#7c9a86;display:flex;align-items:center;justify-content:space-between;padding:0 26px;color:#fff;font-size:22px;font-weight:600;}
+  .head{height:80px;background:#6f8f7a;display:flex;align-items:center;padding:0 20px;color:#fff;gap:14px;}
+  .head .back{font-size:30px;}
+  .head .av{width:48px;height:48px;border-radius:50%;background:#e0c9c9;flex:none;display:flex;align-items:center;justify-content:center;font-size:22px;color:#8a5a5a;}
+  .head .name{font-size:25px;font-weight:700;flex:1;}
+  .head .name small{display:block;font-size:15px;font-weight:400;opacity:.85;}
+  .head .ic{font-size:26px;opacity:.9;}
+  .msgs{flex:1;padding:22px 22px 30px;display:flex;flex-direction:column;gap:12px;overflow:hidden;}
+  .day{align-self:center;background:rgba(0,0,0,.24);color:#fff;font-size:16px;padding:5px 16px;border-radius:14px;margin:4px 0;}
+  .row{display:flex;align-items:flex-end;gap:8px;max-width:82%;}
+  .row.me{align-self:flex-end;flex-direction:row-reverse;}
+  .av2{width:44px;height:44px;border-radius:50%;background:#e0c9c9;flex:none;display:flex;align-items:center;justify-content:center;font-size:19px;color:#8a5a5a;}
+  .bubble{padding:13px 17px;font-size:22px;line-height:1.5;border-radius:20px;}
+  .them .bubble{background:#fff;color:#1a1a1a;border-top-left-radius:6px;}
+  .me .bubble{background:#8de05a;color:#12300a;border-top-right-radius:6px;}
+  .time{font-size:14px;color:#3f5347;white-space:nowrap;}
+  .me .time{text-align:right;}
+</style></head>
+<body>
+  <div class="phone">
+    <div class="status"><div>21:38</div><div style="display:flex;align-items:center;gap:7px;font-size:20px;"><svg width="24" height="18" viewBox="0 0 24 18" fill="#fff"><path d="M12 4C7.5 4 3.7 6.4 1.5 9.2L12 17 22.5 9.2C20.3 6.4 16.5 4 12 4z"/></svg><span>5G</span><span style="display:inline-block;width:30px;height:15px;border:2px solid #fff;border-radius:3px;position:relative;"><span style="position:absolute;right:-4px;top:4px;width:3px;height:5px;background:#fff;"></span><span style="display:block;height:100%;width:55%;background:#fff;"></span></span></div></div>
+    <div class="head">
+      <div class="back">‹</div>
+      <div class="av">樺</div>
+      <div class="name">孟樺<small>最後上線 6/17 23:0x</small></div>
+      <div class="ic">☰</div>
+    </div>
+    <div class="msgs">
+      <div class="day">6月16日 星期一</div>
+      <div class="row them"><div class="av2">樺</div><div class="bubble">這批我真的不能簽 檢驗數值根本不合格</div><div class="time">21:22</div></div>
+      <div class="row them"><div class="av2">樺</div><div class="bubble">他們硬要我放行 說耽誤出貨算我的</div><div class="time">21:22</div></div>
+      <div class="row me"><div class="time">21:24</div><div class="bubble">太扯了吧 那你要怎麼辦</div></div>
+      <div class="row them"><div class="av2">樺</div><div class="bubble">我禮拜三約好了 要去食藥署講清楚<br>證據我都留著了</div><div class="time">21:26</div></div>
+      <div class="row me"><div class="time">21:28</div><div class="bubble">你自己小心點……別跟他們硬碰硬</div></div>
+      <div class="row them"><div class="av2">樺</div><div class="bubble">放心 我知道分寸<br>這種事總要有人講</div><div class="time">21:30</div></div>
+    </div>
+  </div>
+</body>
+</html>

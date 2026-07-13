@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Sans CJK TC",sans-serif;}
+  html,body{background:#222;}
+  .phone{width:720px;height:1180px;background:#9fb8d4;position:relative;display:flex;flex-direction:column;}
+  .status{height:44px;background:#6f89ab;display:flex;align-items:center;justify-content:space-between;padding:0 26px;color:#fff;font-size:22px;font-weight:600;}
+  .head{height:80px;background:#6480a3;display:flex;align-items:center;padding:0 20px;color:#fff;gap:14px;}
+  .head .back{font-size:30px;}
+  .head .av{width:48px;height:48px;border-radius:50%;background:#cdd8e6;flex:none;display:flex;align-items:center;justify-content:center;font-size:22px;color:#6480a3;}
+  .head .name{font-size:25px;font-weight:700;flex:1;}
+  .head .name small{display:block;font-size:15px;font-weight:400;opacity:.85;}
+  .head .ic{font-size:26px;opacity:.9;}
+  .msgs{flex:1;padding:22px 22px 30px;display:flex;flex-direction:column;gap:14px;overflow:hidden;}
+  .day{align-self:center;background:rgba(0,0,0,.26);color:#fff;font-size:16px;padding:5px 16px;border-radius:14px;margin:4px 0;}
+  .sys{align-self:center;color:#3c4a5e;font-size:15px;opacity:.8;}
+  .row{display:flex;align-items:flex-start;gap:9px;max-width:82%;}
+  .row.me{align-self:flex-end;flex-direction:row-reverse;}
+  .av2{width:46px;height:46px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:19px;color:#fff;}
+  .a1{background:#d98a8a;}.a2{background:#7fae7f;}.a3{background:#c8a35a;}
+  .col{display:flex;flex-direction:column;gap:3px;}
+  .who{font-size:15px;color:#33465e;margin-left:4px;}
+  .line{display:flex;align-items:flex-end;gap:8px;}
+  .row.me .line{flex-direction:row-reverse;}
+  .bubble{padding:13px 17px;font-size:22px;line-height:1.5;border-radius:20px;}
+  .them .bubble{background:#fff;color:#1a1a1a;border-top-left-radius:6px;}
+  .me .bubble{background:#8de05a;color:#12300a;border-top-right-radius:6px;}
+  .time{font-size:14px;color:#3c4a5e;white-space:nowrap;}
+</style></head>
+<body>
+  <div class="phone">
+    <div class="status"><div>09:26</div><div style="display:flex;align-items:center;gap:7px;font-size:20px;"><svg width="24" height="18" viewBox="0 0 24 18" fill="#fff"><path d="M12 4C7.5 4 3.7 6.4 1.5 9.2L12 17 22.5 9.2C20.3 6.4 16.5 4 12 4z"/></svg><span>5G</span><span style="display:inline-block;width:30px;height:15px;border:2px solid #fff;border-radius:3px;position:relative;"><span style="position:absolute;right:-4px;top:4px;width:3px;height:5px;background:#fff;"></span><span style="display:block;height:100%;width:72%;background:#fff;"></span></span></div></div>
+    <div class="head">
+      <div class="back">‹</div>
+      <div class="av">課</div>
+      <div class="name">品保課 同事群<small>成員 9 人</small></div>
+      <div class="ic">☰</div>
+    </div>
+    <div class="msgs">
+      <div class="day">6月18日 星期三</div>
+      <div class="sys">— 今日 —</div>
+
+      <div class="row them"><div class="av2 a1">玲</div><div class="col"><div class="who">阿玲</div>
+        <div class="line"><div class="bubble">孟樺姐走了…我到現在還沒辦法相信</div><div class="time">08:32</div></div>
+        <div class="line"><div class="bubble">昨天她還在群組交代我驗貨的事</div><div class="time">08:32</div></div>
+      </div></div>
+
+      <div class="row them"><div class="av2 a2">昆</div><div class="col"><div class="who">昆哥</div>
+        <div class="line"><div class="bubble">太突然了 上禮拜看她還好好的</div><div class="time">08:40</div></div>
+      </div></div>
+
+      <div class="row me"><div class="col"><div class="line"><div class="time">08:44</div><div class="bubble">聽說是加班太累…她最近壓力真的很大</div></div></div></div>
+
+      <div class="row them"><div class="av2 a1">玲</div><div class="col"><div class="who">阿玲</div>
+        <div class="line"><div class="bubble">唉…上面到底逼她逼成什麼樣</div><div class="time">08:46</div></div>
+        <div class="line"><div class="bubble">算了 這種話別在群組講</div><div class="time">08:47</div></div>
+      </div></div>
+
+      <div class="row them"><div class="av2 a3">偉</div><div class="col"><div class="who">陳志偉（副課長）</div>
+        <div class="line"><div class="bubble">大家節哀 手上的案子先照常 我會幫忙盯</div><div class="time">09:15</div></div>
+      </div></div>
+    </div>
+  </div>
+</body>
+</html>

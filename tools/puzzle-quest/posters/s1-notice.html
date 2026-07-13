@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 28%,#46413a,#221f1b 82%);perspective:2200px;font-family:"Noto Sans CJK TC",sans-serif;}
+  .doc{position:relative;width:660px;min-height:880px;padding:52px 54px 44px;background:#fdfdfb;color:#1a1a1a;transform:rotateX(3.5deg) rotateZ(-1deg) rotateY(1.2deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);}
+  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 26%,transparent 76%,rgba(60,55,45,.13));mix-blend-mode:soft-light;}
+  .co{display:flex;align-items:center;gap:14px;border-bottom:3px double #17130d;padding-bottom:14px;}
+  .logo{width:56px;height:56px;border:3px solid #2a6b5a;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#2a6b5a;font-weight:900;font-size:26px;}
+  .co .t{font-size:26px;font-weight:900;letter-spacing:2px;}
+  .co .t small{display:block;font-size:14px;font-weight:400;color:#6a6155;letter-spacing:3px;}
+  .no{margin-top:12px;font-size:14px;color:#6a6155;display:flex;justify-content:space-between;}
+  .head{text-align:center;font-size:30px;font-weight:900;letter-spacing:3px;margin:20px 0 6px;}
+  .head .doctype{display:block;font-size:16px;font-weight:600;letter-spacing:8px;color:#555;margin-bottom:6px;}
+  .kv{font-size:17px;line-height:2;margin-top:10px;}
+  .kv .k{font-weight:800;margin-right:8px;}
+  .body{font-size:18px;line-height:2.05;margin-top:12px;text-align:justify;}
+  .hl{background:#fff2b0;font-weight:800;padding:0 3px;}
+  .muted{color:#7a1414;font-weight:700;}
+  .box{border:1px solid #cfc7b5;background:#f6f3ea;padding:12px 16px;margin-top:14px;font-size:16px;line-height:1.8;}
+  .sign{margin-top:30px;text-align:right;font-size:17px;line-height:1.9;}
+  .stamp{position:absolute;right:64px;bottom:150px;width:120px;height:120px;border:4px solid rgba(42,107,90,.5);border-radius:50%;color:rgba(42,107,90,.6);display:flex;align-items:center;justify-content:center;text-align:center;font-size:17px;font-weight:900;line-height:1.3;transform:rotate(-12deg);}
+  .fine{position:absolute;left:54px;bottom:46px;font-size:12.5px;color:#8a8272;line-height:1.7;letter-spacing:.5px;}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="co"><div class="logo">昇</div><div class="t">昇曜生技股份有限公司<small>SHENGYAO BIOTECH · 總務部</small></div></div>
+      <div class="no"><span>文號：昇總字第 06-1174 號</span><span>公告日：6 月 14 日</span></div>
+
+      <div class="head"><span class="doctype">內 部 公 告</span>後棟監視錄影系統暫停維護通知</div>
+
+      <div class="kv"><span class="k">受文者：</span>全體同仁</div>
+      <div class="kv"><span class="k">主　旨：</span>後棟監視錄影系統升級維護，暫停錄影，敬請留意。</div>
+
+      <div class="body">
+        因後棟監視錄影主機進行系統升級，本公司後棟各樓層之<b>監視錄影系統</b>將於
+        <span class="hl">6 月 17 日（星期二）22:00 至 24:00</span> 期間<span class="muted">暫停錄影</span>。
+        維護期間影像不予保存，<u>惟門禁刷卡門鎖仍照常運作並記錄進出</u>，同仁通行不受影響。造成不便，敬請見諒。
+      </div>
+
+      <div class="box">
+        維護時段：6/17（二）22:00–24:00　後棟 B1～5F<br>
+        影響範圍：監視錄影（暫停）<br>
+        不受影響：門禁刷卡、電梯、照明
+      </div>
+
+      <div class="sign">總務部　敬啟<br>如有疑義請洽總務部分機 #206</div>
+      <div class="stamp">昇曜<br>總務部<br>核發章</div>
+      <div class="fine">＊本次維護申請單位：<b>生產部</b>　／　核准主管：<b>郭立文 協理</b>　（申請單編號 PR-0613-22）</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>

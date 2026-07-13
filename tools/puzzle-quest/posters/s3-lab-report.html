@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 28%,#46413a,#221f1b 82%);perspective:2200px;font-family:"Noto Sans CJK TC",sans-serif;}
+  .doc{position:relative;width:670px;min-height:920px;padding:44px 48px;background:#fdfdfb;color:#1a1a1a;transform:rotateX(3deg) rotateZ(-1deg) rotateY(1deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);}
+  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 26%,transparent 76%,rgba(60,55,45,.13));mix-blend-mode:soft-light;}
+  .hdr{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px double #17130d;padding-bottom:10px;}
+  .hdr .co{font-size:22px;font-weight:900;letter-spacing:1px;}
+  .hdr .co small{display:block;font-size:12px;font-weight:400;color:#6a6155;}
+  .hdr .ttl{font-size:20px;font-weight:800;letter-spacing:4px;}
+  .meta{display:flex;justify-content:space-between;font-size:13.5px;color:#555;margin-top:8px;}
+  table{width:100%;border-collapse:collapse;margin-top:16px;font-size:15.5px;}
+  th,td{border:1px solid #b8b0a0;padding:9px 11px;text-align:left;}
+  th{background:#efeadd;font-weight:800;}
+  .bad{color:#a01414;font-weight:800;}
+  .bat{font-weight:900;letter-spacing:1px;}
+  .note{margin-top:16px;font-size:15px;line-height:1.9;background:#f6f3ea;border-left:4px solid #a01414;padding:10px 14px;}
+  .judge{margin-top:16px;font-size:19px;font-weight:900;}
+  .judge .bad{font-size:22px;}
+  .sign{margin-top:26px;text-align:right;font-size:15px;line-height:1.8;color:#333;}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="hdr"><div class="co">昇曜生技 品保部<small>原料進貨檢驗報告</small></div><div class="ttl">檢 驗 報 告</div></div>
+      <div class="meta"><span>報告編號：QC-0612-338</span><span>檢驗日：6/12</span></div>
+      <table>
+        <tr><th>品名</th><td>麥芽糊精</td><th>批號</th><td class="bat">A-1128</td></tr>
+        <tr><th>供應商</th><td>宏茂原料</td><th>來源標示</th><td>食品級</td></tr>
+      </table>
+      <table>
+        <tr><th>檢驗項目</th><th>檢出值</th><th>食品標準上限</th><th>判定</th></tr>
+        <tr><td>砷 As（總砷）</td><td class="bad">3.4 mg/kg</td><td>1.0 mg/kg</td><td class="bad">超標 ✕</td></tr>
+        <tr><td>鉛 Pb</td><td>0.9 mg/kg</td><td>1.0 mg/kg</td><td>符合</td></tr>
+        <tr><td>外觀 / 標示比對</td><td colspan="2">桶身鋼印為<b>工業用</b>規格，與入廠「食品級」標示不符</td><td class="bad">異常</td></tr>
+      </table>
+      <div class="note">備註：本批砷含量顯著超出食品衛生標準；桶身標示疑為<b>工業級原料以食品級名義入廠</b>。已通報課長，<b>建議退貨、不予放行</b>，並留樣送第三方複驗。</div>
+      <div class="judge">總判定：<span class="bad">不合格 · 不予放行</span></div>
+      <div class="sign">檢驗：品管檢驗員　王凱<br>覆核：品保課長　周孟樺</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>

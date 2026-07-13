@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Sans CJK TC",sans-serif;}
+  html,body{background:#000;}
+  .phone{width:720px;height:1480px;position:relative;overflow:hidden;
+    background:linear-gradient(160deg,#1a2230 0%,#2a2436 45%,#0e1017 100%);}
+  .phone::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 70% 18%,rgba(120,140,200,.22),transparent 55%);}
+  .status{position:relative;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 34px;color:#fff;font-size:22px;font-weight:600;}
+  .clock{position:relative;text-align:center;color:#fff;margin-top:40px;}
+  .clock .dt{font-size:24px;opacity:.9;letter-spacing:2px;}
+  .clock .t{font-size:130px;font-weight:300;line-height:1.05;letter-spacing:2px;}
+  .stack{position:relative;margin-top:56px;padding:0 22px;display:flex;flex-direction:column;gap:14px;}
+  .grp{font-size:15px;color:#cfd6e6;opacity:.8;margin:0 8px 2px;}
+  .card{background:rgba(30,34,44,.72);backdrop-filter:blur(6px);border-radius:22px;padding:16px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 10px rgba(0,0,0,.3);}
+  .ic{width:46px;height:46px;border-radius:12px;background:#2ecc71;display:flex;align-items:center;justify-content:center;flex:none;}
+  .ic.miss{background:#e6482e;}
+  .ic svg{width:26px;height:26px;}
+  .tx{flex:1;color:#fff;line-height:1.35;}
+  .tx .ap{font-size:14px;color:#aeb6c8;letter-spacing:1px;}
+  .tx .ti{font-size:21px;font-weight:700;}
+  .tx .ti .miss{color:#ff8a7a;}
+  .tx .sub{font-size:16px;color:#c7ccd8;}
+  .tm{font-size:14px;color:#aeb6c8;align-self:flex-start;}
+  .many{font-size:15px;color:#c7ccd8;margin:2px 12px 0;}
+  .hint{position:absolute;bottom:60px;left:0;right:0;text-align:center;color:#aeb6c8;font-size:17px;letter-spacing:2px;}
+  .bar{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);width:180px;height:6px;border-radius:3px;background:rgba(255,255,255,.6);}
+</style></head>
+<body>
+  <div class="phone">
+    <div class="status"><div>23:47</div><div style="display:flex;align-items:center;gap:7px;font-size:20px;"><svg width="24" height="18" viewBox="0 0 24 18" fill="#fff"><path d="M12 4C7.5 4 3.7 6.4 1.5 9.2L12 17 22.5 9.2C20.3 6.4 16.5 4 12 4z"/></svg><span>5G</span><span style="display:inline-block;width:30px;height:15px;border:2px solid #fff;border-radius:3px;position:relative;"><span style="position:absolute;right:-4px;top:4px;width:3px;height:5px;background:#fff;"></span><span style="display:block;height:100%;width:38%;background:#fff;"></span></span></div></div>
+    <div class="clock">
+      <div class="dt">6月17日 星期二</div>
+      <div class="t">23:47</div>
+    </div>
+    <div class="stack">
+      <div class="grp">通話</div>
+      <div class="card">
+        <div class="ic miss"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.5-1.1a2 2 0 0 1 2.1-.5c.8.3 1.7.5 2.6.6a2 2 0 0 1 1.7 2z"/><path d="M23 1l-6 6M17 1l6 6" stroke="#fff"/></svg></div>
+        <div class="tx"><div class="ap">電話</div><div class="ti">郭協理　<span class="miss">未接來電（7）</span></div><div class="sub">手機</div></div>
+        <div class="tm">剛剛</div>
+      </div>
+      <div class="many">23:12・23:18・23:25・23:31・23:38・23:41・23:44　連續來電</div>
+
+      <div class="card" style="margin-top:6px;">
+        <div class="ic" style="background:#00c300;"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 3C6.5 3 2 6.6 2 11.1c0 2.6 1.5 4.9 3.8 6.4-.2.7-.8 2.4-.9 2.8 0 0 0 .3.2.4h.3c.4-.1 3-2 4-2.6.8.1 1.7.2 2.6.2 5.5 0 10-3.6 10-8.1S17.5 3 12 3z"/></svg></div>
+        <div class="tx"><div class="ap">LINE　·　閨蜜 小敏</div><div class="ti" style="font-size:18px;font-weight:600;">還在加班嗎？弄完早點回</div></div>
+        <div class="tm">22:58</div>
+      </div>
+    </div>
+    <div class="hint">滑動以解鎖</div>
+    <div class="bar"></div>
+  </div>
+</body>
+</html>

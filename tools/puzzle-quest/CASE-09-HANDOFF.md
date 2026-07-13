@@ -61,8 +61,11 @@
 
 ## 4. 🔲 待辦(接手要做的)
 
-### A.【大】美術 19 張圖
-> **進度(2026-07-13)：S1+S2 共 9 張已完成** ✅ S1=`s1-news / s1-coworkers / s1-receipt / s1-notice / s1-photo`；S2=`s2-zhou-line / s2-release-form / s2-personnel / s2-phonelog`。已放 `sweetbot-next/data/puzzle-assets/`(commit e382c3f / f6725e5 / 1eba938)+ 上圖床 `image.boyplaymj.link/pq/assets/`。**剩 S3(4)+S4(5)=9 張** + shengyao.html 假頁(已上線)。（放行單偽簽 vs 人事命令陳志偉署名用同款藍筆=冒簽視覺線索。）
+### A.【大】美術 19 張圖 — ✅ **全數完成(2026-07-13)**
+> **18 圖全備 + shengyao.html 假頁(已上線)= 19 樣完成。** commit e382c3f / f6725e5 / 1eba938 / 6996359。都在 `sweetbot-next/data/puzzle-assets/` + 圖床 `image.boyplaymj.link/pq/assets/`。
+> S1=`s1-news/s1-coworkers/s1-receipt/s1-notice/s1-photo`；S2=`s2-zhou-line/s2-release-form/s2-personnel/s2-phonelog`；S3=`s3-lab-report/s3-shipping/s3-meeting/s3-victim`；S4=`s4-autopsy/s4-access-log/s4-guardlog/s4-evidence/s4-killer-line`。
+> 巧思:放行單偽簽 vs 人事命令陳志偉署名同款藍筆(冒簽線索);阿凱=王凱簽在檢驗報告;S1三種子(照片/發票/公告)在S4收束(採證呼應發票、門禁呼應公告)。
+> **要改圖**:改 `tools/puzzle-quest/posters/<name>.html` → `shot.py` 重截 → cp 進 puzzle-assets + 上 S3 + commit。
 > **製圖管線(已建,沿用)**：①文件/LINE/報告/紀錄類 → 寫 HTML 版型放 `tools/puzzle-quest/posters/`,`FONTCONFIG_FILE=~/.fonts/fonts.conf python3 tools/puzzle-quest/shot.py <html> <out.png> [selector]`(selector 文件用 `.stage`、LINE 用 `.phone`)。②照片類(如 s1-photo)→ `python3 tools/puzzle-quest/bedrock_gen.py "<英文prompt>" <base.png>` 生無字底圖,再 HTML 疊可讀藏字 → shot.py。③**emoji 會變豆腐框**,一律改用文字或 inline SVG。④產出後 `cp` 進 `sweetbot-next/data/puzzle-assets/` + `aws s3 cp ... s3://boyplaymj-image/pq/assets/ --content-type image/png` + commit。
 - 清單見 `CASE-09-昇曜墜樓.md` §6(s1-news.png … s4-killer-line.png，各階段的 poster/message/docs)。**內容/偷藏細節都在 §2 各階段**。
 - ⚠️ **甜甜 panel 的圖是讀本地檔**：`sweetbot-next/data/puzzle-assets/<basename>`(`resolveAsset()`，非 URL)。所以圖要：①放進甜甜的 `data/puzzle-assets/` 並 commit(隨重啟生效)，②假網站/預覽用的圖另傳 `image.boyplaymj.link/pq/assets/`。缺圖現在會優雅顯示「部分線索圖片尚未就緒」。
@@ -70,6 +73,12 @@
 - 製圖沿用 Bedrock 底 + 程式排版既有管線(見記憶 `reference_bedrock_image_gen` / emoji pipeline)。
 
 ### B.【大】電話 AI 角色(阿凱/海龜湯)
+> **進度(2026-07-13):核心邏輯骨架完成** ✅ `sweetbot-next/model/PuzzlePhoneNPC.js`(commit d4bd252)。含:意圖 gate(免費/程式層/不送 LLM,擋 hangupOnAsk 40詞+補充樣式,實測精準)、問題預算(每人每案5題,in-memory)、LLM 呼叫(`@anthropic-ai/sdk` 0.111.0 已裝、claude-opus-4-8、prompt caching 角色卡前綴、只灌角色卡不灌真相避洩題)、成本記錄(usage→USD log)。**無 `ANTHROPIC_API_KEY` 時回 stub 不計費**,加 key 即生效。gate/預算/stub 全實測過。
+> **①Discord 入口接線 ✅完成**(commit 87c7944):PuzzleQuest `this.phoneNPC`+按鈕`puzzlePhone`;panel() 僅 npc 存在且 stage>=unlockStage 顯示「☎撥打匿名電話」鈕;`openPhoneModal`(檢查+開問句Modal 顯示剩幾次)、`handlePhoneAsk`(gate+預算+LLM→ephemeral回);discord.js Modal 派發已接。實測 panel 按鈕出現邏輯+gate+預算全過。
+> **③成本 DDB 帳本 ✅完成**(commit 甜甜端 2c5e642 / Lambda 8a59284):表 `sweetbot-puzzle-ai-usage`(PAY_PER_REQUEST/TTL 90天)已建;`PuzzleAiLedger.js`(明細+rollup#month/#puzzle 原子彙總、costMicros 整數、月度封頂 `PUZZLE_AI_MONTHLY_CAP_USD` 預設15)接進 NPC(呼叫前守門忙線、呼叫後 record);Lambda `aiUsage` action + `puzzle_manager.html`「☎電話AI用量」卡(本月呼叫/成本/距上限/各題)——Lambda+網頁**已部署**;role puzzle-ddb 已加該表讀權。定價用現價 $5/$25(非§8舊稿15/75)。實測全過。
+> **金鑰走 SSM ✅接線完成**(commit ac15c6d):`PuzzlePhoneNPC.resolveApiKey()` 優先 env、否則讀 SSM SecureString **`/sweetbot/anthropic-api-key`**(WithDecryption,快取);裝 @aws-sdk/client-ssm;role `sml-claude-ec2` 已授 `ssm:GetParameter /sweetbot/*` + `kms:Decrypt(ViaService ssm)`;實測 env優先/SSM讀取解密/無key→stub 全過。
+> **B 只剩兩件(都非程式)**:②把**真 key `put` 進 SSM**:`aws ssm put-parameter --name /sweetbot/anthropic-api-key --type SecureString --value <sk-ant-...> --overwrite`(付費錢包,非 Max)③**重啟甜甜載新碼**(⚠️sweetbot-next 有他人未提交檔 FlowerTime.js/StockMarket.js 擋 restart,需協調;key 換了也要重啟才重讀,resolveApiKey 有快取)。
+> **⚠️ 上線需重啟甜甜載新碼**;但目前 sweetbot-next 有他人未提交檔(FlowerTime.js/StockMarket.js)會擋 restart.sh——需該 AI 先 commit 或協調重啟,勿 FORCE 硬上別人 WIP。
 - 資料已備妥在 `CASE-09-shengyao.json` 的 `npc`：`system`(角色卡+抗injection)、`hangupOnAsk`(40詞禁區)、`questionBudget:5`、`unlockStage:3`、`_intentGate`(說明)。
 - 待實作(甜甜端)：
   1. **入口**：S3 階段後，panel 出「☎ 撥打匿名電話」按鈕(或指令);記錄每人每案問題數。

@@ -9,16 +9,23 @@ const {
   DynamoDBDocumentClient,
   ScanCommand,
   PutCommand,
-  DeleteCommand
+  DeleteCommand,
+  GetCommand
 } = require('@aws-sdk/lib-dynamodb');
-const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { S3Client, GetObjectCommand, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
+const { CloudFrontClient, CreateInvalidationCommand } = require('@aws-sdk/client-cloudfront');
 
 const REGION = process.env.AWS_REGION || 'ap-southeast-1';
 const TABLE = process.env.TABLE_NAME || 'sml-plate-codes';
+const REF_TABLE = process.env.REF_TABLE_NAME || 'sml-plate-refs';
 const ATLAS_BUCKET = process.env.ATLAS_BUCKET || 'boyplaymj-image';
 const ATLAS_KEY = process.env.ATLAS_KEY || 'plate-meta/atlas.json';
+const IMG_BASE = process.env.IMG_BASE || 'https://image.boyplaymj.link';
 const DAILY_CHANNEL = process.env.DAILY_CHANNEL || '1525321679922921522';
 const FIREBASE_PROJECT = process.env.FIREBASE_PROJECT || 'sml2026newscore';
+// 試煉之門 BOSS 圖上傳:image.boyplaymj.link 的 CloudFront distro,換圖後要清快取否則吐舊圖。
+const IMG_CF_DISTRIBUTION = process.env.IMG_CF_DISTRIBUTION || 'E2IJWN6FWT2XYG';
+const TRIALGATE_MAX_LAYER = Number(process.env.TRIALGATE_MAX_LAYER || 20);
 // 白名單:env ALLOWED_EMAILS 為權威來源(設了就以它為準)。
 // 為什麼不直接信 Firestore config/gameAdmins:那份文件目前世界可寫(firestore.rules catch-all),
 // 若當唯一授權來源會被下毒繞過認證。env 拿掉這個可被竄改的信任錨點。
@@ -28,6 +35,7 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://sweetbot-games.
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: REGION }));
 const s3 = new S3Client({ region: REGION });
+const cf = new CloudFrontClient({ region: 'us-east-1' });  // CloudFront 是全域服務,SDK 慣用 us-east-1
 
 function corsHeaders (event) {
   const origin = event.headers?.origin || event.headers?.Origin || '';
@@ -111,6 +119,14 @@ function normalizeCode (raw) {
   if (!m) return null;
   const code = `${m[1]}-${m[2]}`;
   return VALID.test(code) ? code : null;
+}
+
+// \u53c3\u8003\u5eab\u7684 code \u53ea\u662f\u300c\u9019\u5f35\u5716\u6709\u54ea\u4e9b\u5b57\u300d,\u4f9b EC2 \u88c1\u5b57\u5efa\u5b57\u5eab\u7528,
+// \u4e0d\u5957\u756a\u865f\u7684\u82f1\u524d\u6578\u5f8c\u7d50\u69cb(\u53f0\u7063\u8eca\u724c\u5982 1051-K7 \u6578\u5b57\u958b\u982d\u4e5f\u8981\u6536)\u3002
+// \u53bb\u5206\u9694\u7b26\u3001\u5927\u5beb,\u53ea\u7559 A-Z0-9,\u9577\u5ea6 1-10(\u5141\u8a31\u55ae\u5b57\u5143:\u4f7f\u7528\u8005 PS \u53bb\u80cc\u597d\u7684\u55ae\u4e00\u5b57)\u3002
+function normalizeRefCode (raw) {
+  const s = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  return /^[A-Z0-9]{1,10}$/.test(s) ? s : null;
 }
 
 async function requireAdmin (event) {
@@ -203,6 +219,168 @@ async function dailyPreview () {
   return { channel: DAILY_CHANNEL, picks: items.slice(0, 4), pool: items.length };
 }
 
+function refId () {
+  return `${Date.now().toString(36)}-${crypto.randomBytes(4).toString('hex')}`;
+}
+
+function extForContentType (contentType) {
+  const ct = String(contentType || '').toLowerCase().split(';')[0].trim();
+  if (ct === 'image/jpeg' || ct === 'image/jpg') return { contentType: 'image/jpeg', ext: 'jpg' };
+  if (ct === 'image/png') return { contentType: 'image/png', ext: 'png' };
+  if (ct === 'image/webp') return { contentType: 'image/webp', ext: 'webp' };
+  return null;
+}
+
+function decodeImage (imageBase64, contentType) {
+  let raw = String(imageBase64 || '').trim();
+  let ct = contentType;
+  const m = raw.match(/^data:([^;,]+);base64,(.*)$/is);
+  if (m) {
+    ct = ct || m[1];
+    raw = m[2];
+  }
+  raw = raw.replace(/\s+/g, '');
+  if (!raw) {
+    const err = new Error('imageBase64 required');
+    err.statusCode = 400;
+    throw err;
+  }
+  if (!/^[A-Za-z0-9+/]*={0,2}$/.test(raw)) {
+    const err = new Error('bad image base64');
+    err.statusCode = 400;
+    throw err;
+  }
+  const meta = extForContentType(ct);
+  if (!meta) {
+    const err = new Error('unsupported contentType');
+    err.statusCode = 400;
+    throw err;
+  }
+  const buf = Buffer.from(raw, 'base64');
+  if (!buf.length) {
+    const err = new Error('empty image');
+    err.statusCode = 400;
+    throw err;
+  }
+  if (buf.length > 6 * 1024 * 1024) {
+    const err = new Error('image too large (max 6MB)');
+    err.statusCode = 400;
+    throw err;
+  }
+  return { buf, ...meta };
+}
+
+async function scanRefs () {
+  const items = [];
+  let ExclusiveStartKey;
+  do {
+    const r = await ddb.send(new ScanCommand({
+      TableName: REF_TABLE,
+      ExclusiveStartKey,
+      ProjectionExpression: 'refId, code, imageUrl, #s, createdAt',
+      ExpressionAttributeNames: { '#s': 'status' }
+    }));
+    items.push(...(r.Items || []));
+    ExclusiveStartKey = r.LastEvaluatedKey;
+  } while (ExclusiveStartKey);
+  items.sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+  return items;
+}
+
+async function addRef (body) {
+  const code = normalizeRefCode(body?.code);
+  if (!code) {
+    const err = new Error('invalid code');
+    err.statusCode = 400;
+    throw err;
+  }
+  const image = decodeImage(body?.imageBase64, body?.contentType);
+  const id = refId();
+  const imageKey = `plate-refs/${id}.${image.ext}`;
+  const imageUrl = `${IMG_BASE}/${imageKey}`;
+  const createdAt = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
+
+  await s3.send(new PutObjectCommand({
+    Bucket: ATLAS_BUCKET,
+    Key: imageKey,
+    Body: image.buf,
+    ContentType: image.contentType,
+    CacheControl: 'public,max-age=31536000,immutable'
+  }));
+  await ddb.send(new PutCommand({
+    TableName: REF_TABLE,
+    Item: { refId: id, code, imageKey, imageUrl, status: 'pending', createdAt },
+    ConditionExpression: 'attribute_not_exists(refId)'
+  }));
+  return { refId: id, imageUrl, code };
+}
+
+async function deleteRef (rawRefId) {
+  const id = String(rawRefId || '').trim();
+  if (!/^[a-z0-9]+-[a-f0-9]{8}$/i.test(id)) {
+    const err = new Error('invalid refId');
+    err.statusCode = 400;
+    throw err;
+  }
+  const cur = await ddb.send(new GetCommand({ TableName: REF_TABLE, Key: { refId: id } }));
+  const key = cur.Item?.imageKey;
+  if (key) {
+    await s3.send(new DeleteObjectCommand({ Bucket: ATLAS_BUCKET, Key: key }));
+  }
+  await ddb.send(new DeleteCommand({ TableName: REF_TABLE, Key: { refId: id } }));
+}
+
+// 試煉之門 BOSS 圖上傳 ---------------------------------------------------------
+// 換的是穩定檔名(1.png..N.png / died/N.png),故上傳完必須清 CloudFront 快取,
+// 否則 image.boyplaymj.link 會繼續吐舊圖(典型「我傳了圖卻沒變」)。
+async function invalidateCf (paths) {
+  if (!IMG_CF_DISTRIBUTION || !paths.length) return;
+  await cf.send(new CreateInvalidationCommand({
+    DistributionId: IMG_CF_DISTRIBUTION,
+    InvalidationBatch: {
+      CallerReference: `trialgate-${Date.now()}-${crypto.randomBytes(3).toString('hex')}`,
+      Paths: { Quantity: paths.length, Items: paths }
+    }
+  }));
+}
+
+async function putBossImage (body) {
+  const layer = Number(body?.layer);
+  if (!Number.isInteger(layer) || layer < 1 || layer > TRIALGATE_MAX_LAYER) {
+    const err = new Error('invalid layer'); err.statusCode = 400; throw err;
+  }
+  const state = String(body?.state || 'normal').toLowerCase();
+  if (state !== 'normal' && state !== 'died') {
+    const err = new Error('invalid state (normal|died)'); err.statusCode = 400; throw err;
+  }
+  const image = decodeImage(body?.imageBase64, body?.contentType);
+  if (image.ext !== 'png') {
+    // 遊戲設定固定引用 N.png,故 BOSS 圖只收 png,避免副檔名對不上。
+    const err = new Error('boss image must be png'); err.statusCode = 400; throw err;
+  }
+  // key 一律由伺服器組,絕不接受前端傳原始 key(避免寫到桶內任意位置)。
+  const key = state === 'died'
+    ? `rpg/trialgate/boss/died/${layer}.png`
+    : `rpg/trialgate/boss/${layer}.png`;
+  await s3.send(new PutObjectCommand({
+    Bucket: ATLAS_BUCKET,
+    Key: key,
+    Body: image.buf,
+    ContentType: 'image/png',
+    // 穩定檔名會被覆蓋,不能用 immutable;短快取 + 上傳即清 CloudFront。
+    CacheControl: 'public,max-age=300'
+  }));
+  let invalidated = true;
+  try {
+    await invalidateCf([`/${key}`]);
+  } catch (e) {
+    // 清快取失敗不擋上傳(圖已進 S3),只回報讓前端提示可能要等 CDN 過期。
+    console.log('cf invalidation failed:', e.message);
+    invalidated = false;
+  }
+  return { ok: true, layer, state, key, url: `${IMG_BASE}/${key}`, invalidated };
+}
+
 function routeOf (event) {
   const method = event.requestContext?.http?.method || event.httpMethod || '';
   const path = event.rawPath || event.path || '/';
@@ -233,6 +411,10 @@ exports.handler = async (event) => {
       return reply(event, 200, await dailyPreview());
     }
 
+    if (method === 'GET' && path === '/refs') {
+      return reply(event, 200, { items: await scanRefs() });
+    }
+
     if (method === 'POST' && path === '/codes') {
       let body;
       try { body = typeof event.body === 'string' ? JSON.parse(event.body || '{}') : (event.body || {}); } catch {
@@ -241,11 +423,33 @@ exports.handler = async (event) => {
       return reply(event, 200, await addCodes(body.codes));
     }
 
+    if (method === 'POST' && path === '/refs') {
+      let body;
+      try { body = typeof event.body === 'string' ? JSON.parse(event.body || '{}') : (event.body || {}); } catch {
+        return reply(event, 400, { ok: false, error: 'bad json' });
+      }
+      return reply(event, 200, await addRef(body));
+    }
+
+    if (method === 'POST' && path === '/trialgate/boss') {
+      let body;
+      try { body = typeof event.body === 'string' ? JSON.parse(event.body || '{}') : (event.body || {}); } catch {
+        return reply(event, 400, { ok: false, error: 'bad json' });
+      }
+      return reply(event, 200, await putBossImage(body));
+    }
+
     if (method === 'DELETE' && path.startsWith('/codes/')) {
       const raw = decodeURIComponent(path.slice('/codes/'.length));
       const code = normalizeCode(raw);
       if (!code) return reply(event, 400, { ok: false, error: 'invalid code' });
       await ddb.send(new DeleteCommand({ TableName: TABLE, Key: { code } }));
+      return reply(event, 200, { ok: true });
+    }
+
+    if (method === 'DELETE' && path.startsWith('/refs/')) {
+      const raw = decodeURIComponent(path.slice('/refs/'.length));
+      await deleteRef(raw);
       return reply(event, 200, { ok: true });
     }
 

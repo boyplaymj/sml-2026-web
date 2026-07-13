@@ -190,6 +190,19 @@ func toggleInterop(channelID, name string) (bool, error) {
 	return newState, nil
 }
 
+// setInteropState 直接設定某頻道的 bot_to_bot 狀態。給文字指令使用:
+// 當轉傳鈕/白名單 UI 還沒出現時,管理員仍可用「!b2b on」打開本頻道。
+func setInteropState(channelID, name string, state bool) error {
+	return mutateInterop(func(cfg *interopConfig) {
+		c := cfg.Channels[channelID]
+		c.BotToBot = state
+		if name != "" {
+			c.Name = name
+		}
+		cfg.Channels[channelID] = c
+	})
+}
+
 // isBridgeAdmin 判斷是否為可管理白名單的管理員。
 // 優先看 BRIDGE_ADMIN_USERS;未設則退回 ALLOWED_USERS;兩者皆未設則 fail-closed(拒絕)。
 func isBridgeAdmin(userID string) bool {
@@ -276,6 +289,87 @@ func handleWhitelistCommand(s *discordgo.Session, m *discordgo.MessageCreate) {
 	msg := buildWhitelistMessage(s, m.GuildID)
 	if _, err := s.ChannelMessageSendComplex(m.ChannelID, msg); err != nil {
 		log.Printf("!白名單 send error: %v", err)
+	}
+}
+
+func parseB2BCommand(stripped string) (string, bool) {
+	fields := strings.Fields(strings.TrimSpace(stripped))
+	if len(fields) == 0 {
+		return "", false
+	}
+	cmd := strings.ToLower(fields[0])
+	switch cmd {
+	case "!白名單":
+		return "whitelist", true
+	case "!b2b", "!互通", "!bot互通", "!bot-to-bot":
+	default:
+		return "", false
+	}
+	if len(fields) == 1 {
+		return "status", true
+	}
+	arg := strings.ToLower(fields[1])
+	switch arg {
+	case "on", "enable", "enabled", "true", "1", "開", "開啟", "啟用", "打開":
+		return "enable", true
+	case "off", "disable", "disabled", "false", "0", "關", "關閉", "停用":
+		return "disable", true
+	case "list", "menu", "whitelist", "白名單", "列表":
+		return "whitelist", true
+	case "status", "狀態", "查", "查看":
+		return "status", true
+	default:
+		return "help", true
+	}
+}
+
+func b2bUsage() string {
+	return "用法: `!b2b on` 開啟本頻道互通、`!b2b off` 關閉、`!b2b status` 查看、`!白名單` 開啟下拉管理。"
+}
+
+func channelDisplayName(s *discordgo.Session, channelID string) string {
+	if ch, err := s.State.Channel(channelID); err == nil && ch.Name != "" {
+		return ch.Name
+	}
+	if ch, err := s.Channel(channelID); err == nil && ch.Name != "" {
+		return ch.Name
+	}
+	return channelID
+}
+
+func handleB2BCommand(s *discordgo.Session, m *discordgo.MessageCreate, action string) {
+	if action == "whitelist" {
+		handleWhitelistCommand(s, m)
+		return
+	}
+	if !isBridgeAdmin(m.Author.ID) {
+		s.ChannelMessageSend(m.ChannelID, "⛔ 只有管理員能檢視/管理 bot↔bot 白名單。")
+		return
+	}
+	name := channelDisplayName(s, m.ChannelID)
+	switch action {
+	case "enable":
+		if err := setInteropState(m.ChannelID, name, true); err != nil {
+			log.Printf("b2b enable error: %v", err)
+			s.ChannelMessageSend(m.ChannelID, "⚠️ 開啟 bot↔bot 失敗:"+err.Error())
+			return
+		}
+		s.ChannelMessageSend(m.ChannelID, "✅ 本頻道已開啟 bot↔bot 互通；之後 bot 回覆底部會出現「轉傳給 "+peerName()+"」按鈕。")
+	case "disable":
+		if err := setInteropState(m.ChannelID, name, false); err != nil {
+			log.Printf("b2b disable error: %v", err)
+			s.ChannelMessageSend(m.ChannelID, "⚠️ 關閉 bot↔bot 失敗:"+err.Error())
+			return
+		}
+		s.ChannelMessageSend(m.ChannelID, "⬜ 本頻道已關閉 bot↔bot 互通；之後不會自動掛轉傳按鈕。")
+	case "status":
+		if botToBotSet()[m.ChannelID] {
+			s.ChannelMessageSend(m.ChannelID, "✅ 本頻道 bot↔bot 互通目前是開啟。"+b2bUsage())
+		} else {
+			s.ChannelMessageSend(m.ChannelID, "⬜ 本頻道 bot↔bot 互通目前是關閉。"+b2bUsage())
+		}
+	default:
+		s.ChannelMessageSend(m.ChannelID, b2bUsage())
 	}
 }
 

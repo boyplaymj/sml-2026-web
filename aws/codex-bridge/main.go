@@ -1275,8 +1275,8 @@ func main() {
 			if cmd == "!用量" {
 				s.ChannelTyping(m.ChannelID)
 				handleUsageCommand(s, m.ChannelID)
-			} else if cmd == "!白名單" {
-				handleWhitelistCommand(s, m)
+			} else if action, ok := parseB2BCommand(stripped); ok {
+				handleB2BCommand(s, m, action)
 			} else {
 				tryBridgeCommand(s, m, stripped)
 			}
