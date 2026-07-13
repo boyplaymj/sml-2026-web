@@ -49,7 +49,11 @@
 ### 引擎(四階段推進，已上線+重啟生效)
 | 檔 | 改動 | 位置/commit |
 |---|---|---|
-| `model/PuzzleQuest.js` | `panel()` 階段感知(stages[stage-1]、docs、缺圖略過、進度)、`advanceActiveCase()`、`_maybeAdvanceStage(config.advanceStageSeq)`、`_writeStageDoc()`、`startPuzzle` 初始化 stage=1 | `/opt/sml/sweetbot-next/`；**commit 245dddb**(已 restart) |
+| `model/PuzzleQuest.js` | `panel()` 階段感知(stages[stage-1]、docs、缺圖略過、進度)、`advanceActiveCase(preferPuzzleId)`、`_maybeAdvanceStage(config.advanceStageSeq)`、`_writeStageDoc()`、`startPuzzle` 初始化 stage=1 | `/opt/sml/sweetbot-next/`；**commit 245dddb → c2840f3**(已 restart) |
+
+> **✅ E2E 已實測(2026-07-13)**：造進行中 round → 寫 `config.advanceStageSeq` → 甜甜約 30s 內 `round.stage 1→2`、`sml_config/puzzle_stage` doc→2(假網站 ~15s 跟進)。全鏈路通。
+>
+> **⚠️ 修正 c2840f3**：`advanceActiveCase` 原本盲取 `getActiveByChannel` 的**最舊一筆** round;若封測頻道殘留更早、無階段的舊 round(如 five-star-review-sos),會選中它→`continue`→分階段案件永遠推不動。改為**優先推進 `config.activePuzzleId` 對應的 round**(`channelId#activePuzzleId` 直取),殘留舊 round 不再擋路。`startPuzzle` 開題時會設 activePuzzleId,故正式 `!解謎 <案件>` 開題後推進就會對到本案。
 | `sml-puzzle-admin/index.js` | 加 `advanceStage` action(寫 `config.advanceStageSeq`) | `/opt/sml/score-repo/tools/lambda/sml-puzzle-admin/`；score-repo **commit 172c532**；**Lambda 已部署** |
 | `puzzle_manager.html` | 題目預覽加「🔍 案情階段推進」卡 + 按鈕 + `advanceStage()` | `/opt/sml/sweetbot-site/public/`；**已 deploy.sh → sweetbot-games.web.app** |
 
