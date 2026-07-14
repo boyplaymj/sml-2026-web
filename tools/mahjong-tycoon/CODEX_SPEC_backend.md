@@ -74,7 +74,7 @@
    "baseFlow":120, "clientMix":{"casual":55,"regular":30,"whale":5,"tourist":10},
    "rentLevel":80, "riskLevel":0.35, "enabled":true }]
 ```
-- `clientMix` 四鍵 `casual/regular/whale/tourist`(散客/雀友/大戶/觀光客),百分比,建議合計 100(前端只提示不強制)。
+- `clientMix` **十鍵** `casual/regular/whale/tourist/student/elderly/mama/truant/roamer/novice`(散客/雀友/大戶/觀光客/學生/高齡/媽媽/翹課學生/游擊中年人/麻將新手),百分比,建議合計 100(前端只提示不強制)。〔2026-07-11 由 4→10 客群;上方 JSON 範例只列部分鍵為示意〕另每區有 `location{roadside,carParking,scooterParking,freeLotDist,paidLotDist,mrtDist,mrtOpen,mrtClose,archetype,surroundings}` 地段屬性(surroundings=逗號分隔設施 id,長期建議改 array)。canonical 客群清單資料驅動,以 `balance.clientProfiles`/`weights` 的鍵為準。
 
 ### 5.2 events(array)
 ```json

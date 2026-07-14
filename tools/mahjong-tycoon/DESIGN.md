@@ -38,7 +38,7 @@
 - 地圖 = 數個**行政區**(MVP 先 3 區),之後可擴。
 - 每區屬性:
   - `baseFlow`:每小時基準客流量(客人單位/hr)
-  - `clientMix`:客層分布(散客 / 雀友 / 大戶 / 觀光客 佔比)
+  - `clientMix`:客層分布(**10 客群**:散客/雀友/大戶/觀光客/學生/👴高齡/👩‍👧媽媽/🚸翹課學生/🎲游擊中年人/🌱麻將新手 佔比;canonical key=`casual/regular/whale/tourist/student/elderly/mama/truant/roamer/novice`;皆正式客群、都進 clientMix)
   - `rentLevel`:租金水位(熱區貴)
   - `riskLevel`:治安/臨檢風險
   - `heat`:區域熱度(會隨玩家聚集上升 → 帶動租金上漲,逼成長)
@@ -223,3 +223,12 @@ attractiveness = w1·聲譽 + w2·環境 + w3·餐飲 + w4·宣傳熱度
 ---
 
 *本冊為 v0.1 起草,待逐項與使用者確認後細化公式與數值,再交 Codex 驗證/實作。*
+
+---
+
+## 💰 成本控管（遵循 tools/COST_CONTROL.md）
+
+- **成本來源**：新 DDB 表 `mahjong-tycoon-config`（draft/published）＋後台 admin Lambda / APIGW。量級極小（PAY_PER_REQUEST，設定類讀寫，預估 < $1/月）。
+- 所有新表 **PAY_PER_REQUEST**（§11 已載明）；連續 tick 模擬刻意**不燒 LLM／不打外部 API**（Lv1 前端插值＋Lv2 才對 DDB，見 §11「即時感但不燒 API/DDB」）。
+- 視覺沿用甜甜既有 emoji 拼圖產線／自控圖床，**不新增圖床成本**。
+- **無 LLM／無付費 API**，故免「帳本表＋月度封頂」四件套。若日後加 AI 客人對話等 LLM 功能，回本規範補齊四件套（走 Bedrock 無 key）。

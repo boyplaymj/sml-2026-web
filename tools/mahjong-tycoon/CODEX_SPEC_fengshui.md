@@ -244,11 +244,38 @@ fengshui = clamp( Σ slotScore_i , 0, 100 )
 ## 13. Codex 審查修正併入(2026-07-11)
 
 **A. 客層 key 固定英文(資料層)。** `w9ByClient` 及各權重表 key 用英文,中文只做 label:
-`散客=casual / 雀友=regular / 大戶=whale / 觀光客=tourist / 學生=student`。
-上文 `w9ByClient:{whale:0.35,regular:0.25,casual:0.10,tourist:0.08,student:0.03}`。
+**canonical 10 客群**(2026-07-11 由 5→10):`casual/regular/whale/tourist/student/elderly/mama/truant/roamer/novice`;皆正式客群、都進 clientMix。各客群 w9(fengshui)權重在 `balance.weights` 全 10 列(client list 資料驅動)。
+`w9ByClient:{whale:0.35,regular:0.25,casual:0.10,tourist:0.08,student:0.03,elderly:0.40,mama:0.10}`。**👴高齡信風水最重(0.40,居全客群之冠)** → 風水系統與高齡社區地段強咬合;媽媽 0.10。
 
 **B. 隨機效果必須 idempotent。** 風水事件觸發、江湖術士騙子判定、`luckSentiment` 運氣感受**不能每次結算/刷新就重抽**。用 **tick bucket + deterministic seed**(`hash(parlorId, bucketTs)`)或已處理區間記錄,只對新經過的 tick 判定一次。`fengshui` 分數本身由 layout 派生(純函數),重算安全;但由它**衍生的隨機事件**要鎖。
 
 **C. 寫入安全(Phase 1 前置,與宣傳規格共用同一修正)。** `ParlorDAO.save()` 目前 `PutCommand` 整筆覆寫。搬風水家具、採購、結算並發時,stale item 會洗掉 `layout`/`fengshuiItems`。**Phase 1 前**改 `UpdateCommand` 局部更新或加 `revision/updatedAt` 條件寫入(宣傳+風水一起改)。
 
 **D. 多分店拆分。** 未來連鎖(M2)時 `layout`/`fengshuiItems`/`fengshui` 要**跟著 `parlorId` 分拆**,不可沿用「一人一館」的單 PK 結構。設計 parlors 表時預留 `parlorId` 維度(對齊 Phase 1 `mahjong-tycoon-runs`/分店表規劃)。
+
+---
+
+## 14. 空間化升級(2026-07-11,使用者選「真實格子擺放」)
+
+> 使用者定案店面採**坪數格子平面圖**(見 `CODEX_SPEC_floorplan.md`)。有平面圖後,本規格的**抽象 5 方位槽被真實格子方位取代**。以下段落對應調整:
+
+- **§2 方位槽 → 平面圖方位**:不再是 5 個抽象槽。以 `door`/羅盤原點把平面圖分成 東/南/中/西/北**格子區域**(`balance.floor.orientation` 定義)。風水家具擺在**格子座標**上。
+- **§4.1 得位**:家具擺在其 `nativeSlot` 對應的**格子區域**內 = 得位 ×1.5;擺在被剋區 = 失位 ×0.5。
+- **§4.2 相生相鄰**:改為**平面圖上實際相鄰格**的風水家具構成五行生/剋 → 加/減(取代抽象環)。
+- **§4.3 沖煞**:由平面圖幾何實判 — 鏡類(`bagua_mirror`)所在格正對 `door` 直線 = 漏財;水類/廁所設備壓在流年財位區 = 破財。勘輿老師掃出實際犯沖格子。
+- **§5 流年**:財位/五黃/歲破改為每季指定的**格子區域**(整片區),非單槽。
+- **§8.2 parlors**:`layout{方位槽→家具}` 併入 `floor.objects[]`(kind:'fengshui', 帶 x/y/rot);`fengshui` 分數仍由上式派生。家具新增 `footprint{w,h}` 與 `wallMount`(掛牆=0 格不佔平面,如鏡/風鈴/山海鎮/五帝錢/鹽燈)。**掛牆物仍要記幾何位置** `floor.wallItems[{itemId,x,y,side:'N|E|S|W'}]`(Codex 審查修正 #5),否則「鏡對門」沖煞判不準。
+- **未接平面圖前的退路**:Phase 1 平面圖未上線前,可先用抽象 5 槽跑(本規格原文);平面圖上線後切換到格子方位。以 feature flag 控。
+
+---
+
+## 15. 周遭設施運勢 → effective 風水(2026-07-11,使用者「周遭設施影響運勢」)
+
+館的**有效風水分 = layout 風水(§4)+ 地段運勢修正**:
+```
+locationFortune = Σ_facility( catalogs.surroundings[fid].fortuneMod )   # 該區 location.surroundings 逗號分隔 id
+effectiveFengshui = clamp( layoutFengshui + balance.ambience.fortuneToFengshui × locationFortune , 0, 100 )
+```
+- 設施型錄 `catalogs.surroundings`(後台已上線):🏥醫院 fortuneMod−2 / ⛩️小私廟−2 / 🛕大廟+3 / ⚰️殯儀館−3 / 🌳公園+1 / 🏦銀行+1 …
+- **信風水客群(elderly/whale/regular,w9 高)最有感** → 選址旁邊有殯儀館/野廟,風水擺再好也被拖;旁有大廟則加持(但大廟 moodMod−2 心情吵,見 clientflow 心情軸)。
+- effectiveFengshui 才是進吸引力 w9 的值。

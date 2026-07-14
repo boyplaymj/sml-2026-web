@@ -25,7 +25,7 @@
 | 上升 | 環境+服務慢養 | KOL好評/媒體採訪/環境好被拍/社群持續經營 |
 | 下降 | 鬧事/髒亂 | Google陌生客負評/爆滿服務崩/髒亂被拍/網軍被抓 |
 
-- `parlors.buzz`:0–100,新館 default 30。
+- `parlors.buzz`:0–100,新館 default 30。**(2026-07-11 精化)** buzz 已拆成 **6 網路評價頻道** `catalogs.reviewChannels`(kol/map/threads/ig/fb/line);parlors 存 `reviewScores{6}`(各 0–100),**每客群 buzz = Σ(reviewScores[ch]×channel.audience[客群])**。促銷 buzz 類效果**分流到指定頻道**:kol廣告→kol頻道、search(Google)`negReviewRate`→map頻道負評、social→threads/ig、media→fb/map、astro網軍→刷 threads/map(被抓崩)。各頻道 velocity/trust/volatility/decay 不同(網紅/Threads快漲快跌、地標/LINE慢黏)。詳見 `CODEX_SPEC_clientflow.md` §網路評價 與 CONTENT §H。
 - 每 tick 向 baseline(30) **緩慢回歸**(`buzzDecayToBase ≈ 0.3/hr`),避免永久高/永久低。
 - 進吸引力公式(§3)。
 
@@ -234,8 +234,8 @@ divertedFlow = districtBaseFlow · regionalPull       // 開播期間
 ## 14. Codex 審查修正併入(2026-07-11)
 
 **A. 客層 key 固定英文(資料層)。** 對齊既有 backend spec,`targetMix` / `w8ByClient` / 各權重表的 key 一律用英文,中文只做 UI label:
-`散客=casual / 雀友=regular / 大戶=whale / 觀光客=tourist / 學生=student`。
-本規格上文 JSON 範例的中文 key 均以此對映替換(如 `targetMix:{casual:0.6,regular:0.3,whale:0,tourist:0,student:0.1}`)。
+**canonical 10 客群**(2026-07-11 由 5→10):`casual/regular/whale/tourist/student/elderly/mama/truant/roamer/novice`(散客/雀友/大戶/觀光客/學生/高齡/媽媽/翹課學生/游擊中年人/麻將新手);皆正式客群、都進 clientMix。各客群 w1–w9 權重(含 buzz w8)在 `balance.weights` 全 10 列;client list 資料驅動(見 `CODEX_SPEC_clientflow.md`)。
+本規格上文 JSON 範例的中文 key 均以此對映替換(如 `targetMix:{casual:0.6,regular:0.3,whale:0,tourist:0,student:0.1}`)。廣告 `targetMix` 可帶 elderly/mama(如電視偏 elderly、餐飲聯名偏 mama);未列的客群視為 0。**w8 buzz 權重補**:elderly 0.02、mama 0.15。
 
 **B. 隨機效果必須 idempotent(惰性結算硬性要求)。** `negReviewRate`、網軍 exposure、容量溢出負評等**不能每次 retry/面板刷新就重抽**。作法:以 **tick bucket + deterministic seed**(例:`hash(parlorId, promoId, bucketTs)`)決定該 tick 有無事件,或記錄 `lastSettledAt` 已處理區間,只對「新經過的 tick」判定一次。避免玩家狂點面板刷負評/刷被抓。
 
