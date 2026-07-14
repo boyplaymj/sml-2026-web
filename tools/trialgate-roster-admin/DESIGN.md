@@ -55,4 +55,7 @@ Claude 設計，交 Codex 建 + 自驗。目標:後台能清楚檢視並**編輯
 - **特殊事件要顯眼**:`soulDrain=true` 的層在總覽打「☠ 奪魂」標記;`increase`(指定祝福池)與 `award`(獎勵)在展開區清楚呈現可編。
 - (未來)若之後加「層間隨機事件/分歧劇情」,總覽的「特殊事件」欄預留擴充。
 
-相關:`tools/trialgate-rebalance/DESIGN.md`(數值)、`aws/laoshiji-admin/index.js`(Lambda)、`sweetbot-site/public/trialgate_admin.html`(前端)、`sweetbot-site/public/index.html`(遊戲館入口卡)。
+## 9. 附魔（女神祝福）後台 — 另冊
+「檢視+編輯所有附魔(女神祝福)的圖片與數據」= 另開規格 `DESIGN_blessings.md`(2026-07-14)。同套路搬 DDB(沿用本表 `__blessings__` 一筆 item)、bot 讀 DDB+FALLBACK、Lambda `GET/PUT /trialgate/blessings`、前端附魔管理區,並把各層 `increase` 改成祝福多選(id 為外鍵、雙向完整性驗證)。細節見該冊。
+
+相關:`tools/trialgate-rebalance/DESIGN.md`(數值)、`DESIGN_blessings.md`(附魔)、`aws/laoshiji-admin/index.js`(Lambda)、`sweetbot-site/public/trialgate_admin.html`(前端)、`sweetbot-site/public/index.html`(遊戲館入口卡)。

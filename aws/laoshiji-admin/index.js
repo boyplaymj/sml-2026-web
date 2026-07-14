@@ -28,6 +28,15 @@ const FIREBASE_PROJECT = process.env.FIREBASE_PROJECT || 'sml2026newscore';
 const IMG_CF_DISTRIBUTION = process.env.IMG_CF_DISTRIBUTION || 'E2IJWN6FWT2XYG';
 const TRIALGATE_MAX_LAYER = Number(process.env.TRIALGATE_MAX_LAYER || 20);
 const TRIALGATE_LAYER_MAX = Number(process.env.TRIALGATE_LAYER_MAX || 10);
+const TRIALGATE_BLESSINGS_KEY = '__blessings__';
+const DEFAULT_TRIALGATE_BLESSINGS = [
+  { id: 1, title: '獲得女神的強化', desc: '基礎攻擊增加20點', stat: 'attackAdd', value: 20, img: 'trialgate/game/buff2.png' },
+  { id: 2, title: '獲得女神的強化', desc: '基礎攻擊增加10點', stat: 'attackAdd', value: 10, img: 'trialgate/game/buff1.png' },
+  { id: 3, title: '獲得女神的強化', desc: '基礎攻擊增加5點', stat: 'attackAdd', value: 5, img: 'trialgate/game/buff1.png' },
+  { id: 4, title: '獲得女神的魔法祝福', desc: '攻擊增幅20%', stat: 'attackIncrease', value: 20, img: 'trialgate/game/magic2.png' },
+  { id: 5, title: '獲得女神的魔法祝福', desc: '攻擊增幅10%', stat: 'attackIncrease', value: 10, img: 'trialgate/game/magic1.png' },
+  { id: 6, title: '獲得女神的治療', desc: '血量增加20點', stat: 'hp', value: 20, img: 'trialgate/game/revival.png' }
+];
 // 白名單:env ALLOWED_EMAILS 為權威來源(設了就以它為準)。
 // 為什麼不直接信 Firestore config/gameAdmins:那份文件目前世界可寫(firestore.rules catch-all),
 // 若當唯一授權來源會被下毒繞過認證。env 拿掉這個可被竄改的信任錨點。
@@ -432,10 +441,61 @@ function validateBoss (boss, idx) {
     diedTxt: ensureString(boss.diedTxt, `bosses[${idx}].diedTxt`),
     killPlayerTxt: ensureString(boss.killPlayerTxt, `bosses[${idx}].killPlayerTxt`),
     stageEmoji: ensureString(boss.stageEmoji, `bosses[${idx}].stageEmoji`),
-    increase: boss.increase.map((v, i) => ensureInteger(v, `bosses[${idx}].increase[${i}]`, 0))
+    increase: boss.increase.map((v, i) => ensureInteger(v, `bosses[${idx}].increase[${i}]`, 1))
   };
   if (soulDrain !== undefined) normalized.soulDrain = soulDrain;
   return normalized;
+}
+
+function validateBlessingImage (img, name) {
+  const s = ensureString(img, name).trim();
+  if (!s || s.startsWith('http://') || s.startsWith('https://') || s.startsWith('//') || s.includes('..')) {
+    throw badRequest(`${name} must be relative image path`);
+  }
+  if (!s.startsWith('trialgate/')) throw badRequest(`${name} must start with trialgate/`);
+  if (!/\.(png|jpg|jpeg)$/i.test(s)) throw badRequest(`${name} must be png or jpg`);
+  return s;
+}
+
+function validateBlessing (blessing, idx) {
+  if (!blessing || typeof blessing !== 'object' || Array.isArray(blessing)) {
+    throw badRequest(`blessings[${idx}] must be object`);
+  }
+  const stat = ensureString(blessing.stat, `blessings[${idx}].stat`);
+  if (!['attackAdd', 'attackIncrease', 'hp'].includes(stat)) throw badRequest(`blessings[${idx}].stat invalid`);
+  return {
+    id: ensureInteger(blessing.id, `blessings[${idx}].id`, 1),
+    title: ensureString(blessing.title, `blessings[${idx}].title`).trim(),
+    desc: ensureString(blessing.desc, `blessings[${idx}].desc`).trim(),
+    stat,
+    value: ensureNumber(blessing.value, `blessings[${idx}].value`, 0),
+    img: validateBlessingImage(blessing.img, `blessings[${idx}].img`)
+  };
+}
+
+function validateBlessingsPayload (body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) throw badRequest('body must be object');
+  if (!Array.isArray(body.blessings) || body.blessings.length === 0) throw badRequest('blessings must be non-empty array');
+  const seen = new Set();
+  const blessings = body.blessings.map((blessing, idx) => {
+    const normalized = validateBlessing(blessing, idx);
+    if (!normalized.title) throw badRequest(`blessings[${idx}].title required`);
+    if (!normalized.desc) throw badRequest(`blessings[${idx}].desc required`);
+    if (seen.has(normalized.id)) throw badRequest(`duplicate blessing id ${normalized.id}`);
+    seen.add(normalized.id);
+    return normalized;
+  });
+  return blessings;
+}
+
+function assertLayerIncreaseRefs (layerItem, blessingIds) {
+  const bad = [];
+  for (const [bossIdx, boss] of (layerItem.bosses || []).entries()) {
+    for (const id of boss.increase || []) {
+      if (!blessingIds.has(Number(id))) bad.push(`bosses[${bossIdx}].increase ${id}`);
+    }
+  }
+  if (bad.length) throw badRequest(`unknown blessing id: ${bad.join(', ')}`);
 }
 
 function validateAward (award) {
@@ -465,7 +525,7 @@ function validateTrialGateLayer (layer, body) {
   };
 }
 
-async function scanTrialGateLayers () {
+async function scanRawTrialGateItems () {
   const items = [];
   let ExclusiveStartKey;
   do {
@@ -476,7 +536,18 @@ async function scanTrialGateLayers () {
     items.push(...(r.Items || []));
     ExclusiveStartKey = r.LastEvaluatedKey;
   } while (ExclusiveStartKey);
+  return items;
+}
+
+function getBlessingsFromItems (items) {
+  const item = items.find(item => item.layer === TRIALGATE_BLESSINGS_KEY) || {};
+  return Array.isArray(item.blessings) && item.blessings.length ? item.blessings : DEFAULT_TRIALGATE_BLESSINGS;
+}
+
+async function scanTrialGateLayers () {
+  const items = await scanRawTrialGateItems();
   const meta = items.find(item => item.layer === '__meta__') || {};
+  const blessings = getBlessingsFromItems(items);
   const layers = {};
   items
     .filter(item => /^\d+$/.test(String(item.layer || '')))
@@ -484,16 +555,57 @@ async function scanTrialGateLayers () {
     .forEach(item => {
       layers[String(item.layer)] = { bosses: item.bosses || [], award: item.award || {}, updatedAt: item.updatedAt || '' };
     });
-  return { maxLayer: Number(meta.maxLayer || Object.keys(layers).length || TRIALGATE_LAYER_MAX), layers };
+  return { maxLayer: Number(meta.maxLayer || Object.keys(layers).length || TRIALGATE_LAYER_MAX), layers, blessings };
+}
+
+async function getTrialGateBlessings () {
+  const r = await ddb.send(new GetCommand({
+    TableName: TRIALGATE_LAYERS_TABLE,
+    Key: { layer: TRIALGATE_BLESSINGS_KEY }
+  }));
+  const blessings = Array.isArray(r.Item?.blessings) && r.Item.blessings.length
+    ? r.Item.blessings
+    : DEFAULT_TRIALGATE_BLESSINGS;
+  return { blessings };
 }
 
 async function putTrialGateLayer (layer, body) {
   const item = validateTrialGateLayer(layer, body);
+  const { blessings } = await getTrialGateBlessings();
+  assertLayerIncreaseRefs(item, new Set(blessings.map(b => Number(b.id))));
   await ddb.send(new PutCommand({
     TableName: TRIALGATE_LAYERS_TABLE,
     Item: item
   }));
   return { ok: true, item };
+}
+
+async function putTrialGateBlessings (body) {
+  const blessings = validateBlessingsPayload(body);
+  const ids = new Set(blessings.map(b => b.id));
+  const items = await scanRawTrialGateItems();
+  const affected = [];
+  for (const item of items) {
+    if (!/^\d+$/.test(String(item.layer || ''))) continue;
+    const missing = new Set();
+    for (const boss of item.bosses || []) {
+      for (const id of boss.increase || []) {
+        if (!ids.has(Number(id))) missing.add(Number(id));
+      }
+    }
+    if (missing.size) affected.push(`layer ${item.layer}: ${[...missing].sort((a, b) => a - b).join(',')}`);
+  }
+  if (affected.length) throw badRequest(`blessing id still referenced: ${affected.join('; ')}`);
+  const item = {
+    layer: TRIALGATE_BLESSINGS_KEY,
+    blessings,
+    updatedAt: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')
+  };
+  await ddb.send(new PutCommand({
+    TableName: TRIALGATE_LAYERS_TABLE,
+    Item: item
+  }));
+  return { ok: true, blessings };
 }
 
 function routeOf (event) {
@@ -534,6 +646,10 @@ exports.handler = async (event) => {
       return reply(event, 200, await scanTrialGateLayers());
     }
 
+    if (method === 'GET' && path === '/trialgate/blessings') {
+      return reply(event, 200, await getTrialGateBlessings());
+    }
+
     if (method === 'POST' && path === '/codes') {
       let body;
       try { body = typeof event.body === 'string' ? JSON.parse(event.body || '{}') : (event.body || {}); } catch {
@@ -565,6 +681,14 @@ exports.handler = async (event) => {
         return reply(event, 400, { ok: false, error: 'bad json' });
       }
       return reply(event, 200, await putTrialGateLayer(layer, body));
+    }
+
+    if (method === 'PUT' && path === '/trialgate/blessings') {
+      let body;
+      try { body = typeof event.body === 'string' ? JSON.parse(event.body || '{}') : (event.body || {}); } catch {
+        return reply(event, 400, { ok: false, error: 'bad json' });
+      }
+      return reply(event, 200, await putTrialGateBlessings(body));
     }
 
     if (method === 'DELETE' && path.startsWith('/codes/')) {

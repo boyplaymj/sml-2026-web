@@ -13,6 +13,8 @@ const REGION = process.env.AWS_REGION || 'ap-southeast-1';
 const TABLE = process.env.TRIALGATE_LAYERS_TABLE || 'sweetbot-trialgate-layers';
 const CONFIG_PATH = process.env.TRIALGATE_CONFIG ||
   '/opt/sml/sweetbot-next/const/trialGateLayers.js';
+const BLESSINGS_PATH = process.env.TRIALGATE_BLESSINGS ||
+  '/opt/sml/sweetbot-next/const/trialGateBlessings.js';
 
 const ddbRaw = new DynamoDBClient({ region: REGION });
 const ddb = DynamoDBDocumentClient.from(ddbRaw);
@@ -44,10 +46,14 @@ async function put (item) {
 
 async function main () {
   const resolved = path.resolve(CONFIG_PATH);
+  const blessingsResolved = path.resolve(BLESSINGS_PATH);
   delete require.cache[resolved];
+  delete require.cache[blessingsResolved];
   const config = require(resolved);
+  const blessings = require(blessingsResolved);
   await ensureTable();
   await put({ layer: '__meta__', maxLayer: Number(config.maxLayer || 0), updatedAt: new Date().toISOString() });
+  await put({ layer: '__blessings__', blessings, updatedAt: new Date().toISOString() });
   for (let i = 1; i <= Number(config.maxLayer || 0); i++) {
     const key = String(i);
     const layer = config.layers[key];
@@ -59,7 +65,7 @@ async function main () {
       updatedAt: new Date().toISOString()
     });
   }
-  console.log(`seeded ${config.maxLayer} trialgate layers into ${TABLE}`);
+  console.log(`seeded ${config.maxLayer} trialgate layers and ${blessings.length} blessings into ${TABLE}`);
 }
 
 main().catch(err => {
