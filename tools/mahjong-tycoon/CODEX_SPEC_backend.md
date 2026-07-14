@@ -106,12 +106,12 @@
   "bankruptcy":{"deficitTicksToClose":6,"minReserve":0},
   "rentGrowth":{"base":1.0,"heatMultiplier":0.05,"capPerTick":0.1},
   "weights":{
-    "casual": {"price":0.35,"reputation":0.15,"environment":0.10,"food":0.10,"promoHeat":0.10,"dealer":0.10,"tableQuality":0.10},
-    "regular":{…}, "whale":{…}, "tourist":{…}
+    "casual": {"price":0.35,"reputation":0.15,"environment":0.10,"food":0.10,"promoHeat":0.10,"dealer":0.10,"tableQuality":0.10,"buzz":0.20,"fengshui":0.10},
+    "regular":{…}, "whale":{…}, "tourist":{…}, "student":{…}, "elderly":{…}, "mama":{…}, "truant":{…}, "roamer":{…}, "novice":{…}
   }
 }
 ```
-- `weights` 4 客層 × 7 因子(price/reputation/environment/food/promoHeat/dealer/tableQuality),每列建議合計≈1(前端顯示 Σ 提示)。
+- `weights` **canonical 10 客群 × 9 因子**(`price/reputation/environment/food/promoHeat/dealer/tableQuality/`**`buzz/fengshui`**),全 10 列(client list 資料驅動);每列建議合計≈1(前端顯示 Σ 提示)。〔2026-07-11 由 4 客層×7 因子擴為 10×9;上方 JSON 僅列 casual 完整值為示意,其餘 9 客群同結構〕以後台 SEED 的 `balance.weights` 為準。
 
 ---
 

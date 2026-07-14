@@ -33,6 +33,8 @@
 
 ## 2. 客層擴充:新增「學生」
 
+> ⚠️ **已被 §14 取代(2026-07-11)。** 客層已由此處的 5 客層擴為 **canonical 10 客群**(`casual/regular/whale/tourist/student/elderly/mama/truant/roamer/novice`),資料層一律英文 key、中文只做 label。本節保留為「學生」客層的**動機說明**,但下方 key/結構以 §14 與後台 SEED `balance.weights` 為準,**勿照抄本節的 5 客層/中文 key**。
+
 現有客層 `散客 / 雀友 / 大戶 / 觀光客` → **加 `學生`**。
 - 特性:**客單價最低**(`avgSpendMult ≈ 0.5`),但提供 **人氣/熱鬧值**(店熱鬧 → 對散客有小幅吸引加成)。
 - 綁 🎓大學城區(該區 clientMix 學生佔比高);公車/折價券主帶此客層。
@@ -110,7 +112,7 @@ attractiveness = w1·聲譽 + w2·環境 + w3·餐飲 + w4·宣傳熱度
 ```jsonc
 {
   "buzzBaseline": 30, "buzzDecayToBase": 0.3,
-  "w8ByClient": {"觀光客":0.30,"散客":0.20,"學生":0.25,"雀友":0.08,"大戶":0.02},
+  "w8ByClient": {"tourist":0.30,"casual":0.20,"student":0.25,"regular":0.08,"whale":0.02,"elderly":0.02,"mama":0.15},  // canonical 英文 key;未列(truant/roamer/novice)預設低 buzz 敏感,以 SEED balance.weights[client].buzz 為準
   "heatStackDR": 0.6,         // 多廣告熱度疊加遞減係數(§5.2)
   "overflowNegReview": 0.5,   // 客量>容客量時每單位溢出的負評機率(§9)
   "greyExposureBase": 0.08    // 網軍每tick被抓基礎機率

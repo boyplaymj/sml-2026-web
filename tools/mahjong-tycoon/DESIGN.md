@@ -228,7 +228,11 @@ attractiveness = w1·聲譽 + w2·環境 + w3·餐飲 + w4·宣傳熱度
 
 ## 💰 成本控管（遵循 tools/COST_CONTROL.md）
 
-- **成本來源**：新 DDB 表 `mahjong-tycoon-config`（draft/published）＋後台 admin Lambda / APIGW。量級極小（PAY_PER_REQUEST，設定類讀寫，預估 < $1/月）。
+- **成本來源**：
+  - 後台設定表 `mahjong-tycoon-config`（draft/published）＋後台 admin Lambda / APIGW（設定類讀寫，極小）。
+  - **遊戲端 DDB 表（§11）**：`mahjong-tycoon-parlors`（單館狀態/layout/floor/reviewScores/`regulars[]`）、`mahjong-tycoon-world`（全服共用地圖/heat）、`mahjong-tycoon-events`（世界事件流水）。連續 tick 世界主要靠 Lv1 前端插值、Lv2 才落 DDB，寫入量隨玩家數與 tick 週期線性、不狂寫。
+  - §16 `regulars[]` 目前設計為 `parlors` 內嵌陣列；若熟客量成長到單 item 過大再拆獨立表 `mahjong-tycoon-regulars`（一樣 PAY_PER_REQUEST）。
+  - 全體量級極小（活動性流量，預估 < $1~$2/月）。
 - 所有新表 **PAY_PER_REQUEST**（§11 已載明）；連續 tick 模擬刻意**不燒 LLM／不打外部 API**（Lv1 前端插值＋Lv2 才對 DDB，見 §11「即時感但不燒 API/DDB」）。
 - 視覺沿用甜甜既有 emoji 拼圖產線／自控圖床，**不新增圖床成本**。
 - **無 LLM／無付費 API**，故免「帳本表＋月度封頂」四件套。若日後加 AI 客人對話等 LLM 功能，回本規範補齊四件套（走 Bedrock 無 key）。
