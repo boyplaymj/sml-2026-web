@@ -101,3 +101,8 @@ return { maxLayer, layers, blessings };
 7. 圖片頁籤、關卡數據既有功能不受影響。
 
 相關:`DESIGN.md`(關卡後台,本規格延續其套路與 §4 layer 驗證)、`model/RPG/TrialGate.js`(`playerIncrease`)、`DAO/DDB/TrialGateLayerDAO.js`、`aws/laoshiji-admin/index.js`、`sweetbot-site/public/trialgate_admin.html`、`config/config.json`(rpgImageBase)。
+
+## 💰 成本控管（遵循 tools/COST_CONTROL.md）
+
+- 延續 `DESIGN.md` 同一套路與同表：沿用既有 DDB 表 `sweetbot-trialgate-layers`（`__blessings__` 一筆 item，**不新增表**）＋擴既有 Lambda；祝福圖 5 張已在圖床 `image.boyplaymj.link/rpg/`，**不新增圖床成本**。
+- 表 **PAY_PER_REQUEST**；**無 LLM／無付費 API**，故免「帳本表＋月度封頂」四件套。

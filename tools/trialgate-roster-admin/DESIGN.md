@@ -59,3 +59,9 @@ Claude 設計，交 Codex 建 + 自驗。目標:後台能清楚檢視並**編輯
 「檢視+編輯所有附魔(女神祝福)的圖片與數據」= 另開規格 `DESIGN_blessings.md`(2026-07-14)。同套路搬 DDB(沿用本表 `__blessings__` 一筆 item)、bot 讀 DDB+FALLBACK、Lambda `GET/PUT /trialgate/blessings`、前端附魔管理區,並把各層 `increase` 改成祝福多選(id 為外鍵、雙向完整性驗證)。細節見該冊。
 
 相關:`tools/trialgate-rebalance/DESIGN.md`(數值)、`DESIGN_blessings.md`(附魔)、`aws/laoshiji-admin/index.js`(Lambda)、`sweetbot-site/public/trialgate_admin.html`(前端)、`sweetbot-site/public/index.html`(遊戲館入口卡)。
+
+## 💰 成本控管（遵循 tools/COST_CONTROL.md）
+
+- **成本來源**：新 DDB 表 `sweetbot-trialgate-layers`（§1）＋擴既有 Lambda `sml-laoshiji-admin`（非新開）。量級極小（PAY_PER_REQUEST，關卡設定類讀寫；bot 每場開局載一次、不狂打 DDB，§3）。
+- 新表 **PAY_PER_REQUEST**（同其他 sweetbot 表，§1）；附魔圖已在圖床 `image.boyplaymj.link/rpg/`，**不新增圖床成本**。
+- **無 LLM／無付費 API**，故免「帳本表＋月度封頂」四件套。

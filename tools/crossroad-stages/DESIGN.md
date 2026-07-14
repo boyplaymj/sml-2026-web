@@ -322,3 +322,12 @@ const PAL = THEME_PALETTES[THEME] || THEME_PALETTES.day;
 5. **render fallback**：某主題 key 尚未上傳時，該列自動用 day 版、不破圖。
 6. **命名**：day 檔名不變；其餘 `_<theme>` 尾碼；變體 `_<theme>_vN` 順序一致。
 7. **建議節奏**：先只做 `dusk` 一套走完「烤→upload→render 依 theme 切」全鏈、Discord 實看，OK 再補 night/rain/hell（hell 最後）。
+
+---
+
+## 💰 成本控管（遵循 tools/COST_CONTROL.md）
+
+- **成本來源**：唯一成本＝**Bedrock Stability SD3.5（us-west-2）生素材立繪／地磚**（§10）。這是**一次性素材製作**，非玩家 runtime 逐次呼叫——烤好即存自控圖床 `boyplaymj-image` 快取，遊戲改讀圖床貼圖，之後零 LLM 成本。
+- **無新增 DDB 欄位**（stage 全由 `crossroadBest` 距離推導，§8）；emoji 走既有 14 台金庫（guild emoji 免費）。
+- 生圖屬一次性、可控批量：**逐主題烤（dusk→night→rain→hell），每批人工檢視再續**，避免一次大量燒 Bedrock。
+- **runtime 無 LLM／無付費 API／無新表**，故免「帳本表＋月度封頂」四件套。
