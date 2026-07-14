@@ -93,9 +93,11 @@ sml_chat_messages.channelId  ──authorChannelId-index 反查──▶  sweetb
 3. **比對每則訊息 × 每條規則**:
    - `match:'contains'` → `text` 含 `keyword`;`match:'exact'` → `text.trim() === keyword`。大小寫/全半形正規化(至少 trim + toLowerCase,中文不受影響)。
    - 命中 → 產生一筆 hit `{ channelId, ruleId, keyword, reward, listType, ts }`。
-4. **套白/黑名單語意**（見 §7 待確認,暫定）:
-   - `listType:'white'` 命中 → 該 channelId **+reward**。
-   - `listType:'black'` 命中 → 該 channelId **本場取消發獎資格**（DQ,擋洗頻/工作人員/搗亂;black 規則的 reward 欄忽略）。黑名單優先於白名單。
+4. **黑名單過濾（定案 2026-07-14）**:
+   - **觀眾黑名單**：`sml_config/ytKeywordRewards.blockedChannels[]`（channelId 陣列,擋自家/工作人員/機器人帳號,與關鍵字規則分開)。名單內 channelId **本場全程略過**、計入 `blacklistedOut`,不進後續比對。
+   - `listType:'white'` 規則命中 → 該 channelId **+reward**。
+   - `listType:'black'` 規則命中 → 該 channelId **本場取消發獎資格（DQ,防洗頻/搗亂;black 規則的 reward 欄忽略)**。
+   - **優先序**:觀眾黑名單 > black 規則 DQ > white 加分（任一擋下就不發)。
 5. **防刷** `antiSpam`:
    - `'once'`:同 `(channelId, ruleId)` 只計**第一次**命中（其餘丟棄）。
    - `'cooldown'`:同 `(channelId, ruleId)` 兩次命中間隔 `< cooldownSec` 秒者丟棄(按 `ts` 排序後貪婪保留)。
@@ -126,21 +128,21 @@ sml_chat_messages.channelId  ──authorChannelId-index 反查──▶  sweetb
 
 ## 6. 邊界情況
 
-- **一則訊息命中多條規則**:各規則獨立計 hit（受 §4.5 各自 once/cooldown 去重）。同關鍵字重複規則由後台自律。
+- **一則訊息命中多關鍵字**（定案:各自發）:各規則獨立計 hit（受 §4.5 各自 once/cooldown 去重）。不做「每則只算一次」,上限交給 once/cooldown 控。同關鍵字重複規則由後台自律。
 - **訊息量大**（長直播上千則）:Firestore by `videoId` 需複合索引;一次讀進記憶體排序即可,量級 OK。若超大再分頁。
-- **自家/工作人員帳號洗頻**:用 black 規則或(建議 §7)一個 channelId 黑名單擋。
+- **自家/工作人員帳號洗頻**:用 §4 的觀眾黑名單 `blockedChannels[]` 擋(定案已加)。
 - **reward=0 或空 keyword 規則**:略過。
 - **同一觀眾換名**:靠 channelId 對應,不受顯示名稱變動影響(displayName 只做 UI 顯示)。
 - **綁定在直播後才綁**:結算當下查不到就是略過,不追溯（符合「沒綁定領不到」）。
 
 ---
 
-## 7. 🔴 待你拍板的小決策
+## 7. 決策定案（2026-07-14,使用者拍板)
 
-1. **黑名單語意**:§4.4 我暫定「black 規則命中 = 該觀眾本場 DQ（擋獎）」。另一種解讀是「black = 這關鍵字純負面、不發也不擋人」。**你要哪種?**（我建議 DQ,才有防洗頻價值）
-2. **要不要加「觀眾黑名單」**（直接用 channelId 擋自家/工作人員帳號,和關鍵字規則分開）?小工,但實用。
-3. **一則訊息命中多關鍵字**:各自發 vs 每人每則只算一次?（我建議各自發、由 once/cooldown 控上限）
-4. **cooldown 範圍**:目前設計是「同人同關鍵字」冷卻。要不要改「同人跨所有關鍵字」共用一個冷卻?（前台文案寫「同人同關鍵字」,我照這個做）
+1. **黑名單(black)規則語意** = 命中該觀眾**本場 DQ 擋獎**（非「純負面關鍵字」)。已入 §4。
+2. **加獨立「觀眾黑名單」** `blockedChannels[]`（channelId,擋自家/工作人員/機器人,與關鍵字規則分開)。已入 §4 + §8 前台待加。
+3. **一則訊息命中多關鍵字** = **各自發**,上限由 once/cooldown 控。已入 §6。
+4. **cooldown 範圍** = **同人同關鍵字**（照前台文案),即 `(channelId, ruleId)` 為單位。已入 §4.5。
 
 ---
 
@@ -148,6 +150,7 @@ sml_chat_messages.channelId  ──authorChannelId-index 反查──▶  sweetb
 
 - **前台文案**:`yt_keyword_rewards.html` L35 目前寫「甜甜即時讀取／打字命中自動發」——改成「直播結束後由後台結算統一發放」以免誤解。
 - **前台新增**:「📊 直播結算」區（videoId 輸入 + 試算/確認兩鈕 + 名單表 + 統計)。
+- **前台新增**:「觀眾黑名單」編輯區,存 `sml_config/ytKeywordRewards.blockedChannels[]`（channelId 陣列)。
 - **甜甜端新增**:結算模組（讀 Firestore 訊息+規則、比對、去重、反查、發放）+ 接進既有 cmd 輪詢器。
 - **Firestore 複合索引**:`sml_chat_messages` by (`videoId`, `ts`)。
 
@@ -158,11 +161,12 @@ sml_chat_messages.channelId  ──authorChannelId-index 反查──▶  sweetb
 1. 選 videoId 試算 → 名單、`matchedHits`、`unboundSkipped`、`totalTeeth` 統計正確。
 2. `once`:同人同關鍵字洗 10 次只算 1 次。
 3. `cooldown`:間隔 < `cooldownSec` 的重複命中被丟。
-4. black 規則命中的觀眾**不出現在發放名單**（按 §7.1 定案）。
-5. 未綁定 channelId 不發、計入 `unboundSkipped`。
-6. commit 後:每 recipient 牙齒正確增加 + `sweetbot-player-point-log` 每人一筆、reason 帶 videoId。
-7. 二次 commit 同 videoId 被冪等擋（除非 force）。
-8. 綁定反查走 GSI（無全表 scan）；上千則訊息不逾時。
+4. black 規則命中的觀眾**不出現在發放名單**（§4 定案 DQ）。
+5. `blockedChannels[]` 內的觀眾本場全程不發、計入 `blacklistedOut`。
+6. 未綁定 channelId 不發、計入 `unboundSkipped`。
+7. commit 後:每 recipient 牙齒正確增加 + `sweetbot-player-point-log` 每人一筆、reason 帶 videoId。
+8. 二次 commit 同 videoId 被冪等擋（除非 force）。
+9. 綁定反查走 GSI（無全表 scan）；上千則訊息不逾時。
 
 ---
 
