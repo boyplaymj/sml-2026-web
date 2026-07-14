@@ -18,6 +18,7 @@ const { CloudFrontClient, CreateInvalidationCommand } = require('@aws-sdk/client
 const REGION = process.env.AWS_REGION || 'ap-southeast-1';
 const TABLE = process.env.TABLE_NAME || 'sml-plate-codes';
 const REF_TABLE = process.env.REF_TABLE_NAME || 'sml-plate-refs';
+const TRIALGATE_LAYERS_TABLE = process.env.TRIALGATE_LAYERS_TABLE || 'sweetbot-trialgate-layers';
 const ATLAS_BUCKET = process.env.ATLAS_BUCKET || 'boyplaymj-image';
 const ATLAS_KEY = process.env.ATLAS_KEY || 'plate-meta/atlas.json';
 const IMG_BASE = process.env.IMG_BASE || 'https://image.boyplaymj.link';
@@ -26,6 +27,7 @@ const FIREBASE_PROJECT = process.env.FIREBASE_PROJECT || 'sml2026newscore';
 // 試煉之門 BOSS 圖上傳:image.boyplaymj.link 的 CloudFront distro,換圖後要清快取否則吐舊圖。
 const IMG_CF_DISTRIBUTION = process.env.IMG_CF_DISTRIBUTION || 'E2IJWN6FWT2XYG';
 const TRIALGATE_MAX_LAYER = Number(process.env.TRIALGATE_MAX_LAYER || 20);
+const TRIALGATE_LAYER_MAX = Number(process.env.TRIALGATE_LAYER_MAX || 10);
 // 白名單:env ALLOWED_EMAILS 為權威來源(設了就以它為準)。
 // 為什麼不直接信 Firestore config/gameAdmins:那份文件目前世界可寫(firestore.rules catch-all),
 // 若當唯一授權來源會被下毒繞過認證。env 拿掉這個可被竄改的信任錨點。
@@ -35,18 +37,18 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://sweetbot-games.
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: REGION }));
 const s3 = new S3Client({ region: REGION });
-const cf = new CloudFrontClient({ region: 'us-east-1' });  // CloudFront 是全域服務,SDK 慣用 us-east-1
+const cf = new CloudFrontClient({ region: 'us-east-1' }); // CloudFront 是全域服務,SDK 慣用 us-east-1
 
 function corsHeaders (event) {
   const origin = event.headers?.origin || event.headers?.Origin || '';
   const allowOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
   return {
     'Access-Control-Allow-Origin': allowOrigin,
-    'Access-Control-Allow-Methods': 'GET,POST,DELETE,OPTIONS',
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type,Authorization',
     'Access-Control-Max-Age': '300',
     'Content-Type': 'application/json; charset=utf-8',
-    'Vary': 'Origin'
+    Vary: 'Origin'
   };
 }
 
@@ -381,6 +383,119 @@ async function putBossImage (body) {
   return { ok: true, layer, state, key, url: `${IMG_BASE}/${key}`, invalidated };
 }
 
+// 試煉之門關卡資料 -----------------------------------------------------------
+function badRequest (message) {
+  const err = new Error(message);
+  err.statusCode = 400;
+  return err;
+}
+
+function ensureString (value, name) {
+  if (typeof value !== 'string') throw badRequest(`${name} must be string`);
+  return value;
+}
+
+function ensureNumber (value, name, min = 0) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < min) throw badRequest(`${name} must be number >= ${min}`);
+  return n;
+}
+
+function ensureInteger (value, name, min = 0) {
+  const n = Number(value);
+  if (!Number.isInteger(n) || n < min) throw badRequest(`${name} must be integer >= ${min}`);
+  return n;
+}
+
+function validateBoss (boss, idx) {
+  if (!boss || typeof boss !== 'object' || Array.isArray(boss)) throw badRequest(`bosses[${idx}] must be object`);
+  const cardType = ensureString(boss.cardType, `bosses[${idx}].cardType`);
+  if (!['sp', 'msp', 'ms'].includes(cardType)) throw badRequest(`bosses[${idx}].cardType invalid`);
+  if (!Array.isArray(boss.cardLevel) || boss.cardLevel.length !== 2) throw badRequest(`bosses[${idx}].cardLevel must be [min,max]`);
+  const min = ensureInteger(boss.cardLevel[0], `bosses[${idx}].cardLevel[0]`, 0);
+  const max = ensureInteger(boss.cardLevel[1], `bosses[${idx}].cardLevel[1]`, 0);
+  if (min > max) throw badRequest(`bosses[${idx}].cardLevel min > max`);
+  if (!Array.isArray(boss.increase)) throw badRequest(`bosses[${idx}].increase must be array`);
+  const soulDrain = boss.soulDrain === undefined ? undefined : Boolean(boss.soulDrain);
+  const normalized = {
+    name: ensureString(boss.name, `bosses[${idx}].name`),
+    hp: ensureNumber(boss.hp, `bosses[${idx}].hp`),
+    attack: ensureNumber(boss.attack, `bosses[${idx}].attack`),
+    noAttackTime: ensureNumber(boss.noAttackTime, `bosses[${idx}].noAttackTime`),
+    cardType,
+    cardLevel: [min, max],
+    sort: Boolean(boss.sort),
+    img: ensureString(boss.img, `bosses[${idx}].img`),
+    appearanceTxt: ensureString(boss.appearanceTxt, `bosses[${idx}].appearanceTxt`),
+    attackTxt: ensureString(boss.attackTxt, `bosses[${idx}].attackTxt`),
+    beAttackedTxt: ensureString(boss.beAttackedTxt, `bosses[${idx}].beAttackedTxt`),
+    diedTxt: ensureString(boss.diedTxt, `bosses[${idx}].diedTxt`),
+    killPlayerTxt: ensureString(boss.killPlayerTxt, `bosses[${idx}].killPlayerTxt`),
+    stageEmoji: ensureString(boss.stageEmoji, `bosses[${idx}].stageEmoji`),
+    increase: boss.increase.map((v, i) => ensureInteger(v, `bosses[${idx}].increase[${i}]`, 0))
+  };
+  if (soulDrain !== undefined) normalized.soulDrain = soulDrain;
+  return normalized;
+}
+
+function validateAward (award) {
+  if (!award || typeof award !== 'object' || Array.isArray(award)) throw badRequest('award must be object');
+  const props = award.props;
+  if (!(props === '' || typeof props === 'string' || Number.isInteger(Number(props)))) {
+    throw badRequest('award.props must be string or integer');
+  }
+  return {
+    teeth: ensureNumber(award.teeth, 'award.teeth'),
+    experience: ensureNumber(award.experience, 'award.experience'),
+    props: Number.isInteger(props) ? props : (Number.isInteger(Number(props)) && props !== '' ? Number(props) : props),
+    propsProbability: ensureNumber(award.propsProbability, 'award.propsProbability')
+  };
+}
+
+function validateTrialGateLayer (layer, body) {
+  const n = ensureInteger(layer, 'layer', 1);
+  if (n > TRIALGATE_LAYER_MAX) throw badRequest('layer out of range');
+  if (!body || typeof body !== 'object' || Array.isArray(body)) throw badRequest('body must be object');
+  if (!Array.isArray(body.bosses) || body.bosses.length === 0) throw badRequest('bosses must be non-empty array');
+  return {
+    layer: String(n),
+    bosses: body.bosses.map(validateBoss),
+    award: validateAward(body.award),
+    updatedAt: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')
+  };
+}
+
+async function scanTrialGateLayers () {
+  const items = [];
+  let ExclusiveStartKey;
+  do {
+    const r = await ddb.send(new ScanCommand({
+      TableName: TRIALGATE_LAYERS_TABLE,
+      ExclusiveStartKey
+    }));
+    items.push(...(r.Items || []));
+    ExclusiveStartKey = r.LastEvaluatedKey;
+  } while (ExclusiveStartKey);
+  const meta = items.find(item => item.layer === '__meta__') || {};
+  const layers = {};
+  items
+    .filter(item => /^\d+$/.test(String(item.layer || '')))
+    .sort((a, b) => Number(a.layer) - Number(b.layer))
+    .forEach(item => {
+      layers[String(item.layer)] = { bosses: item.bosses || [], award: item.award || {}, updatedAt: item.updatedAt || '' };
+    });
+  return { maxLayer: Number(meta.maxLayer || Object.keys(layers).length || TRIALGATE_LAYER_MAX), layers };
+}
+
+async function putTrialGateLayer (layer, body) {
+  const item = validateTrialGateLayer(layer, body);
+  await ddb.send(new PutCommand({
+    TableName: TRIALGATE_LAYERS_TABLE,
+    Item: item
+  }));
+  return { ok: true, item };
+}
+
 function routeOf (event) {
   const method = event.requestContext?.http?.method || event.httpMethod || '';
   const path = event.rawPath || event.path || '/';
@@ -394,7 +509,7 @@ exports.handler = async (event) => {
   try {
     await requireAdmin(event);
   } catch (e) {
-    console.log('auth denied:', e.message);   // 細節只留伺服器端,不回前端
+    console.log('auth denied:', e.message); // 細節只留伺服器端,不回前端
     return reply(event, 403, { ok: false, error: 'forbidden' });
   }
 
@@ -413,6 +528,10 @@ exports.handler = async (event) => {
 
     if (method === 'GET' && path === '/refs') {
       return reply(event, 200, { items: await scanRefs() });
+    }
+
+    if (method === 'GET' && path === '/trialgate/layers') {
+      return reply(event, 200, await scanTrialGateLayers());
     }
 
     if (method === 'POST' && path === '/codes') {
@@ -437,6 +556,15 @@ exports.handler = async (event) => {
         return reply(event, 400, { ok: false, error: 'bad json' });
       }
       return reply(event, 200, await putBossImage(body));
+    }
+
+    if (method === 'PUT' && path.startsWith('/trialgate/layer/')) {
+      const layer = decodeURIComponent(path.slice('/trialgate/layer/'.length));
+      let body;
+      try { body = typeof event.body === 'string' ? JSON.parse(event.body || '{}') : (event.body || {}); } catch {
+        return reply(event, 400, { ok: false, error: 'bad json' });
+      }
+      return reply(event, 200, await putTrialGateLayer(layer, body));
     }
 
     if (method === 'DELETE' && path.startsWith('/codes/')) {
