@@ -29,6 +29,14 @@ const IMG_CF_DISTRIBUTION = process.env.IMG_CF_DISTRIBUTION || 'E2IJWN6FWT2XYG';
 const TRIALGATE_MAX_LAYER = Number(process.env.TRIALGATE_MAX_LAYER || 20);
 const TRIALGATE_LAYER_MAX = Number(process.env.TRIALGATE_LAYER_MAX || 10);
 const TRIALGATE_BLESSINGS_KEY = '__blessings__';
+const TRIALGATE_TEXTS_KEY = '__texts__';
+const TRIALGATE_ITEMS_KEY = '__items__';
+const TRIALGATE_SYSIMAGE_SLOTS = {
+  door1: 'rpg/trialgate/game/door1.png',
+  door2: 'rpg/trialgate/game/door2.png',
+  died: 'rpg/trialgate/game/died.png',
+  stageClear: 'rpg/trialgate/game/stageClear.png'
+};
 const DEFAULT_TRIALGATE_BLESSINGS = [
   { id: 1, title: '獲得女神的強化', desc: '基礎攻擊增加20點', stat: 'attackAdd', value: 20, img: 'trialgate/game/buff2.png' },
   { id: 2, title: '獲得女神的強化', desc: '基礎攻擊增加10點', stat: 'attackAdd', value: 10, img: 'trialgate/game/buff1.png' },
@@ -37,6 +45,35 @@ const DEFAULT_TRIALGATE_BLESSINGS = [
   { id: 5, title: '獲得女神的魔法祝福', desc: '攻擊增幅10%', stat: 'attackIncrease', value: 10, img: 'trialgate/game/magic1.png' },
   { id: 6, title: '獲得女神的治療', desc: '血量增加20點', stat: 'hp', value: 20, img: 'trialgate/game/revival.png' }
 ];
+const DEFAULT_TRIALGATE_TEXTS = {
+  'award.win': '打敗了強大的 {boss}, 女神給予 {teeth} {teethEmoji} 還有 {exp} {expEmoji} 的獎勵',
+  'layer.title': '試煉之塔 第{layer}層',
+  'layer.hpRemain': '{boss} 血量剩餘 {hp}',
+  'player.saying': '{playerMention} 說 : {saying}',
+  'turn.p1': '輪到 {p1Mention} 對BOSS發起攻擊',
+  'turn.p2': '輪到 {p2Mention} 對BOSS發起攻擊',
+  'record.title': '攻擊紀錄',
+  'record.empty': '無任何翻牌紀錄',
+  'hint.buy': '{playerMention}用 {pay} 點攻擊力為代價 ~ 獲得了女神的提示! 目前攻擊力為 {attack}',
+  'answer.correct': '回答正確 {playerMention} 對BOSS造成了 {dmg} 點傷害!',
+  'answer.wrong': '回答錯誤 {playerMention} 並沒有對BOSS造成任何傷害!',
+  'boss.soulDrain': 'BOSS對 {targetMention} 發起奪魂攻擊',
+  'boss.attack': 'BOSS對 {targetMention} 發起攻擊, 造成 {dmg} 點傷害',
+  'layer.cleared': '第 {layer} 層的BOSS已被您擊敗~',
+  'event.bonus': '{p1Mention} {p2Mention} 額外獲得活動特別獎勵 {amount} {hPointEmoji}'
+};
+const DEFAULT_TRIALGATE_ITEMS = {
+  1: { name: '土地公的仙草蜜', img: '', emoji: '', emojiPending: false },
+  2: { name: '試煉大門鑰匙柄', img: '', emoji: '', emojiPending: false },
+  3: { name: '試煉大門鑰匙棒', img: '', emoji: '', emojiPending: false },
+  6: { name: '小雷的熊寶寶布偶', img: '', emoji: '', emojiPending: false },
+  7: { name: '諠諠的電腦桌訂單', img: '', emoji: '', emojiPending: false },
+  8: { name: '雙頭蠟燭', img: '', emoji: '', emojiPending: false },
+  9: { name: '千機傘', img: '', emoji: '', emojiPending: false },
+  10: { name: '沒事多喝礦泉', img: '', emoji: '<:WATERSUI:1036962564397084672>', emojiPending: false },
+  11: { name: '生命之礦泉', img: '', emoji: '<:LIVEWATERSUI:1036964736719409163>', emojiPending: false }
+};
+const TRIALGATE_TEXT_KEYS = new Set(Object.keys(DEFAULT_TRIALGATE_TEXTS));
 // 白名單:env ALLOWED_EMAILS 為權威來源(設了就以它為準)。
 // 為什麼不直接信 Firestore config/gameAdmins:那份文件目前世界可寫(firestore.rules catch-all),
 // 若當唯一授權來源會被下毒繞過認證。env 拿掉這個可被竄改的信任錨點。
@@ -392,6 +429,33 @@ async function putBossImage (body) {
   return { ok: true, layer, state, key, url: `${IMG_BASE}/${key}`, invalidated };
 }
 
+async function putSysImage (body) {
+  const slot = String(body?.slot || '');
+  const key = TRIALGATE_SYSIMAGE_SLOTS[slot];
+  if (!key) {
+    const err = new Error('invalid sysimage slot'); err.statusCode = 400; throw err;
+  }
+  const image = decodeImage(body?.imageBase64, body?.contentType);
+  if (image.ext !== 'png') {
+    const err = new Error('sysimage must be png'); err.statusCode = 400; throw err;
+  }
+  await s3.send(new PutObjectCommand({
+    Bucket: ATLAS_BUCKET,
+    Key: key,
+    Body: image.buf,
+    ContentType: 'image/png',
+    CacheControl: 'public,max-age=300'
+  }));
+  let invalidated = true;
+  try {
+    await invalidateCf([`/${key}`]);
+  } catch (e) {
+    console.log('cf invalidation failed:', e.message);
+    invalidated = false;
+  }
+  return { ok: true, slot, key, url: `${IMG_BASE}/${key}`, invalidated };
+}
+
 // 試煉之門關卡資料 -----------------------------------------------------------
 function badRequest (message) {
   const err = new Error(message);
@@ -498,6 +562,51 @@ function assertLayerIncreaseRefs (layerItem, blessingIds) {
   if (bad.length) throw badRequest(`unknown blessing id: ${bad.join(', ')}`);
 }
 
+function getTemplateVars (text) {
+  return new Set(String(text || '').match(/\{([^{}]+)\}/g)?.map(v => v.slice(1, -1)) || []);
+}
+
+function validateTextsPayload (body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) throw badRequest('body must be object');
+  if (!body.texts || typeof body.texts !== 'object' || Array.isArray(body.texts)) throw badRequest('texts must be object');
+  const texts = {};
+  const warnings = [];
+  for (const [key, value] of Object.entries(body.texts)) {
+    if (!TRIALGATE_TEXT_KEYS.has(key)) throw badRequest(`unknown text key ${key}`);
+    if (typeof value !== 'string') throw badRequest(`texts.${key} must be string`);
+    const text = value.trim();
+    if (!text) throw badRequest(`texts.${key} must be non-empty`);
+    if (text.length > 500) throw badRequest(`texts.${key} too long`);
+    texts[key] = text;
+    const expected = getTemplateVars(DEFAULT_TRIALGATE_TEXTS[key]);
+    const actual = getTemplateVars(text);
+    const missing = [...expected].filter(v => !actual.has(v));
+    if (missing.length) warnings.push({ key, missing });
+  }
+  return { texts, warnings };
+}
+
+function normalizeItems (items) {
+  const out = {};
+  const source = items && typeof items === 'object' && !Array.isArray(items) ? items : DEFAULT_TRIALGATE_ITEMS;
+  for (const [id, item] of Object.entries(source)) {
+    out[String(id)] = {
+      name: String(item?.name || DEFAULT_TRIALGATE_ITEMS[id]?.name || `道具 ${id}`),
+      img: String(item?.img || ''),
+      emoji: String(item?.emoji || ''),
+      emojiPending: Boolean(item?.emojiPending)
+    };
+  }
+  return out;
+}
+
+function assertItemName (name) {
+  const s = ensureString(name, 'name').trim();
+  if (!s) throw badRequest('name required');
+  if (s.length > 80) throw badRequest('name too long');
+  return s;
+}
+
 function validateAward (award) {
   if (!award || typeof award !== 'object' || Array.isArray(award)) throw badRequest('award must be object');
   const props = award.props;
@@ -544,10 +653,23 @@ function getBlessingsFromItems (items) {
   return Array.isArray(item.blessings) && item.blessings.length ? item.blessings : DEFAULT_TRIALGATE_BLESSINGS;
 }
 
+function getTextsFromItems (items) {
+  const item = items.find(item => item.layer === TRIALGATE_TEXTS_KEY) || {};
+  const texts = item.texts && typeof item.texts === 'object' && !Array.isArray(item.texts) ? item.texts : {};
+  return Object.assign({}, DEFAULT_TRIALGATE_TEXTS, texts);
+}
+
+function getGameItemsFromItems (items) {
+  const item = items.find(item => item.layer === TRIALGATE_ITEMS_KEY) || {};
+  return normalizeItems(item.items);
+}
+
 async function scanTrialGateLayers () {
   const items = await scanRawTrialGateItems();
   const meta = items.find(item => item.layer === '__meta__') || {};
   const blessings = getBlessingsFromItems(items);
+  const texts = getTextsFromItems(items);
+  const gameItems = getGameItemsFromItems(items);
   const layers = {};
   items
     .filter(item => /^\d+$/.test(String(item.layer || '')))
@@ -555,7 +677,7 @@ async function scanTrialGateLayers () {
     .forEach(item => {
       layers[String(item.layer)] = { bosses: item.bosses || [], award: item.award || {}, updatedAt: item.updatedAt || '' };
     });
-  return { maxLayer: Number(meta.maxLayer || Object.keys(layers).length || TRIALGATE_LAYER_MAX), layers, blessings };
+  return { maxLayer: Number(meta.maxLayer || Object.keys(layers).length || TRIALGATE_LAYER_MAX), layers, blessings, texts, items: gameItems };
 }
 
 async function getTrialGateBlessings () {
@@ -569,15 +691,53 @@ async function getTrialGateBlessings () {
   return { blessings };
 }
 
+async function getTrialGateTexts () {
+  const r = await ddb.send(new GetCommand({
+    TableName: TRIALGATE_LAYERS_TABLE,
+    Key: { layer: TRIALGATE_TEXTS_KEY }
+  }));
+  const texts = r.Item?.texts && typeof r.Item.texts === 'object' && !Array.isArray(r.Item.texts) ? r.Item.texts : {};
+  return { texts: Object.assign({}, DEFAULT_TRIALGATE_TEXTS, texts) };
+}
+
+async function putTrialGateTexts (body) {
+  const { texts, warnings } = validateTextsPayload(body);
+  await ddb.send(new PutCommand({
+    TableName: TRIALGATE_LAYERS_TABLE,
+    Item: {
+      layer: TRIALGATE_TEXTS_KEY,
+      texts,
+      updatedAt: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')
+    }
+  }));
+  return { ok: true, texts: Object.assign({}, DEFAULT_TRIALGATE_TEXTS, texts), warnings };
+}
+
+async function getTrialGateItems () {
+  const r = await ddb.send(new GetCommand({
+    TableName: TRIALGATE_LAYERS_TABLE,
+    Key: { layer: TRIALGATE_ITEMS_KEY }
+  }));
+  return { items: normalizeItems(r.Item?.items) };
+}
+
+function layerAwardWarnings (layerItem, items) {
+  const props = layerItem.award?.props;
+  if (props === '' || props === undefined || props === null) return [];
+  return items[String(props)] ? [] : [`award.props ${props} is not in trialgate items`];
+}
+
 async function putTrialGateLayer (layer, body) {
   const item = validateTrialGateLayer(layer, body);
   const { blessings } = await getTrialGateBlessings();
+  const { items } = await getTrialGateItems();
   assertLayerIncreaseRefs(item, new Set(blessings.map(b => Number(b.id))));
+  const warnings = layerAwardWarnings(item, items);
   await ddb.send(new PutCommand({
     TableName: TRIALGATE_LAYERS_TABLE,
     Item: item
   }));
-  return { ok: true, item };
+  return { ok: true, item, warnings };
 }
 
 async function putTrialGateBlessings (body) {
@@ -606,6 +766,60 @@ async function putTrialGateBlessings (body) {
     Item: item
   }));
   return { ok: true, blessings };
+}
+
+async function putTrialGateItem (id, body) {
+  const itemId = String(ensureInteger(id, 'id', 1));
+  const { items } = await getTrialGateItems();
+  if (!items[itemId]) throw badRequest('unknown item id');
+  items[itemId] = Object.assign({}, items[itemId], { name: assertItemName(body?.name) });
+  await ddb.send(new PutCommand({
+    TableName: TRIALGATE_LAYERS_TABLE,
+    Item: {
+      layer: TRIALGATE_ITEMS_KEY,
+      items,
+      updatedAt: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')
+    }
+  }));
+  return { ok: true, item: items[itemId], items };
+}
+
+async function putPropImage (body) {
+  const itemId = String(ensureInteger(body?.id, 'id', 1));
+  const { items } = await getTrialGateItems();
+  if (!items[itemId]) throw badRequest('unknown item id');
+  const image = decodeImage(body?.imageBase64, body?.contentType);
+  if (image.ext !== 'png') {
+    const err = new Error('prop image must be png'); err.statusCode = 400; throw err;
+  }
+  const key = `rpg/trialgate/props/${itemId}.png`;
+  await s3.send(new PutObjectCommand({
+    Bucket: ATLAS_BUCKET,
+    Key: key,
+    Body: image.buf,
+    ContentType: 'image/png',
+    CacheControl: 'public,max-age=300'
+  }));
+  let invalidated = true;
+  try {
+    await invalidateCf([`/${key}`]);
+  } catch (e) {
+    console.log('cf invalidation failed:', e.message);
+    invalidated = false;
+  }
+  items[itemId] = Object.assign({}, items[itemId], {
+    img: `trialgate/props/${itemId}.png`,
+    emojiPending: true
+  });
+  await ddb.send(new PutCommand({
+    TableName: TRIALGATE_LAYERS_TABLE,
+    Item: {
+      layer: TRIALGATE_ITEMS_KEY,
+      items,
+      updatedAt: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')
+    }
+  }));
+  return { ok: true, id: itemId, key, url: `${IMG_BASE}/${key}`, item: items[itemId], invalidated };
 }
 
 function routeOf (event) {
@@ -650,6 +864,14 @@ exports.handler = async (event) => {
       return reply(event, 200, await getTrialGateBlessings());
     }
 
+    if (method === 'GET' && path === '/trialgate/texts') {
+      return reply(event, 200, await getTrialGateTexts());
+    }
+
+    if (method === 'GET' && path === '/trialgate/items') {
+      return reply(event, 200, await getTrialGateItems());
+    }
+
     if (method === 'POST' && path === '/codes') {
       let body;
       try { body = typeof event.body === 'string' ? JSON.parse(event.body || '{}') : (event.body || {}); } catch {
@@ -674,6 +896,22 @@ exports.handler = async (event) => {
       return reply(event, 200, await putBossImage(body));
     }
 
+    if (method === 'POST' && path === '/trialgate/sysimage') {
+      let body;
+      try { body = typeof event.body === 'string' ? JSON.parse(event.body || '{}') : (event.body || {}); } catch {
+        return reply(event, 400, { ok: false, error: 'bad json' });
+      }
+      return reply(event, 200, await putSysImage(body));
+    }
+
+    if (method === 'POST' && path === '/trialgate/props/image') {
+      let body;
+      try { body = typeof event.body === 'string' ? JSON.parse(event.body || '{}') : (event.body || {}); } catch {
+        return reply(event, 400, { ok: false, error: 'bad json' });
+      }
+      return reply(event, 200, await putPropImage(body));
+    }
+
     if (method === 'PUT' && path.startsWith('/trialgate/layer/')) {
       const layer = decodeURIComponent(path.slice('/trialgate/layer/'.length));
       let body;
@@ -689,6 +927,23 @@ exports.handler = async (event) => {
         return reply(event, 400, { ok: false, error: 'bad json' });
       }
       return reply(event, 200, await putTrialGateBlessings(body));
+    }
+
+    if (method === 'PUT' && path === '/trialgate/texts') {
+      let body;
+      try { body = typeof event.body === 'string' ? JSON.parse(event.body || '{}') : (event.body || {}); } catch {
+        return reply(event, 400, { ok: false, error: 'bad json' });
+      }
+      return reply(event, 200, await putTrialGateTexts(body));
+    }
+
+    if (method === 'PUT' && path.startsWith('/trialgate/item/')) {
+      const id = decodeURIComponent(path.slice('/trialgate/item/'.length));
+      let body;
+      try { body = typeof event.body === 'string' ? JSON.parse(event.body || '{}') : (event.body || {}); } catch {
+        return reply(event, 400, { ok: false, error: 'bad json' });
+      }
+      return reply(event, 200, await putTrialGateItem(id, body));
     }
 
     if (method === 'DELETE' && path.startsWith('/codes/')) {
