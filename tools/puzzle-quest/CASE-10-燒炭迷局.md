@@ -87,10 +87,11 @@ S4：`w4-killer-line`(msg) / `w4-autopsy` / `w4-brazier`🔬 / `w4-dragmark`🔬
 ＋ 假討論串頁 `wenshan.html`（比照 shengyao.html，隨 stage 增修留言）。
 > ⚠️ 顯示文字**一律繁體、無 emoji**（emoji 變豆腐框）；文件類走 HTML 版型→shot.py，照片類走 Bedrock 底圖+程式疊字。
 > 🔬＝鑑識採證照類(版型 `posters/w1-scene.html`,Bedrock 底+採證標牌/比例尺/時間戳)。使用者偏好此類、可再擴充;標籤只描述現象(炭盆未燃盡/拖痕)、不解釋含意、不出現 core 名詞。
-> **進度**:S1 已全數出圖(w1-notice/friends-line/scene/lock/lastpost/news);已做鑑識照 w1-scene・w1-lock・w4-brazier・w4-dragmark;S2/S3 doc 與 w4 文件類待製。
+> **進度(2026-07-14)**:S1–S4 全部 21 張素材已出圖+上圖床+cp 進甜甜 data/puzzle-assets(commit repo 266968c / sweetbot 7880d67);`wenshan.html` 已上圖床。鑑識照 w1-scene・w1-lock・w4-brazier・w4-dragmark。**待辦僅剩 DDB put + 離峰重啟上線**（見 §7）。
 
 ## §7 引擎相容 / 合規 / LESSONS 對照
 - 引擎：stages/npc/solution/hints/reveal 欄位與 CASE-09 同構，四階段推進 + 電話AI 直接沿用，**不需改引擎**。
 - 成本：電話AI 沿用 `sweetbot-puzzle-ai-usage` 帳本＋月封頂＋後台卡＋kill switch（換 puzzleId 而已）。見 `tools/COST_CONTROL.md`。
 - LESSONS 自檢：① 只用 S1+S2 無法湊齊 core（keystone 在 S4）✅ ② hints/nudges 無 core 名詞 ✅ ③ 截圖時間軸見 §5 ✅ ④ 顯示文字全繁體 ✅ ⑤ 全虛構、reveal 收在「他殺」不露骨 ✅
-- **待辦（交 Codex/製圖）**：19 張素材製作 + `wenshan.html` + put 進 DDB `sweetbot-puzzle`。內容/邏輯交 Codex 依 `DESIGN_DIRECTION.md §5` 複驗。
+- **已完成**：21 張素材 + `wenshan.html`（上圖床+cp 甜甜）+ 藏階段程式改動；Codex 依 `DESIGN_DIRECTION.md §5` 整套複驗過（無 blocking，僅兩 Low 已修）。
+- **待辦（上線）**：put CASE-10 JSON 進 DDB `sweetbot-puzzle`（id `wenshan-charcoal-coverup`）+ 離峰重啟甜甜載入。

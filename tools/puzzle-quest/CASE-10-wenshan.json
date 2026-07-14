@@ -317,5 +317,5 @@
     "exp": 50
   },
   "revealDelayMin": 0,
-  "_note": "依 DESIGN_DIRECTION 出題：①埋深—keystone(碳氧血紅素過低/生前扼痕)只在 S4 相驗報告，S1–S2 文案/intro/poster/留言零出現保單與COHb，故只用早階段湊不齊 core ②錯答誘導—still-suicide(S1)、money-vague 情殺/討債(S2)、named-suspect 早點名(S3缺keystone) 皆回 nudge 不 win ③提示只指路—hints/nudges 不含 COHb/保險金/他殺/扼 等 core 名詞 ④顯示文案全繁體(core.any 內少數簡體僅供比對玩家輸入、不顯示) ⑤全虛構、沿用『城中』宇宙(城中人壽)。素材19圖+wenshan.html 待製作；引擎沿用 CASE-09 四階段+電話AI 無需改。交 Codex 依 DESIGN_DIRECTION §5 複驗。"
+  "_note": "依 DESIGN_DIRECTION 出題：①埋深—keystone(碳氧血紅素過低/生前扼痕)只在 S4 相驗報告，S1–S2 文案/intro/poster/留言零出現保單與COHb，故只用早階段湊不齊 core ②錯答誘導—still-suicide(S1)、money-vague 情殺/討債(S2)、named-suspect 早點名(S3缺keystone) 皆回 nudge 不 win ③提示只指路—hints/nudges 不含 COHb/保險金/他殺/扼 等 core 名詞 ④顯示文案全繁體(core.any 內少數簡體僅供比對玩家輸入、不顯示) ⑤全虛構、沿用『城中』宇宙(城中人壽)。21張素材+wenshan.html 已完成(上圖床+cp甜甜);引擎沿用 CASE-09 四階段+電話AI 無需改。Codex 依 DESIGN_DIRECTION §5 整套複驗過(無blocking);待 DDB put + 離峰重啟上線。"
 }
