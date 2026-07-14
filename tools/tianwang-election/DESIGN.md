@@ -41,7 +41,9 @@
 ## 4. 投票 / 開票 / 綁身分組
 
 - 公開面板按 **「🗳️ 去投票」**(customId `elec_vote:<electionId>`) → ephemeral 候選人下拉選單(`elec_pick:<electionId>`) → conditional write 防重複投票 → ephemeral「✅ 已投給 X，沒人看得到你投給誰」。非里民按 → ephemeral「限天王里里民投票」。
-- 開票 `!選舉開票 <id>`(管理者)：phase→closed → 統計 → **先卸掉所有現任「天王里里長助理」身分組持有者，再掛給當選者** → 公告 embed（結果+總票數，不含個別明細）。
+- 開票 `!選舉開票 <id>`(管理者)：phase→closed → 統計 → **卸掉所有現任「天王里里長助理」持有者、同時改掛「前任里長助理」榮譽徽章 → 再把「里長助理」掛給當選者** → 公告 embed（結果+總票數，不含個別明細）。
+- **前任里長助理徽章**(`formerRole`)：卸任者不是失去一切，而是換成一個**無權限、純收藏感**的榮譽身分組（像掛勳章、可累積多屆）。此身分組已建立：role_id **`1526441135881326614`**、無任何權限、古銅金色(#CD7F32)。
+- **任期到期自動卸**(`termExpiry` 預設 **on**)：若設了任期期限，到期即使沒有新選舉，也自動把現任卸為「前任里長助理」徽章（甜甜定時檢查）。
 - 平手：**公告平手、由管理者裁定**（不自動決定）。
 
 ## 5. 文宣自動生成器（已做好模板，在 `poster/`）
@@ -70,6 +72,32 @@
 **🛡️ 出圖前防呆閘門(不可省)**：`check.js` — 載入渲染結果、量測所有含文字元素的 bounding box、兩兩比對相交，**有重疊即報錯擋下**。`render.js` 已示範「截圖後立即自動驗」。凡生成文宣**必過此閘門才放行**。
 - 已知地雷：重疊幾乎都來自 `position:absolute` 浮貼；改用 flex 流式排版(直欄/橫列互相推開)即免疫。B 版原本就是絕對定位 `.plea` 壓到姓名，已改流式修好。
 - 環境：`FONTCONFIG_FILE=/home/smlbot/.fonts/fonts.conf`、Playwright 路徑見 render.js、emoji 需 `Noto Color Emoji`(已裝 ~/.fonts)。
+
+## 5b. 後台管理頁（甜甜遊戲館）
+
+所有規則**後台可調、不寫死**。後台建在甜甜遊戲館 `sweetbot-games.web.app`。
+
+**接線方式**（沿用站上既有慣例，如 vote_manager / random_event_manager / trialgate_admin）：
+- 新頁：`/opt/sml/sweetbot-site/public/election_admin.html`
+- 掛進 index：在 `public/index.html` 的 `PAGES` 陣列補一筆
+  `{ icon:'🗳️', title:'天王里選舉', page:'election_admin.html', desc:'選舉時程／報名條件／候選人審核／開票，存 DynamoDB 甜甜即時讀取。', badge:'b-live', badgeText:'🔧 後台' }`
+- 部署：`bash /opt/sml/sweetbot-site/deploy.sh`（先 `check-conflict.sh`；只部 sweetbot target，絕不碰計分後台）
+- 存取控管：站上 Google 登入 + 工作人員白名單（既有機制）
+- 資料流：後台寫 `election-config`(DDB) → 甜甜即時讀取，與 §7 各表配合
+
+**後台可控欄位 + 預設值：**
+
+① 時程：報名開始/截止、投票開始/截止、`autoTally`(投票截止自動開票，預設 on)。連署期預設**與報名期並行**(報名截止=連署截止)。
+
+② 參選資格：`candidateRole`(預設天王里里民)、`deposit`(500🦷)、`refundThreshold`(得票率 10% 退還)、`signatureQuota`(5)、`allowWithdraw`(預設 on，退保證金)、`maxCandidates`(預設無上限)。
+
+③ 投票：`voterRole`(天王里里民)、`allowRevote`(截止前可改票，預設 on)、`seats`(1)、平手→管理者裁定。
+
+④ 結果綁定：`winnerRole`(里長助理 877894550570565642)、`formerRole`(前任里長助理榮譽徽章 **`1526441135881326614`**，已建/無權限/古銅金)、`replaceIncumbent`(先卸現任並改掛徽章、預設 on)、`termExpiry`(任期到期自動卸為徽章，預設 **on**)、`termDays`(任期長度，後台設)。
+
+⑤ 文宣：`enabledStyles`(A/B/C/M 全開)、`enabledLayouts`(M1~M4)。
+
+⑥ 候選人審核：後台可看報名清單、審核/剔除候選人、看連署進度、開票後看結果（稽核明細 §1 走管理者專用途徑）。
 
 ## 6. 指令總表（管理者）
 
