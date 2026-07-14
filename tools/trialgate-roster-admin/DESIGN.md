@@ -58,7 +58,10 @@ Claude 設計，交 Codex 建 + 自驗。目標:後台能清楚檢視並**編輯
 ## 9. 附魔（女神祝福）後台 — 另冊
 「檢視+編輯所有附魔(女神祝福)的圖片與數據」= 另開規格 `DESIGN_blessings.md`(2026-07-14)。同套路搬 DDB(沿用本表 `__blessings__` 一筆 item)、bot 讀 DDB+FALLBACK、Lambda `GET/PUT /trialgate/blessings`、前端附魔管理區,並把各層 `increase` 改成祝福多選(id 為外鍵、雙向完整性驗證)。細節見該冊。
 
-相關:`tools/trialgate-rebalance/DESIGN.md`(數值)、`DESIGN_blessings.md`(附魔)、`aws/laoshiji-admin/index.js`(Lambda)、`sweetbot-site/public/trialgate_admin.html`(前端)、`sweetbot-site/public/index.html`(遊戲館入口卡)。
+## 10. 內容全後台化（系統圖 + 文字 + 道具）— 另冊
+「地城所有 embed 圖/文字/道具都能後台管」= 另開規格 `DESIGN_content.md`(2026-07-14)。A 系統圖 4 張(door1/door2/died/stageClear)固定槽上傳(不動 bot);B 系統文字約 16 條搬 `__texts__` 做可編模板+變數插值;C 道具走 emoji——後台上傳圖(Codex)、Claude 手動做 emoji 進金庫回填、award 道具改下拉。細節見該冊。
+
+相關:`tools/trialgate-rebalance/DESIGN.md`(數值)、`DESIGN_blessings.md`(附魔)、`DESIGN_content.md`(系統圖/文字/道具)、`aws/laoshiji-admin/index.js`(Lambda)、`sweetbot-site/public/trialgate_admin.html`(前端)、`sweetbot-site/public/index.html`(遊戲館入口卡)。
 
 ## 💰 成本控管（遵循 tools/COST_CONTROL.md）
 
