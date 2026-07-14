@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face{ font-family:'NotoCJK'; src:url('file:///home/smlbot/.fonts/NotoSansCJKtc-Regular.otf'); }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  :root{
+    --green:#2f9e3f; --green-d:#186b26; --green-deep:#0e4a19;
+    --field:#e6b31e; --field-hi:#ffe07a; --namered:#e8340c; --cream:#fff7df;
+  }
+  html,body{ width:600px; height:820px; }
+  body{
+    font-family:'NotoCJK','Noto Color Emoji',sans-serif;
+    display:flex; flex-direction:column; overflow:hidden; position:relative;
+    background:linear-gradient(180deg,#bfe8c9 0%,#7ec98c 24%,#d8c34a 46%,var(--field) 64%,#caa015 100%);
+  }
+  /* 職稱綠帶 */
+  .header{
+    flex:0 0 78px; margin:16px 20px 0; position:relative;
+    background:linear-gradient(#2f9e3f,#155c22); border:2px solid var(--field-hi);
+    display:flex; align-items:center; justify-content:center; gap:12px;
+    color:#fff; font-size:31px; font-weight:900; letter-spacing:3px;
+    box-shadow:0 4px 12px rgba(0,0,0,.4); text-shadow:0 1px 0 #000;
+  }
+  .header .leaf{ color:var(--field-hi); font-size:24px; }
+  /* 照片 */
+  .hero{ flex:1 1 auto; position:relative; padding:14px 20px 4px; }
+  .frame{
+    width:100%; height:100%; border-radius:10px; overflow:hidden;
+    border:5px solid var(--cream); outline:3px solid var(--green-d); outline-offset:-1px;
+    box-shadow:0 10px 26px rgba(14,74,25,.5);
+    background:url('file:///tmp/poster/candidate.png') center 20% / cover no-repeat;
+  }
+  .medal{
+    position:absolute; top:6px; left:8px; width:116px; height:116px; border-radius:50%;
+    background:radial-gradient(circle at 38% 30%,#fff,var(--field-hi));
+    border:6px solid var(--green); outline:4px solid var(--field);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--green-deep); font-size:82px; font-weight:900; line-height:1;
+    box-shadow:0 6px 16px rgba(0,0,0,.45); z-index:2;
+  }
+  /* 口號米帶 */
+  .slogan{
+    flex:0 0 60px; margin:8px 32px 0; position:relative;
+    background:linear-gradient(var(--cream),#ffedb0);
+    display:flex; align-items:center; justify-content:center;
+    font-size:32px; font-weight:900; letter-spacing:2px; color:var(--green-deep);
+    box-shadow:0 3px 8px rgba(0,0,0,.35);
+    clip-path:polygon(4% 0,96% 0,100% 50%,96% 100%,4% 100%,0 50%);
+  }
+  /* 懇請賜票 */
+  .plea{
+    flex:0 0 46px;
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    color:var(--green-deep); font-size:31px; font-weight:900; letter-spacing:8px;
+    text-shadow:0 1px 2px rgba(255,255,255,.5);
+  }
+  /* 番號＋姓名（稻田上，橘紅描邊） */
+  .nameblock{ flex:0 0 190px; display:flex; align-items:center; justify-content:center;
+    gap:22px; padding:0 22px 16px; }
+  .num{
+    flex:0 0 118px; width:118px; height:118px; border-radius:50%;
+    background:#fff; border:7px solid var(--green); outline:4px solid var(--field);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--namered); font-size:90px; font-weight:900; line-height:1;
+    box-shadow:0 6px 16px rgba(0,0,0,.4);
+  }
+  .name{
+    color:var(--namered); font-size:132px; font-weight:900; line-height:.9;
+    letter-spacing:8px; white-space:nowrap;
+    -webkit-text-stroke:7px var(--green-deep);
+    text-shadow:5px 6px 0 rgba(255,224,122,.7);
+    paint-order:stroke fill;
+  }
+</style>
+</head>
+<body>
+  <div class="header"><span class="leaf">🌾</span>天王里里長助理候選人<span class="leaf">🌾</span></div>
+  <div class="hero">
+    <div class="frame"></div>
+    <div class="medal">1</div>
+  </div>
+  <div class="slogan">牌品好，人品才好</div>
+  <div class="plea">懇 請 賜 票 🙏</div>
+  <div class="nameblock">
+    <div class="num">1</div>
+    <div class="name">阿明</div>
+  </div>
+</body>
+</html>

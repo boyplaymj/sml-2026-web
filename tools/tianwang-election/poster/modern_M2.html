@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><style>
+  @font-face{ font-family:'NotoCJK'; src:url('file:///home/smlbot/.fonts/NotoSansCJKtc-Regular.otf'); }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  :root{ --navy:#123a63; --navy-d:#0d2c4c; --navy-hi:#1d4f82; --orange:#ff7a2f; }
+  html,body{ width:720px; height:720px; }
+  body{ font-family:'NotoCJK','Noto Color Emoji',sans-serif; width:720px; height:720px;
+    position:relative; overflow:hidden; background:var(--navy);
+    display:flex; flex-direction:column; }
+  .geo1{ position:absolute; inset:0; z-index:0;
+    background:linear-gradient(150deg,var(--navy-d),var(--navy) 60%,var(--navy-hi)); }
+  /* 頁首：職稱 + 小照片 */
+  .top{ position:relative; z-index:1; flex:0 0 168px; display:flex; align-items:center;
+    padding:0 48px; gap:22px; border-bottom:4px solid var(--orange); }
+  .pic{ flex:0 0 118px; width:118px; height:118px; border-radius:16px;
+    background:url('file:///tmp/poster/candidate.png') center 12% / cover no-repeat;
+    border:4px solid #fff; box-shadow:0 6px 16px rgba(0,0,0,.4); }
+  .topTxt{ display:flex; flex-direction:column; gap:6px; }
+  .topTxt .role{ color:#cfe1f2; font-size:24px; font-weight:800; letter-spacing:2px; }
+  .topTxt .kind{ color:#fff; font-size:58px; font-weight:900; letter-spacing:4px; }
+  .topTxt .kind b{ color:var(--orange); }
+  /* 政績打勾 */
+  .points{ position:relative; z-index:1; flex:1 1 auto; display:flex; flex-direction:column;
+    justify-content:center; gap:26px; padding:0 54px; }
+  .points li{ list-style:none; display:flex; align-items:center; gap:20px;
+    color:#eef4fa; font-size:36px; font-weight:800; }
+  .points .ck{ flex:0 0 46px; width:46px; height:46px; border-radius:12px; background:var(--orange);
+    display:flex; align-items:center; justify-content:center; color:#fff; font-size:30px; font-weight:900; }
+  /* 頁尾：番號姓名 */
+  .foot{ position:relative; z-index:1; flex:0 0 150px; display:flex; align-items:center;
+    gap:22px; padding:0 54px; background:rgba(0,0,0,.22); }
+  .num{ width:104px; height:104px; border-radius:50%; background:var(--orange);
+    display:flex; align-items:center; justify-content:center; color:#fff; font-size:74px;
+    font-weight:900; line-height:1; }
+  .name{ color:#fff; font-size:96px; font-weight:900; letter-spacing:6px; }
+</style></head><body>
+  <div class="geo1"></div>
+  <div class="top">
+    <div class="pic"></div>
+    <div class="topTxt"><span class="role">天王里里長助理候選人 ① 阿明</span><span class="kind">我的<b>政績</b></span></div>
+  </div>
+  <ul class="points">
+    <li><span class="ck">✓</span>整頓桌邊秩序，環境煥然一新</li>
+    <li><span class="ck">✓</span>導入公平洗牌，杜絕作弊爭議</li>
+    <li><span class="ck">✓</span>爭取里民福利，牌局獎金加碼</li>
+    <li><span class="ck">✓</span>調解糾紛零投訴，里內更和諧</li>
+  </ul>
+  <div class="foot"><div class="num">1</div><div class="name">阿明</div></div>
+</body></html>

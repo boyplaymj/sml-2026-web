@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><style>
+  @font-face{ font-family:'NotoCJK'; src:url('file:///home/smlbot/.fonts/NotoSansCJKtc-Regular.otf'); }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  :root{ --navy:#123a63; --navy-d:#0d2c4c; --navy-hi:#1d4f82; --orange:#ff7a2f; }
+  html,body{ width:720px; height:720px; }
+  body{ font-family:'NotoCJK','Noto Color Emoji',sans-serif; width:720px; height:720px;
+    position:relative; overflow:hidden; background:var(--navy);
+    display:flex; flex-direction:column; }
+  .geo1{ position:absolute; inset:0; z-index:0;
+    background:linear-gradient(160deg,var(--orange) 0%,var(--orange) 30%,var(--navy) 30%,var(--navy-d) 100%); }
+  /* 上：橘底主張 */
+  .banner{ position:relative; z-index:1; flex:0 0 216px; display:flex; flex-direction:column;
+    justify-content:center; padding:0 56px; }
+  .banner .kind{ color:#fff; font-size:28px; font-weight:900; letter-spacing:8px; opacity:.9; }
+  .banner .big{ color:#fff; font-size:88px; font-weight:900; line-height:1.05; letter-spacing:2px;
+    text-shadow:0 3px 8px rgba(0,0,0,.25); }
+  /* 中：說明 + 照片 */
+  .mid{ position:relative; z-index:1; flex:1 1 auto; display:flex; align-items:center;
+    padding:24px 56px; gap:36px; }
+  .desc{ flex:1 1 auto; color:#e7eff8; font-size:32px; font-weight:700; line-height:1.5; }
+  .desc .hi{ display:block; color:var(--orange); font-size:34px; font-weight:900;
+    letter-spacing:0; margin-bottom:10px; white-space:nowrap; }
+  .pic{ flex:0 0 240px; width:240px; height:300px; border-radius:16px;
+    background:url('file:///tmp/poster/candidate.png') center 12% / cover no-repeat;
+    border:5px solid #fff; box-shadow:0 10px 24px rgba(0,0,0,.45); }
+  /* 下：番號姓名 */
+  .foot{ position:relative; z-index:1; flex:0 0 138px; display:flex; align-items:center;
+    gap:22px; padding:0 56px; background:rgba(0,0,0,.25); }
+  .num{ width:100px; height:100px; border-radius:50%; background:var(--orange);
+    display:flex; align-items:center; justify-content:center; color:#fff; font-size:72px;
+    font-weight:900; line-height:1; }
+  .role{ color:#cfe1f2; font-size:24px; font-weight:800; letter-spacing:2px; }
+  .name{ color:#fff; font-size:90px; font-weight:900; letter-spacing:6px; }
+  .nameCol{ display:flex; flex-direction:column; }
+</style></head><body>
+  <div class="geo1"></div>
+  <div class="banner"><span class="kind">政 策 推 廣</span><span class="big">推動公平<br>牌桌新制度</span></div>
+  <div class="mid">
+    <div class="desc"><span class="hi">透明計分 · 輪莊制</span>讓每一桌都公平，<br>每一局都安心。</div>
+    <div class="pic"></div>
+  </div>
+  <div class="foot"><div class="num">1</div>
+    <div class="nameCol"><span class="role">天王里里長助理候選人</span><span class="name">阿明</span></div>
+  </div>
+</body></html>

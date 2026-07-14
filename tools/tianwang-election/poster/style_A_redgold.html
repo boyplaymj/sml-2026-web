@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face{ font-family:'NotoCJK'; src:url('file:///home/smlbot/.fonts/NotoSansCJKtc-Regular.otf'); }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  :root{
+    --red:#e2000f; --red-d:#a30009; --red-deep:#640005;
+    --gold:#ffd21e; --gold-hi:#fff2a0; --gold-d:#c9962a;
+    --ink:#3a0004;
+  }
+  html,body{ width:600px; height:820px; }
+  body{
+    font-family:'NotoCJK','Noto Color Emoji',sans-serif;
+    display:flex; flex-direction:column; overflow:hidden; position:relative;
+    background:
+      radial-gradient(120% 60% at 50% 118%, #ff3a2a 0%, transparent 60%),
+      linear-gradient(168deg, #ff2f22 0%, var(--red) 30%, var(--red-d) 74%, var(--red-deep) 100%);
+  }
+  /* 全版金色細點綴框 */
+  body::after{
+    content:""; position:absolute; inset:10px; pointer-events:none;
+    border:2px solid rgba(255,210,30,.55);
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.25);
+  }
+
+  /* ── 職稱綬帶 ── */
+  .header{
+    flex:0 0 80px; margin:20px 22px 0; position:relative; z-index:2;
+    background:linear-gradient(#440006,#1c0002);
+    border:2px solid var(--gold);
+    display:flex; align-items:center; justify-content:center; gap:14px;
+    box-shadow:0 4px 14px rgba(0,0,0,.5);
+  }
+  .header::before,.header::after{
+    content:""; position:absolute; top:50%; width:12px; height:12px;
+    background:var(--gold); transform:translateY(-50%) rotate(45deg);
+  }
+  .header::before{ left:-7px; } .header::after{ right:-7px; }
+  .header .star{ color:var(--gold); font-size:22px; }
+  .header .txt{ color:#fff; font-size:32px; font-weight:900; letter-spacing:3px;
+    text-shadow:0 1px 0 #000; }
+
+  /* ── 照片主視覺 ── */
+  .hero{ flex:1 1 auto; position:relative; padding:16px 22px 4px; z-index:2; }
+  .frame{
+    width:100%; height:100%; border-radius:10px; overflow:hidden;
+    border:5px solid #fff; outline:3px solid var(--gold); outline-offset:-1px;
+    box-shadow:0 12px 30px rgba(0,0,0,.55);
+    background:url('file:///tmp/poster/candidate.png') center 20% / cover no-repeat;
+  }
+  /* 番號綬帶勳章 rosette */
+  .rosette{ position:absolute; top:6px; left:8px; width:120px; height:120px; z-index:3; }
+  .rosette .tail{ position:absolute; top:78px; width:34px; height:70px; background:var(--red-d);
+    box-shadow:0 3px 6px rgba(0,0,0,.4); }
+  .rosette .tail.l{ left:26px; transform:rotate(9deg); clip-path:polygon(0 0,100% 0,100% 100%,50% 78%,0 100%); }
+  .rosette .tail.r{ right:26px; transform:rotate(-9deg); clip-path:polygon(0 0,100% 0,100% 100%,50% 78%,0 100%); }
+  .rosette .disc{
+    position:absolute; top:0; left:0; width:120px; height:120px; border-radius:50%;
+    background:radial-gradient(circle at 38% 30%,#fff,#ffe6bf);
+    border:6px solid var(--red); outline:4px solid var(--gold);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--red); font-size:82px; font-weight:900; line-height:1;
+    box-shadow:0 6px 16px rgba(0,0,0,.5); z-index:1;
+  }
+
+  /* ── 口號斜緞帶 ── */
+  .slogan{
+    flex:0 0 62px; margin:10px 34px 0; position:relative; z-index:2;
+    background:linear-gradient(#fff0a0,var(--gold));
+    display:flex; align-items:center; justify-content:center;
+    font-size:33px; font-weight:900; letter-spacing:2px; color:var(--red-deep);
+    box-shadow:0 4px 10px rgba(0,0,0,.45);
+    clip-path:polygon(4% 0,96% 0,100% 50%,96% 100%,4% 100%,0 50%);
+  }
+
+  /* ── 懇請賜票（獨立列） ── */
+  .plea{
+    flex:0 0 48px; position:relative; z-index:2;
+    display:flex; align-items:center; justify-content:center; gap:12px;
+    color:var(--gold); font-size:33px; font-weight:900; letter-spacing:10px;
+    text-shadow:0 2px 5px rgba(0,0,0,.6);
+  }
+
+  /* ── 番號＋姓名（獨立列，背後放射光） ── */
+  .nameblock{ flex:0 0 196px; position:relative; z-index:2;
+    display:flex; align-items:center; justify-content:center; gap:22px; padding:0 22px 14px; }
+  .rays{ position:absolute; inset:-40px 0 -10px; z-index:0; opacity:.28;
+    background:repeating-conic-gradient(from 0deg at 50% 42%,
+      var(--gold) 0deg 6deg, transparent 6deg 12deg);
+    -webkit-mask-image:radial-gradient(closest-side, #000 62%, transparent 82%);
+            mask-image:radial-gradient(closest-side, #000 62%, transparent 82%); }
+  .numMini{
+    position:relative; z-index:1; flex:0 0 118px; width:118px; height:118px; border-radius:50%;
+    background:#fff; border:7px solid var(--gold);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--red); font-size:92px; font-weight:900; line-height:1;
+    box-shadow:0 6px 16px rgba(0,0,0,.5);
+  }
+  .nameWrap{ position:relative; z-index:1; display:flex; align-items:flex-start; gap:6px; }
+  .name{
+    color:var(--gold); font-size:132px; font-weight:900; line-height:.9;
+    letter-spacing:8px; white-space:nowrap;
+    -webkit-text-stroke:7px var(--red-deep);
+    text-shadow:5px 6px 0 rgba(0,0,0,.45);
+    paint-order:stroke fill;
+  }
+  .zhuyin{ writing-mode:vertical-rl; color:#fff; font-size:20px; font-weight:700;
+    letter-spacing:2px; margin-top:14px; text-shadow:0 1px 3px rgba(0,0,0,.7); }
+</style>
+</head>
+<body>
+  <div class="header"><span class="star">★</span><span class="txt">天王里里長助理候選人</span><span class="star">★</span></div>
+
+  <div class="hero">
+    <div class="frame"></div>
+    <div class="rosette">
+      <div class="tail l"></div><div class="tail r"></div>
+      <div class="disc">1</div>
+    </div>
+  </div>
+
+  <div class="slogan">牌品好，人品才好</div>
+  <div class="plea">懇 請 賜 票 🙏</div>
+
+  <div class="nameblock">
+    <div class="rays"></div>
+    <div class="numMini">1</div>
+    <div class="nameWrap">
+      <div class="name">阿明</div>
+    </div>
+  </div>
+</body>
+</html>

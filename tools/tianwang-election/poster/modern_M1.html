@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><style>
+  @font-face{ font-family:'NotoCJK'; src:url('file:///home/smlbot/.fonts/NotoSansCJKtc-Regular.otf'); }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  :root{ --navy:#123a63; --navy-d:#0d2c4c; --navy-hi:#1d4f82; --orange:#ff7a2f; }
+  html,body{ width:720px; height:720px; }
+  body{ font-family:'NotoCJK','Noto Color Emoji',sans-serif; width:720px; height:720px;
+    position:relative; overflow:hidden; background:var(--navy); }
+  .geo1{ position:absolute; inset:0; background:linear-gradient(120deg,var(--navy-d),var(--navy) 55%,var(--navy-hi)); }
+  .geo2{ position:absolute; top:0; right:0; width:58%; height:100%; background:var(--navy-hi);
+    clip-path:polygon(26% 0,100% 0,100% 100%,0 100%); opacity:.55; }
+  .photo{ position:absolute; right:0; bottom:0; width:56%; height:96%;
+    background:url('file:///tmp/poster/candidate.png') center 15% / cover no-repeat;
+    clip-path:polygon(16% 0,100% 0,100% 100%,0 100%);
+    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 18%); }
+  .brand{ position:absolute; top:56px; left:56px; display:flex; align-items:center; gap:14px; }
+  .brand .logo{ width:54px; height:54px; border-radius:50%; background:var(--orange);
+    display:flex; align-items:center; justify-content:center; color:#fff; font-size:27px; font-weight:900; }
+  .brand .role{ color:#cfe1f2; font-size:25px; font-weight:800; letter-spacing:2px; }
+  .kind{ position:absolute; top:150px; left:56px; color:var(--orange); font-size:30px;
+    font-weight:900; letter-spacing:8px; }
+  .headline{ position:absolute; top:210px; left:54px; color:#fff; font-size:82px;
+    font-weight:900; line-height:1.1; letter-spacing:2px; text-shadow:0 3px 12px rgba(0,0,0,.35); }
+  .headline b{ color:var(--orange); }
+  .foot{ position:absolute; left:56px; bottom:56px; display:flex; align-items:center; gap:22px; }
+  .num{ width:120px; height:120px; border-radius:50%; background:var(--orange);
+    display:flex; align-items:center; justify-content:center; color:#fff; font-size:88px;
+    font-weight:900; line-height:1; box-shadow:0 8px 20px rgba(0,0,0,.4); }
+  .name{ color:#fff; font-size:120px; font-weight:900; line-height:.96; letter-spacing:6px; }
+</style></head><body>
+  <div class="geo1"></div><div class="geo2"></div><div class="photo"></div>
+  <div class="brand"><span class="logo">里</span><span class="role">天王里里長助理候選人</span></div>
+  <div class="kind">形象照</div>
+  <div class="headline">牌品好<br><b>人品才好</b></div>
+  <div class="foot"><div class="num">1</div><div class="name">阿明</div></div>
+</body></html>

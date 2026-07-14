@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><style>
+  @font-face{ font-family:'NotoCJK'; src:url('file:///home/smlbot/.fonts/NotoSansCJKtc-Regular.otf'); }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  :root{ --navy:#123a63; --navy-d:#0d2c4c; --navy-hi:#1d4f82; --orange:#ff7a2f; --orange-d:#e8621a; }
+  html,body{ width:720px; height:720px; }
+  body{ font-family:'NotoCJK','Noto Color Emoji',sans-serif; width:720px; height:720px;
+    position:relative; overflow:hidden;
+    background:radial-gradient(120% 80% at 50% 0%,var(--navy-hi),var(--navy) 55%,var(--navy-d) 100%);
+    display:flex; flex-direction:column; }
+  .photo{ position:absolute; right:-4%; bottom:0; width:50%; height:78%;
+    background:url('file:///tmp/poster/candidate.png') center 14% / cover no-repeat;
+    clip-path:polygon(20% 0,100% 0,100% 100%,0 100%);
+    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 24%); z-index:0; }
+  .plea{ position:relative; z-index:2; flex:0 0 300px; display:flex; flex-direction:column;
+    justify-content:center; padding:0 56px; }
+  .plea .sub{ color:var(--orange); font-size:34px; font-weight:900; letter-spacing:10px; }
+  .plea .big{ color:#fff; font-size:150px; font-weight:900; line-height:1; letter-spacing:6px;
+    text-shadow:0 6px 18px rgba(0,0,0,.4); }
+  .plea .hands{ font-size:110px; }
+  /* 投票日 CTA */
+  .cta{ position:relative; z-index:2; margin:0 56px; align-self:flex-start;
+    background:var(--orange); color:#fff; font-size:38px; font-weight:900; letter-spacing:2px;
+    padding:14px 34px; border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,.4); }
+  .cta b{ font-size:44px; }
+  /* 番號姓名 */
+  .foot{ position:relative; z-index:2; margin-top:auto; display:flex; align-items:center;
+    gap:24px; padding:36px 56px 52px; }
+  .num{ width:132px; height:132px; border-radius:50%; background:var(--orange); border:6px solid #fff;
+    display:flex; align-items:center; justify-content:center; color:#fff; font-size:96px;
+    font-weight:900; line-height:1; box-shadow:0 8px 22px rgba(0,0,0,.45); }
+  .name{ color:#fff; font-size:126px; font-weight:900; letter-spacing:6px;
+    text-shadow:0 4px 12px rgba(0,0,0,.35); }
+</style></head><body>
+  <div class="photo"></div>
+  <div class="plea"><span class="sub">天王里里長助理</span><span class="big">懇請賜票 🙏</span></div>
+  <div class="cta">7/20 投票 · 請投 <b>①</b> 號</div>
+  <div class="foot"><div class="num">1</div><div class="name">阿明</div></div>
+</body></html>

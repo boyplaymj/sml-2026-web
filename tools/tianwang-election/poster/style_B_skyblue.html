@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face{ font-family:'NotoCJK'; src:url('file:///home/smlbot/.fonts/NotoSansCJKtc-Regular.otf'); }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  :root{ --blue:#0a86d6; --blue-d:#0563a6; --navy:#08324f; --sky:#e4f3fc; --gold:#ffcf3a; }
+  html,body{ width:600px; height:820px; }
+  body{
+    font-family:'NotoCJK','Noto Color Emoji',sans-serif;
+    display:flex; flex-direction:column; overflow:hidden; position:relative;
+    background:linear-gradient(180deg,#ffffff 0%,var(--sky) 100%);
+  }
+  /* 職稱：乾淨細線 */
+  .header{
+    flex:0 0 66px; display:flex; align-items:center; justify-content:center; gap:12px;
+    color:var(--navy); font-size:29px; font-weight:900; letter-spacing:4px;
+    border-bottom:4px solid var(--blue); background:#fff;
+  }
+  .header .dot{ width:12px; height:12px; border-radius:50%; background:var(--gold); }
+  /* 口號：大藍字 */
+  .slogan{
+    flex:0 0 92px; display:flex; align-items:center; justify-content:center;
+    font-size:46px; font-weight:900; letter-spacing:1px; color:var(--blue-d);
+    text-shadow:2px 2px 0 rgba(10,134,214,.18);
+    background:linear-gradient(180deg,#fff,#f2fbff);
+  }
+  /* 照片 */
+  .hero{ flex:1 1 auto; position:relative; padding:14px 26px 8px; }
+  .frame{
+    width:100%; height:100%; border-radius:14px; overflow:hidden;
+    border:5px solid #fff; box-shadow:0 12px 26px rgba(8,50,79,.35);
+    background:url('file:///tmp/poster/candidate.png') center 20% / cover no-repeat;
+  }
+  .frame::after{ content:""; position:absolute; inset:0; border-radius:14px;
+    background:linear-gradient(120deg,transparent 62%,rgba(10,134,214,.55) 100%); }
+  .numTop{
+    position:absolute; top:4px; right:14px; width:104px; height:104px; border-radius:50%;
+    background:#fff; border:6px solid var(--blue);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--blue-d); font-size:80px; font-weight:900; line-height:1;
+    box-shadow:0 6px 16px rgba(8,50,79,.4); z-index:2;
+  }
+  /* 姓名帶：深藍 */
+  .namebar{
+    flex:0 0 188px; background:linear-gradient(160deg,var(--blue) 0%,var(--navy) 100%);
+    display:flex; align-items:center; gap:22px; padding:0 30px;
+    border-top:4px solid var(--gold);
+  }
+  .num{
+    flex:0 0 120px; width:120px; height:120px; border-radius:50%;
+    background:var(--gold); display:flex; align-items:center; justify-content:center;
+    color:var(--navy); font-size:92px; font-weight:900; line-height:1;
+    box-shadow:0 6px 16px rgba(0,0,0,.35);
+  }
+  .nameCol{ display:flex; flex-direction:column; justify-content:center; }
+  .tag{
+    color:var(--gold); font-size:26px; font-weight:900; letter-spacing:6px;
+    display:flex; align-items:center; gap:8px; margin-bottom:4px;
+  }
+  .name{
+    color:#fff; font-size:116px; font-weight:900; line-height:.98; letter-spacing:8px;
+    white-space:nowrap; text-shadow:4px 5px 0 rgba(0,0,0,.28);
+  }
+</style>
+</head>
+<body>
+  <div class="header"><span class="dot"></span>天王里里長助理候選人<span class="dot"></span></div>
+  <div class="slogan">牌品好，人品才好</div>
+  <div class="hero">
+    <div class="frame"></div>
+    <div class="numTop">1</div>
+  </div>
+  <div class="namebar">
+    <div class="num">1</div>
+    <div class="nameCol">
+      <div class="tag">懇請賜票 🙏</div>
+      <div class="name">阿明</div>
+    </div>
+  </div>
+</body>
+</html>

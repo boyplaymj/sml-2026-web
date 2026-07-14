@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face{ font-family:'NotoCJK'; src:url('file:///home/smlbot/.fonts/NotoSansCJKtc-Regular.otf'); }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  :root{
+    --navy:#123a63; --navy-d:#0d2c4c; --navy-hi:#1d4f82;
+    --orange:#ff7a2f; --orange-d:#e8621a; --ink:#0b2036; --paper:#f4f8fc;
+  }
+  html,body{ width:720px; height:720px; }
+  body{
+    font-family:'NotoCJK','Noto Color Emoji',sans-serif;
+    width:720px; height:720px; position:relative; overflow:hidden;
+    background:var(--navy);
+  }
+  /* 背景幾何斜面 */
+  .geo1{ position:absolute; inset:0;
+    background:linear-gradient(120deg,var(--navy-d) 0%,var(--navy) 52%,var(--navy-hi) 100%); }
+  .geo2{ position:absolute; top:0; right:0; width:56%; height:100%;
+    background:var(--navy-hi); clip-path:polygon(28% 0,100% 0,100% 100%,0 100%); opacity:.55; }
+  .geo3{ position:absolute; bottom:-2px; left:0; width:100%; height:120px;
+    background:var(--orange); clip-path:polygon(0 42%,100% 0,100% 100%,0 100%); opacity:.14; }
+
+  /* 候選人照片（右側，去背感） */
+  .photo{ position:absolute; right:0; bottom:0; width:52%; height:92%;
+    background:url('file:///tmp/poster/candidate.png') center 16% / cover no-repeat;
+    clip-path:polygon(14% 0,100% 0,100% 100%,0 100%);
+    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 16%);
+            mask-image:linear-gradient(90deg,transparent 0,#000 16%); }
+
+  /* 左上：里徽＋職稱 */
+  .brand{ position:absolute; top:46px; left:52px; display:flex; align-items:center; gap:14px; }
+  .brand .logo{ width:52px; height:52px; border-radius:50%; background:var(--orange);
+    display:flex; align-items:center; justify-content:center; color:#fff; font-size:26px; font-weight:900; }
+  .brand .role{ color:#cfe1f2; font-size:24px; font-weight:800; letter-spacing:2px; }
+
+  /* 標語 */
+  .headline{ position:absolute; top:150px; left:52px; color:#fff;
+    font-size:74px; font-weight:900; line-height:1.12; letter-spacing:2px;
+    text-shadow:0 3px 12px rgba(0,0,0,.35); }
+  .headline b{ color:var(--orange); }
+  .rule{ position:absolute; top:340px; left:56px; width:120px; height:8px;
+    background:var(--orange); border-radius:4px; }
+
+  /* 政見打勾（現代模版特徵） */
+  .points{ position:absolute; top:378px; left:54px; display:flex; flex-direction:column; gap:14px; }
+  .points li{ list-style:none; display:flex; align-items:center; gap:12px;
+    color:#eaf2fa; font-size:26px; font-weight:700; }
+  .points .ck{ width:30px; height:30px; border-radius:8px; background:var(--orange);
+    display:flex; align-items:center; justify-content:center; color:#fff; font-size:20px; font-weight:900; }
+
+  /* 底部：番號＋姓名 */
+  .foot{ position:absolute; left:52px; bottom:44px; display:flex; align-items:center; gap:20px; }
+  .num{ width:104px; height:104px; border-radius:50%; background:var(--orange);
+    display:flex; align-items:center; justify-content:center; color:#fff;
+    font-size:74px; font-weight:900; line-height:1; box-shadow:0 8px 20px rgba(0,0,0,.4); }
+  .nameCol{ display:flex; flex-direction:column; }
+  .nameCol .tag{ color:var(--orange); font-size:22px; font-weight:800; letter-spacing:4px; margin-bottom:2px; }
+  .nameCol .name{ color:#fff; font-size:100px; font-weight:900; line-height:.96; letter-spacing:6px; }
+</style>
+</head>
+<body>
+  <div class="geo1"></div><div class="geo2"></div><div class="geo3"></div>
+  <div class="photo"></div>
+
+  <div class="brand"><span class="logo">里</span><span class="role">天王里里長助理候選人</span></div>
+
+  <div class="headline">牌品好<br><b>人品才好</b></div>
+  <div class="rule"></div>
+
+  <ul class="points">
+    <li><span class="ck">✓</span>桌邊秩序，全面整頓</li>
+    <li><span class="ck">✓</span>公平洗牌，杜絕作弊</li>
+    <li><span class="ck">✓</span>里民福利，牌局加碼</li>
+  </ul>
+
+  <div class="foot">
+    <div class="num">1</div>
+    <div class="nameCol">
+      <span class="tag">懇請賜票</span>
+      <span class="name">阿明</span>
+    </div>
+  </div>
+</body>
+</html>
