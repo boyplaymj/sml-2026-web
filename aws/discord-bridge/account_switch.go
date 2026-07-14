@@ -237,10 +237,38 @@ func readActiveAccount() string {
 }
 
 func applyAccountSlot(slot string) error {
+	// write-back 保鮮:切走目前帳號前,把它的最新本機憑證寫回自己的 SSM slot,
+	// 避免 refreshToken 輪換後 SSM 存的舊值失效。best-effort,失敗只 log 不擋。
+	if prev := readActiveAccount(); prev != "" && prev != slot {
+		writeBackLeavingAccount(prev)
+	}
+
 	credentialsJSON, claudeJSON, err := readAccountSlot(slot)
 	if err != nil {
 		return err
 	}
+
+	// 防呆閘:切進去前先驗活。確定失效就中止,絕不在此之後才發現死帳號
+	// (那時 session 已被清空)。驗活成功且有刷新→用刷新後憑證並寫回 SSM 自癒。
+	if probeEnabled() {
+		alive, refreshed, dead, perr := probeSlotLiveness(credentialsJSON, oauthHTTPClient(), time.Now())
+		switch {
+		case dead:
+			return fmt.Errorf("slot %q 的憑證已失效(refresh 被拒: %v)。請先重新登入該帳號再切換;目前帳號與所有 session 未受影響", slot, perr)
+		case perr != nil:
+			log.Printf("[account] slot %q 驗活無法判定(%v),仍繼續切換", slot, perr)
+		case refreshed != "":
+			credentialsJSON = refreshed
+			if err := persistCredsToSSM(slot, refreshed); err != nil {
+				log.Printf("[account] slot %q 自癒寫回 SSM 失敗(不影響本次切換): %v", slot, err)
+			} else {
+				log.Printf("[account] slot %q 已刷新並寫回 SSM(自癒)", slot)
+			}
+		default:
+			_ = alive // accessToken 仍有效,直接用
+		}
+	}
+
 	credPath := claudeHomePath(".claude", ".credentials.json")
 	if err := backupFileIfExists(credPath, ".credentials.json"); err != nil {
 		return fmt.Errorf("備份 credentials 失敗: %w", err)
