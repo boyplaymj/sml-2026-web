@@ -5,8 +5,8 @@
   "intro": "文山路一間套房傳出燒炭，29 歲的房客走了。門窗封得緊、房門反鎖，大家都說又是一個壓力大想不開的年輕人。可是認識他的人都覺得哪裡怪怪的——他明明下個月要搬家，週末還跟人約好了。（本案全虛構，不影射任何真實個案。）",
   "stageCount": 4,
   "clues": {
-    "poster": "https://image.boyplaymj.link/pq/assets/w1-notice.png",
-    "message": "https://image.boyplaymj.link/pq/assets/w1-friends-line.png",
+    "poster": "w1-notice.png",
+    "message": "w1-friends-line.png",
     "site": "https://image.boyplaymj.link/pq/wenshan.html"
   },
   "stages": [
