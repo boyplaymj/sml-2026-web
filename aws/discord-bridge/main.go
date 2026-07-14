@@ -275,6 +275,11 @@ func runClaude(ctx context.Context, channelID, prompt string) string {
 		if ctx.Err() != nil {
 			return "⚠️ 處理逾時(超過 " + strconv.Itoa(timeoutMin) + " 分鐘)被中止,請把任務拆小一點再試。"
 		}
+		// 用量/認證/額度等「做不了事」的已知原因 → 顯示清楚的中文原因,而非原始 stderr。
+		// 這類訊息可能在 stderr,也可能在 stdout 的 JSON result 裡,兩邊都比對。
+		if msg := blockMessage(classifyBlock(stderr+"\n"+out.String()), stderr+"\n"+out.String()); msg != "" {
+			return msg
+		}
 		if wasKilled(runErr) && strings.TrimSpace(stderr) == "" {
 			return "⚠️ 處理被系統中止(通常是同時任務太多、記憶體不足),已自動重試仍失敗。請稍等一下、或避免同時在多個頻道操作,再重試。"
 		}
@@ -283,6 +288,13 @@ func runClaude(ctx context.Context, channelID, prompt string) string {
 	var res claudeResult
 	if err := json.Unmarshal(out.Bytes(), &res); err != nil {
 		return strings.TrimSpace(out.String())
+	}
+	// 成功退出但 result 其實是「用量/認證/額度」阻擋訊息(claude 有時 is_error=true、
+	// 有時仍 exit 0 只把原因塞進 result)→ 翻成清楚原因。
+	if res.IsError {
+		if msg := blockMessage(classifyBlock(res.Result), res.Result); msg != "" {
+			return msg
+		}
 	}
 	if res.SessionID != "" {
 		mu.Lock()
