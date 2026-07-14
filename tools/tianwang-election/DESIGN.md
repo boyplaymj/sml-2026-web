@@ -129,3 +129,10 @@
 4. 報名管線：Modal→照片→保證金→選風格→連署達標入場，五步串通；保證金正確扣/退。
 5. 文宣生成：四款皆可生，且**每張都過 check.js 零重疊**（含長名字不爆版）。
 6. 開票：正確統計、先卸舊持有者再掛當選者、平手時停手待裁定、公告只露總票數。
+
+## 💰 成本控管（遵循 tools/COST_CONTROL.md）
+
+- **成本來源**：新 DDB 表（`election-config` ＋ §7 各投票/報名表）＋後台 admin Lambda；候選人報名照片存自控圖床 `boyplaymj-image`。量級極小（PAY_PER_REQUEST；照片單張、活動性流量，預估 < $1/月）。
+- 所有新表 **PAY_PER_REQUEST**（沿用現有 DAO 慣例，§7）；保證金走既有 `changePoint` 流水帳，**不新增計費系統**。
+- 文宣海報四款走**本機 Playwright 程式合成**（HTML→截圖），在 sml-claude-bot 上跑，**不燒 LLM／不打生圖 API**。
+- **無 LLM／無付費 API**，故免「帳本表＋月度封頂」四件套。
