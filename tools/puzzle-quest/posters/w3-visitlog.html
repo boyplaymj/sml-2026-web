@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 28%,#46413a,#221f1b 82%);perspective:2200px;font-family:"Noto Sans CJK TC",sans-serif;}
+  .doc{position:relative;width:720px;min-height:880px;padding:42px 44px;background:#fcfbf6;color:#1a1a1a;transform:rotateX(3deg) rotateZ(-1deg) rotateY(1deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);}
+  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 26%,transparent 76%,rgba(60,55,45,.13));mix-blend-mode:soft-light;}
+  .hdr{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #17130d;padding-bottom:10px;}
+  .co{font-size:22px;font-weight:900;}.co small{display:block;font-size:12px;color:#6a6155;font-weight:400;}
+  .ttl{font-size:19px;font-weight:800;letter-spacing:2px;}
+  .meta{display:flex;justify-content:space-between;font-size:13.5px;color:#555;margin:10px 0;}
+  table{width:100%;border-collapse:collapse;font-size:15px;}
+  th,td{border:1px solid #cabfa2;padding:8px 10px;text-align:left;}
+  th{background:#efe9d8;font-weight:800;}
+  tr.key td{background:#fff6d8;font-weight:800;}
+  .hand{font-family:"Noto Serif CJK TC",cursive;font-size:17px;color:#243;transform:rotate(-1deg);}
+  .note{margin-top:16px;font-size:13.5px;line-height:1.8;color:#555;background:#f3f0e6;border-left:4px solid #8a7a3a;padding:9px 13px;}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="hdr"><div class="co">文山雅居 社區管理室<small>訪客登記簿 · 夜間班</small></div><div class="ttl">訪客登記</div></div>
+      <div class="meta"><span>日期：114 年 3 月 5 日（星期三）</span><span>值班管理員：李</span></div>
+      <table>
+        <tr><th>時間</th><th>訪客姓名</th><th>拜訪戶別</th><th>事由</th><th>離開</th></tr>
+        <tr><td>19:12</td><td class="hand">王先生</td><td>5F 之2</td><td>送貨</td><td>19:20</td></tr>
+        <tr><td>20:05</td><td class="hand">外送</td><td>2F 之1</td><td>餐點</td><td>20:08</td></tr>
+        <tr class="key"><td>22:47</td><td class="hand">韓（訪客未出示證件）</td><td>3F 之3　林宅</td><td class="hand">找朋友</td><td class="hand">未登記</td></tr>
+        <tr><td>—</td><td colspan="4" style="color:#8a1414;">＊該訪客離開時間未向管理室登記；當日夜間社區公共區監視器輪修中。</td></tr>
+      </table>
+      <div class="note">附註：3F 之3（林姓住戶）當晚 22:47 有一名訪客上樓、登記姓「韓」，未出示證件、離開時間未登記。管理員未見住戶本人下樓。</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>

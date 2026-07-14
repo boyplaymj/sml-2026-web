@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 44% 26%,#48433b,#221f1b 82%);perspective:2200px;font-family:"Noto Serif CJK TC","Noto Sans CJK TC",serif;}
+  .doc{position:relative;width:660px;min-height:880px;padding:52px 54px 44px;background:#fdfdfb;color:#1a1a1a;transform:rotateX(3deg) rotateZ(1deg) rotateY(-1.2deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);}
+  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 26%,transparent 76%,rgba(60,55,45,.13));mix-blend-mode:soft-light;}
+  .head{text-align:center;font-size:30px;font-weight:900;letter-spacing:4px;border-bottom:3px double #17130d;padding-bottom:14px;}
+  .head small{display:block;font-size:15px;font-weight:400;letter-spacing:6px;color:#6a6155;margin-bottom:6px;}
+  .kv{font-size:18px;line-height:2.2;margin-top:16px;}
+  .kv .k{font-weight:800;margin-right:8px;display:inline-block;min-width:120px;}
+  .hl{background:#fff2b0;font-weight:800;padding:0 4px;}
+  .body{font-size:18px;line-height:2.05;margin-top:14px;text-align:justify;}
+  .box{border:1px solid #cfc7b5;background:#f6f3ea;padding:14px 16px;margin-top:16px;font-size:16.5px;line-height:1.9;}
+  .sign{margin-top:40px;display:flex;justify-content:space-between;font-size:17px;line-height:2;}
+  .sig{font-size:26px;color:#1a2a4a;transform:rotate(-3deg);display:inline-block;margin-top:6px;letter-spacing:3px;}
+  .date{text-align:right;font-size:16px;margin-top:24px;}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="head"><small>租 賃 契 約</small>提前終止租約暨遷出通知書</div>
+      <div class="kv">
+        <div><span class="k">承租人：</span>林昱翔</div>
+        <div><span class="k">出租人：</span>陳○蘭（房東）</div>
+        <div><span class="k">租賃標的：</span>城中市文山路 ◯◯ 巷 3 樓 套房</div>
+      </div>
+      <div class="body">
+        茲因承租人個人因素，擬<span class="hl">提前終止本租約</span>，並依約於一個月前通知出租人。
+        承租人將於下列日期前搬遷完畢、返還房屋及鑰匙，押金依約結算退還。
+      </div>
+      <div class="box">
+        現行租約到期日：114 年 8 月 31 日<br>
+        <b>提前遷出日：<span class="hl">114 年 4 月 5 日</span></b>（即下個月初）<br>
+        遷出事由：另覓通風採光較佳之居所<br>
+        押金處理：點交無誤後七日內退還
+      </div>
+      <div class="sign">
+        <div>承租人簽章：<br><span class="sig">林昱翔</span></div>
+        <div>出租人簽章：<br><span class="sig" style="color:#333;">（房東收）</span></div>
+      </div>
+      <div class="date">中　華　民　國　114　年　3　月　4　日</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>

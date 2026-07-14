@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 28%,#46413a,#221f1b 82%);perspective:2200px;font-family:"Noto Serif CJK TC","Noto Sans CJK TC",serif;}
+  .doc{position:relative;width:668px;min-height:900px;padding:46px 50px;background:#fbfbf8;color:#1a1a1a;transform:rotateX(3deg) rotateZ(1deg) rotateY(-1deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);}
+  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 26%,transparent 76%,rgba(60,55,45,.13));mix-blend-mode:soft-light;}
+  .org{text-align:center;font-size:22px;font-weight:900;letter-spacing:2px;}
+  .org small{display:block;font-size:13px;color:#6a6155;font-weight:400;letter-spacing:3px;margin-top:2px;}
+  .doctype{text-align:center;font-size:18px;letter-spacing:6px;color:#444;margin:8px 0 4px;border-bottom:3px double #111;padding-bottom:10px;}
+  .no{text-align:right;font-size:13px;color:#555;margin:8px 0 10px;}
+  .compare{display:flex;gap:16px;margin-top:8px;}
+  .samp{flex:1;border:1px solid #b7 b7 b7;border:1px solid #bbb;padding:12px;text-align:center;background:#fff;}
+  .samp .lbl{font-size:14px;color:#555;font-family:"Noto Sans CJK TC";border-bottom:1px dashed #ccc;padding-bottom:6px;margin-bottom:12px;}
+  .samp .sig{font-size:44px;letter-spacing:6px;color:#1a2a4a;padding:14px 0;}
+  .samp.q .sig{transform:rotate(-2deg);font-family:"Noto Serif CJK TC",cursive;}
+  .samp.r .sig{transform:rotate(1deg) skewX(-4deg);font-weight:700;}
+  .samp .note{font-size:12px;color:#8a1414;font-family:"Noto Sans CJK TC";}
+  .sec{margin-top:18px;font-size:16px;line-height:1.95;font-family:"Noto Sans CJK TC";}
+  .sec .h{font-weight:900;margin-bottom:4px;}
+  .em{color:#a01414;font-weight:800;}
+  .concl{margin-top:16px;background:#f6f1ea;border-left:4px solid #a01414;padding:12px 16px;font-size:16.5px;line-height:1.85;font-family:"Noto Sans CJK TC";}
+  .sign{margin-top:22px;text-align:right;font-size:15px;line-height:1.8;color:#333;font-family:"Noto Sans CJK TC";}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="org">城中市政府警察局 刑事鑑識中心<small>文書暨筆跡鑑定</small></div>
+      <div class="doctype">筆 跡 鑑 定 書</div>
+      <div class="no">鑑定字第 114-0338 號</div>
+      <div class="compare">
+        <div class="samp q"><div class="lbl">待鑑：受益人變更申請書 之簽名</div><div class="sig">林昱翔</div><div class="note">CH-114-0303</div></div>
+        <div class="samp r"><div class="lbl">參對：本人留存簽名（租約・存款印鑑卡）</div><div class="sig">林昱翔</div><div class="note">歷來本人親簽</div></div>
+      </div>
+      <div class="sec">
+        <div class="h">鑑定所見：</div>
+        待鑑名跡於<span class="em">運筆起收、字架比例、「翔」字末筆走向</span>等特徵，與被保險人歷來親簽之參對樣本
+        <span class="em">存有顯著差異</span>，非同一人書寫習慣所為。
+      </div>
+      <div class="concl">鑑定結果：受益人變更申請書上「林昱翔」之簽名，<span class="em">與被保險人本人留存簽名顯不相符，研判非其本人所簽（涉冒簽）</span>。核與行使偽造私文書情節相符。</div>
+      <div class="sign">鑑定人　鑑識中心 文書組　張慧珊<br>覆核　組長 蔡</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>

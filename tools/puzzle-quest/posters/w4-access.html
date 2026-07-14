@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 28%,#46413a,#221f1b 82%);perspective:2200px;font-family:"Noto Sans CJK TC",sans-serif;}
+  .doc{position:relative;width:720px;min-height:880px;padding:42px 44px;background:#fcfdfd;color:#1a1a1a;transform:rotateX(3deg) rotateZ(-1deg) rotateY(1deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);}
+  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 26%,transparent 76%,rgba(60,55,45,.13));mix-blend-mode:soft-light;}
+  .hdr{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #17130d;padding-bottom:10px;}
+  .co{font-size:21px;font-weight:900;}.co small{display:block;font-size:12px;color:#6a6155;font-weight:400;}
+  .ttl{font-size:19px;font-weight:800;letter-spacing:2px;}
+  .meta{display:flex;justify-content:space-between;font-size:13.5px;color:#555;margin-top:8px;}
+  .sysbar{margin-top:14px;background:#eef6ef;border:1px solid #9ec3a5;color:#1d5a2f;font-size:14.5px;padding:9px 13px;font-weight:700;}
+  table{width:100%;border-collapse:collapse;margin-top:12px;font-size:15px;font-family:"Noto Sans Mono CJK TC","Noto Sans CJK TC",monospace;}
+  th,td{border:1px solid #c2ccc8;padding:8px 10px;text-align:left;}
+  th{background:#eaf1ef;font-weight:800;font-family:"Noto Sans CJK TC";}
+  tr.key td{background:#fff6d8;font-weight:800;}
+  .plate{font-family:"Noto Sans Mono CJK TC",monospace;letter-spacing:2px;font-weight:800;}
+  .in{color:#1d6a3a;}.out{color:#8a5a14;}
+  .note{margin-top:16px;font-size:14px;line-height:1.85;color:#333;background:#f4f6f6;border-left:4px solid #8a1414;padding:9px 13px;font-family:"Noto Sans CJK TC";}
+  .note .em{color:#a01414;font-weight:800;}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="hdr"><div class="co">文山雅居 地下停車場<small>車牌辨識系統（ANPR）· 進出紀錄匯出</small></div><div class="ttl">車輛通行</div></div>
+      <div class="meta"><span>查詢區間：114/03/05 21:00 – 03/06 02:00</span><span>匯出：物業保全</span></div>
+      <div class="sysbar">✓ 車牌辨識系統：正常運作、逐車拍照記錄（與社區公共區監視器為獨立系統）</div>
+      <table>
+        <tr><th>時間</th><th>車牌</th><th>登記車主</th><th>方向</th></tr>
+        <tr><td>21:38</td><td class="plate">BKR-2210</td><td>住戶 王</td><td class="in">進場</td></tr>
+        <tr class="key"><td>22:41</td><td class="plate">ANJ-6748</td><td>韓子謙（訪客車）</td><td class="in">進場</td></tr>
+        <tr><td>23:16</td><td class="plate">7295-QC</td><td>住戶 張</td><td class="out">離場</td></tr>
+        <tr class="key"><td>00:22</td><td class="plate">ANJ-6748</td><td>韓子謙（訪客車）</td><td class="out">離場</td></tr>
+      </table>
+      <div class="note">比對說明：登記車主「韓子謙」之車輛（ANJ-6748）於 <span class="em">3/5 22:41 進入本停車場、3/6 00:22 離場</span>，停留約 1 小時 40 分。此與韓員所稱「案發當晚人在台中、整晚未離開」<span class="em">明顯不符</span>。（另比對其手機於同時段連接城中在地基地台。）</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>

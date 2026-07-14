@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<!--
+  偽文件解謎遊戲道具 — CASE-10「城中文山路 套房燒炭案」假討論串頁。
+  全虛構——地點、人物、情節、公司皆原創虛構，不影射任何真實個案或人物。
+  階段來源：?stage=N 覆寫（授權/測試用，且不對玩家顯示階段數）；否則讀共用 sml_config/puzzle_stage，每 15 秒輪詢。
+  刻意不顯示「第幾階段」：玩家不該知道案情推進到第幾階。
+-->
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>城中大小事｜文山路那間套房…</title>
+<style>
+  :root{ --bg:#12151a; --card:#1b1f27; --card2:#20252e; --ink:#dbe1e8; --sub:#8790a0; --line:#2a3140; --accent:#5aa6b8; --warn:#c98b8b; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+  a{color:var(--accent);text-decoration:none}
+  header{background:linear-gradient(120deg,#171b22,#1f2530);border-bottom:1px solid var(--line);position:relative;z-index:2}
+  .bar{max-width:760px;margin:0 auto;padding:13px 18px;display:flex;align-items:center;gap:12px}
+  .logo{width:34px;height:34px;border-radius:9px;background:var(--accent);color:#0e1216;font-weight:900;display:grid;place-items:center;font-size:17px}
+  .brand{font-weight:800;letter-spacing:.5px}
+  .brand small{display:block;font-weight:400;color:var(--sub);font-size:11px;letter-spacing:2px}
+  nav{margin-left:auto;display:flex;gap:15px;font-size:13px;color:var(--sub)}
+  .hero{max-width:760px;margin:0 auto;padding:20px 18px 4px;position:relative;z-index:2}
+  .crumbs{font-size:12px;color:var(--sub);margin-bottom:9px}
+  h1{font-size:21px;margin:0 0 10px;line-height:1.4}
+  .op{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;padding:13px 15px;color:#c2cad4;font-size:14px;line-height:1.75}
+  .op .who{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+  .op .who .a{width:30px;height:30px;border-radius:50%;background:#3a4453;display:grid;place-items:center;font-size:13px;color:#cfd6df;font-weight:700}
+  .op .who b{font-size:14px}.op .who span{color:var(--sub);font-size:12px}
+  .wrap{max-width:760px;margin:14px auto 60px;padding:0 18px;position:relative;z-index:2}
+  .board{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .bhead{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line);font-weight:700}
+  .bhead .cnt{margin-left:auto;font-weight:400;color:var(--sub);font-size:13px}
+  .acc{display:inline-block;width:4px;height:15px;background:var(--accent);border-radius:2px;margin-right:8px;vertical-align:-2px}
+  .cmt{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .cmt:last-child{border-bottom:0}
+  .ava{flex:0 0 auto;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:#0e1216;font-weight:700;font-size:14px}
+  .cbody{flex:1;min-width:0}
+  .crow{display:flex;align-items:baseline;gap:8px}
+  .cname{font-weight:700;font-size:14px}
+  .ctime{color:var(--sub);font-size:12px}
+  .ctext{margin:5px 0 6px;font-size:14.5px;line-height:1.7;word-break:break-word;color:#d3dae2}
+  .cfoot{font-size:12px;color:var(--sub);display:flex;gap:16px}
+  .removed .ava{background:#39414d!important;color:#7a8494}
+  .removed .ctext{color:#79828f;font-style:italic;background:#191d24;border:1px dashed #313a48;border-radius:8px;padding:9px 12px;display:inline-block}
+  .foot{max-width:760px;margin:0 auto;padding:20px 18px 40px;color:var(--sub);font-size:12px;line-height:1.9;border-top:1px solid var(--line);position:relative;z-index:2}
+  .sync{font-size:11px;color:#5c6675;text-align:center;padding:10px}
+
+  /* ==== 水滴氛圍層（天花板滲水，稀疏隨機） ==== */
+  .wq-drips{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden}
+  .wq-drips .drip{position:absolute;top:-24px;width:3px;height:14px;background:linear-gradient(180deg,rgba(120,160,185,0),rgba(120,160,185,.3) 55%,rgba(150,190,215,.5));border-radius:60% 60% 55% 55% / 90% 90% 40% 40%;filter:blur(.2px);animation:wq-fall var(--fall,900ms) cubic-bezier(.5,0,.9,.5) forwards}
+  @keyframes wq-fall{0%{transform:translateY(0) scaleY(.7);opacity:0}12%{opacity:.7}88%{opacity:.7}100%{transform:translateY(var(--drop,60vh)) scaleY(1.15);opacity:.75}}
+  .wq-drips .splash{position:absolute;width:20px;height:7px;border-radius:50%;border:1px solid rgba(150,190,215,.4);opacity:0;animation:wq-ripple 1100ms ease-out forwards}
+  @keyframes wq-ripple{0%{transform:translate(-50%,-50%) scale(.2);opacity:.45}100%{transform:translate(-50%,-50%) scale(1.6);opacity:0;border-color:rgba(150,190,215,0)}}
+  .wq-drips .fleck{position:absolute;width:2px;height:2px;border-radius:50%;background:rgba(160,195,215,.6);opacity:0;animation:wq-fleck 650ms ease-out forwards}
+  @keyframes wq-fleck{0%{transform:translate(-50%,-50%);opacity:.7}100%{transform:translate(calc(-50% + var(--fx,6px)),calc(-50% - var(--fy,10px)));opacity:0}}
+  @media (prefers-reduced-motion: reduce){ .wq-drips{display:none} }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="logo">城</div>
+    <div class="brand">城中大小事<small>C H E N G C H U N G · 在地討論版</small></div>
+    <nav><span>熱門</span><span>在地</span><span>爆料</span><span>發文</span></nav>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="crumbs">在地 ＞ 文山路 ＞ 討論串</div>
+  <h1>文山路那間套房…昨天燒炭走的那個，你們有聽說嗎？</h1>
+  <div class="op">
+    <div class="who"><div class="a">樓</div><div><b>樓主・住附近的</b> <span>· 發文於 3/6</span></div></div>
+    早上一堆警車，鄰居說是三樓那個租客燒炭。年紀輕輕的好可惜…但我越聽越覺得哪裡怪怪的，開一串讓大家討論。（勿肉搜、勿散布未證實消息）
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="board">
+    <div class="bhead"><i class="acc"></i>留言 <span class="cnt" id="cnt">—</span></div>
+    <div id="thread"></div>
+  </div>
+  <div class="sync" id="sync">本串留言由系統自動同步</div>
+</div>
+
+<div class="foot">
+  © 城中大小事 在地討論版｜本版內容由網友自由發表，不代表本站立場。<br>
+  <span style="color:#4c5563">（本頁為解謎遊戲虛構道具，地點／人物／情節皆屬原創虛構，不影射任何真實個案。）</span>
+</div>
+
+<div class="wq-drips" id="wqDrips" aria-hidden="true"></div>
+
+<script>
+/* ---- 留言資料：appear=第幾階段出現；deleteAt/hideAt=第幾階段起變刪除/隱藏 ---- */
+const THREAD = [
+  { id:'c1', name:'匿名 A', color:'#8fb0c9', time:'3/6 09:12', text:'R.I.P…聽說是工作壓力大想不開，年輕人真的要多關心身邊的人。', likes:41, appear:1 },
+  { id:'c2', name:'住樓下的', color:'#c9b48f', time:'3/6 10:30', text:'我就住他樓下…那天半夜好像有聽到搬東西、拖來拖去的聲音，本來沒多想。', likes:28, appear:1 },
+  { id:'c3', name:'匿名 B', color:'#9fc98f', time:'3/7 12:40', text:'可是他不是下個月就要搬走了嗎？連退租單都遞了，要搬家的人會想不開喔？', likes:73, appear:2 },
+  { id:'c4', name:'知情人', color:'#c98f9f', time:'3/7 15:22', text:'他最近跟一個做投資的走超近，還借了對方一筆錢，上禮拜好像為了錢的事吵過。', likes:96, appear:2 },
+  { id:'c5', name:'路過', color:'#8f9fc9', time:'3/7 18:03', text:'我朋友認識那個姓韓的，那人風評…算了我還是別亂講。', likes:64, appear:2, deleteAt:3 },
+  { id:'c6', name:'表哥的朋友', color:'#c9a88f', time:'3/9 13:10', text:'剛聽到更扯的——他名下居然多了一張高額保單，受益人還不是家人??', likes:158, appear:3 },
+  { id:'c7', name:'同棟住戶', color:'#8fc9c0', time:'3/9 21:44', text:'那晚快十一點我在陽台抽菸，真的有看到一個男的上樓去找他，沒看到人下來。', likes:132, appear:3 },
+  { id:'c8', name:'匿名 C', color:'#b08fc9', time:'3/10 08:15', text:'受益人聽說姓韓…就是那個做投資的吧？', likes:120, appear:3, hideAt:4 },
+  { id:'c9', name:'看新聞的', color:'#5aa6b8', time:'3/12 10:02', text:'欸新聞更新了！檢察官改用他殺方向偵辦，說相驗結果跟燒炭對不起來…到底是誰下的手', likes:245, appear:4 },
+  { id:'c10', name:'版務', color:'#6f7c8c', time:'3/12 11:30', text:'本案已進入偵查程序，偵查不公開，請勿再散布未經證實之訊息或個資，違者刪文送辦。', likes:9, appear:4 },
+];
+
+function render(stage){
+  const box = document.getElementById('thread'); box.innerHTML=''; let shown=0;
+  THREAD.forEach(c=>{
+    if (c.appear>stage) return; shown++;
+    const deleted = c.deleteAt && stage>=c.deleteAt;
+    const hidden  = c.hideAt   && stage>=c.hideAt;
+    const el=document.createElement('div');
+    el.className='cmt'+(deleted||hidden?' removed':'');
+    if (deleted||hidden){
+      const label = deleted?'［此留言已被原作者刪除］':'［此留言已被檢舉隱藏］';
+      el.innerHTML=`<div class="ava">－</div><div class="cbody"><div class="crow"><span class="cname" style="color:#7a8494">${c.name}</span><span class="ctime">${c.time}</span></div><div class="ctext">${label}</div></div>`;
+    } else {
+      const ini=c.name.replace(/\s/g,'').slice(-2);
+      el.innerHTML=`<div class="ava" style="background:${c.color}">${ini}</div><div class="cbody"><div class="crow"><span class="cname">${c.name}</span><span class="ctime">${c.time}</span></div><div class="ctext">${c.text}</div><div class="cfoot"><span>讚 ${c.likes}</span><span>回覆</span><span>檢舉</span></div></div>`;
+    }
+    box.appendChild(el);
+  });
+  document.getElementById('cnt').textContent = `共 ${shown} 則`;
+}
+
+/* ---- 階段：?stage 覆寫（測試/授權，不顯示數字）；否則讀共用 puzzle_stage，每 15 秒輪詢 ---- */
+const PUZZLE_ID='wenshan-charcoal-coverup';
+const FB='AIzaSyAZaa_yHu7gsRaj71YL8x3REHfL_V5Tq4w';
+const CFG=`https://firestore.googleapis.com/v1/projects/sml2026newscore/databases/(default)/documents/sml_config/puzzle_stage?key=${FB}`;
+const override=parseInt(new URLSearchParams(location.search).get('stage'),10);
+let current=1;
+function clamp(n){ return Math.min(4,Math.max(1,n||1)); }
+if (override>=1 && override<=4){
+  render(clamp(override));
+  document.getElementById('sync').textContent='本串留言由系統自動同步';   // 預覽也不洩露階段數
+} else {
+  render(1);
+  const poll=()=>fetch(CFG).then(r=>r.json()).then(d=>{
+    const f=(d&&d.fields)||{};
+    const pid=(f.puzzleId&&f.puzzleId.stringValue)||'';
+    const st=parseInt((f.stage&&f.stage.integerValue)||'1',10);
+    const use=(pid===PUZZLE_ID)?clamp(st):1;
+    if (use!==current){ current=use; render(current); }
+  }).catch(()=>{});
+  poll(); setInterval(poll,15000);
+}
+
+/* ---- 水滴：稀疏隨機，天花板滲水氛圍 ---- */
+(function(){
+  const layer=document.getElementById('wqDrips'); if(!layer) return;
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const MIN=4200, MAX=8000, FLOOR=0.72, LEAKS=[0.2,0.5,0.82];
+  const rnd=(a,b)=>a+Math.random()*(b-a);
+  function drop(){
+    const x=(LEAKS[(Math.random()*LEAKS.length)|0]+rnd(-.04,.04))*innerWidth, fy=FLOOR*innerHeight;
+    const d=document.createElement('div'); d.className='drip'; d.style.left=x+'px';
+    d.style.setProperty('--drop',fy+'px'); d.style.setProperty('--fall',(rnd(780,1010)|0)+'ms'); layer.appendChild(d);
+    setTimeout(()=>{ d.remove();
+      const mk=c=>{const e=document.createElement('div');e.className=c;e.style.left=x+'px';e.style.top=fy+'px';layer.appendChild(e);e.addEventListener('animationend',()=>e.remove());return e;};
+      mk('splash'); const n=2+((Math.random()*2)|0);
+      for(let i=0;i<n;i++){const f=mk('fleck');f.style.setProperty('--fx',(rnd(-9,9)|0)+'px');f.style.setProperty('--fy',(rnd(7,14)|0)+'px');}
+    },900);
+    setTimeout(drop,rnd(MIN,MAX));
+  }
+  setTimeout(drop,rnd(900,2600));
+})();
+</script>
+</body>
+</html>

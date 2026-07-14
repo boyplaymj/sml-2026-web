@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 28%,#46413a,#221f1b 82%);perspective:2200px;font-family:"Noto Sans CJK TC",sans-serif;}
+  .doc{position:relative;width:720px;min-height:900px;padding:44px 46px;background:#fbfbf8;color:#1a1a1a;transform:rotateX(3deg) rotateZ(-1deg) rotateY(1deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);}
+  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 26%,transparent 76%,rgba(60,55,45,.13));mix-blend-mode:soft-light;}
+  .conf{color:#a01414;font-weight:800;font-size:13px;letter-spacing:3px;border:2px solid #a01414;display:inline-block;padding:2px 10px;position:absolute;top:40px;right:44px;transform:rotate(6deg);}
+  .org{font-size:22px;font-weight:900;letter-spacing:2px;}
+  .doctype{font-size:16px;letter-spacing:5px;color:#555;margin:2px 0 12px;border-bottom:2px solid #17130d;padding-bottom:10px;}
+  .tl{margin-top:8px;position:relative;padding-left:24px;}
+  .tl::before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:#c8bfa8;}
+  .ev{position:relative;margin-bottom:15px;font-size:15.5px;line-height:1.5;}
+  .ev::before{content:"";position:absolute;left:-21px;top:5px;width:11px;height:11px;border-radius:50%;background:#7a6f52;border:2px solid #fff;box-shadow:0 0 0 1px #7a6f52;}
+  .ev.k::before{background:#c11414;box-shadow:0 0 0 1px #c11414;}
+  .ev .d{font-weight:800;}
+  .ev .t{color:#333;}
+  .ev.k .t{color:#a01414;font-weight:700;}
+  .concl{margin-top:12px;background:#f6f1ea;border-left:4px solid #a01414;padding:12px 16px;font-size:16px;line-height:1.85;}
+  .concl .em{color:#a01414;font-weight:800;}
+  .sign{margin-top:18px;text-align:right;font-size:14px;color:#333;}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="conf">機密 · 偵字卷</div>
+      <div class="org">城中地方檢察署</div>
+      <div class="doctype">案情時序彙整表　偵字第 114-206 號</div>
+      <div class="tl">
+        <div class="ev"><span class="d">2/10</span>　<span class="t">被保險人林昱翔投保城中人壽終身壽險（身故 2,000 萬），保費自其帳戶扣款。</span></div>
+        <div class="ev"><span class="d">2/20 – 2/28</span>　<span class="t">林陸續轉款予韓子謙共 23 萬元（投資款），並辦理信貸 20 萬。</span></div>
+        <div class="ev k"><span class="d">3/3</span>　<span class="t">保單受益人由「法定繼承人」變更為韓子謙——申請書簽名經鑑定為<b>冒簽</b>。</span></div>
+        <div class="ev"><span class="d">3/4</span>　<span class="t">林向房東遞交提前退租通知（預定 4/5 遷出）。</span></div>
+        <div class="ev k"><span class="d">3/5 22:41</span>　<span class="t">韓子謙車輛進入文山雅居停車場（韓自稱當晚人在台中）。</span></div>
+        <div class="ev k"><span class="d">3/5 22:47</span>　<span class="t">社區訪客簿登記「韓」上樓拜訪 3F 林宅。</span></div>
+        <div class="ev k"><span class="d">3/5 23:00–24:00</span>　<span class="t">法醫推定死亡時間。相驗：COHb 僅 18%、頸部索狀壓痕（生前傷）——<b>非燒炭致死</b>。</span></div>
+        <div class="ev k"><span class="d">3/6 00:22</span>　<span class="t">韓子謙車輛離場。</span></div>
+        <div class="ev"><span class="d">3/6 上午</span>　<span class="t">房東發現、報案；韓另請友人「阿榮」為其偽造台中不在場證明。</span></div>
+      </div>
+      <div class="concl">時序顯示：韓子謙於冒簽變更受益人後、在場期間內致林死亡，<span class="em">佈置成燒炭自殺並偽造不在場證明</span>，動機為詐領 2,000 萬身故保險金。</div>
+      <div class="sign">承辦檢察官　偵字第 114-206 號</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>

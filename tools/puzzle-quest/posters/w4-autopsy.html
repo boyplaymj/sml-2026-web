@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 28%,#46413a,#221f1b 82%);perspective:2200px;font-family:"Noto Serif CJK TC","Noto Sans CJK TC",serif;}
+  .doc{position:relative;width:668px;min-height:900px;padding:48px 52px;background:#fbfbf8;color:#1a1a1a;transform:rotateX(3deg) rotateZ(-1deg) rotateY(1deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);}
+  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 26%,transparent 76%,rgba(60,55,45,.13));mix-blend-mode:soft-light;}
+  .org{text-align:center;font-size:24px;font-weight:900;letter-spacing:3px;}
+  .doctype{text-align:center;font-size:18px;letter-spacing:8px;color:#555;margin:4px 0 12px;}
+  .conf{text-align:center;color:#a01414;font-weight:800;font-size:14px;letter-spacing:4px;border:2px solid #a01414;display:inline-block;padding:2px 12px;position:absolute;top:44px;right:48px;transform:rotate(6deg);}
+  .rows{font-size:15px;line-height:1.9;border-top:2px solid #17130d;border-bottom:1px solid #999;padding:10px 0;margin-top:6px;font-family:"Noto Sans CJK TC";}
+  .rows .r{display:flex;gap:8px;}.rows .k{font-weight:800;width:96px;}
+  .sec{margin-top:16px;font-size:16px;line-height:1.95;font-family:"Noto Sans CJK TC";}
+  .sec .h{font-weight:900;letter-spacing:1px;margin-bottom:4px;}
+  .sec ol{margin-left:24px;}
+  .sec li{margin-bottom:9px;}
+  .em{color:#a01414;font-weight:800;}
+  .big{background:#fff2b0;font-weight:900;padding:0 4px;}
+  .concl{margin-top:16px;background:#f6f1ea;border-left:4px solid #a01414;padding:12px 16px;font-size:16.5px;line-height:1.85;font-family:"Noto Sans CJK TC";}
+  .sign{margin-top:22px;text-align:right;font-size:15px;line-height:1.8;color:#333;font-family:"Noto Sans CJK TC";}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="conf">機密 · 偵字卷</div>
+      <div class="org">城中地方檢察署　法醫相驗</div>
+      <div class="doctype">相 驗 摘 要 報 告</div>
+      <div class="rows">
+        <div class="r"><span class="k">死者</span><span>林昱翔（男，29）</span></div>
+        <div class="r"><span class="k">案由</span><span>套房內燒炭死亡（文山路）</span></div>
+        <div class="r"><span class="k">相驗日</span><span>3/6 – 3/7</span></div>
+      </div>
+      <div class="sec">
+        <div class="h">相驗與檢驗發現：</div>
+        <ol>
+          <li>血液<b>碳氧血紅素飽和度（COHb）經檢驗僅 <span class="big">18%</span></b>。<span class="em">燒炭一氧化碳中毒致死者通常高達 60% 以上</span>；本案數值明顯偏低，與「一氧化碳中毒致死」不符。</li>
+          <li>眼瞼結膜、鞏膜見<span class="em">多處點狀出血</span>；顏面輕度淤血。</li>
+          <li>頸部見<span class="em">水平索狀壓痕，伴皮下出血（生活反應）</span>，為生前頸部受外力壓迫之特徵。</li>
+          <li>屍斑分布<span class="em">與陳屍姿勢不相符</span>，研判死後曾遭移動、變換體位。</li>
+          <li>現場炭盆之木炭多未燃盡、僅表層灰化，燃燒程度與「密閉燒炭一整夜」不相稱。</li>
+        </ol>
+      </div>
+      <div class="concl">綜合研判：死者<span class="em">並非一氧化碳中毒（燒炭）致死</span>，死因與<b>頸部受壓（生前遭外力）</b>相符；研判係<span class="em">死後移置、佈置成燒炭現場之偽裝</span>。死亡方式與「自殺／意外」不符，<b>建議以他殺方向偵辦</b>。</div>
+      <div class="sign">相驗法醫　吳孟哲<br>檢察官　偵字第 114-206 號</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>
