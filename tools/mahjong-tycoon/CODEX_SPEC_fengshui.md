@@ -276,6 +276,114 @@ fengshui = clamp( Σ slotScore_i , 0, 100 )
 locationFortune = Σ_facility( catalogs.surroundings[fid].fortuneMod )   # 該區 location.surroundings 逗號分隔 id
 effectiveFengshui = clamp( layoutFengshui + balance.ambience.fortuneToFengshui × locationFortune , 0, 100 )
 ```
-- 設施型錄 `catalogs.surroundings`(後台已上線):🏥醫院 fortuneMod−2 / ⛩️小私廟−2 / 🛕大廟+3 / ⚰️殯儀館−3 / 🌳公園+1 / 🏦銀行+1 …
+- 設施型錄 `catalogs.surroundings`(後台已上線):🏥醫院 fortuneMod−2 / ⛩️小私廟−2 / 🛕大廟+3 / ⚰️殯儀館−3 / 🌳公園+1 / 🏦銀行+1 / **🎰彩券行(新,2026-07-14)fortuneMod+1·moodMod+1**(旁有彩券行=賭運/求財氛圍,信風水客群小加持、全客群沾點手氣期待感;純周遭設施,不是館內服務,無非賭博疑慮) …
 - **信風水客群(elderly/whale/regular,w9 高)最有感** → 選址旁邊有殯儀館/野廟,風水擺再好也被拖;旁有大廟則加持(但大廟 moodMod−2 心情吵,見 clientflow 心情軸)。
 - effectiveFengshui 才是進吸引力 w9 的值。
+
+---
+
+## 16. 運氣傳染系統(2026-07-14,使用者點名 — 風水的「臨場放大器」)
+
+> 使用者本意:運氣值主要為了**結合風水**——運氣低 → 客人反應差 → 影響生意/滋事。定案:①**不對稱傳染**(負>正)②**桌級為單位**(4人一桌)③**要熟客層**④**風水能抵抗到某上限、不無敵**⑤**衰神💀/財神🤑都做**。
+
+### 16.1 定位:風水=結構基準,傳染=臨場浮動
+- **風水(effectiveFengshui,§15)= 結構性運氣基準**,玩家長期經營的旋鈕,抬高「全桌起跑線」。
+- **運氣傳染 = 每桌每晚會變的臨場浮動**。風水**壓制**衰神但**不免疫**(§16.4 上限)→ 逼玩家用座位/占卜/化煞臨場處置,風水不能一鍵通關。
+- ⚠️ 本節**取代 §6 的聚合 `luckSentiment`**,升級為 per-customer + 桌級傳染模型;§6 簡化式保留為平面圖/桌級模型未上線前的 fallback(feature flag)。
+
+### 16.2 客人運氣值 `luck`(成桌那刻算,0–100)
+每個入桌客人一個隱藏 luck(散客臨時、常客持久,§16.6):
+```
+luckBase = clamp( 50
+  + fengshuiLift(effectiveFengshui)     // §16.4,風水抬基準,吃上限
+  + trait                                // 常客=持久 luckTrait / 散客=seededNoise 派生
+  + goodsLuck                            // 該客持有/當次開運小物加成,§16.7,吃自己的上限
+  + diviBuff                             // 占卜師對人 buff,§16.9,吃自己的上限
+  + seededNoise(parlorId, tableId, bucketTs, seat)   // deterministic 雜訊,不現場亂數
+, 0, 100)
+```
+- `effectiveFengshui` 已 fold layout+locationFortune(§15),**不重複加**。
+
+### 16.3 桌級不對稱傳染(負>正)
+一桌 4 座算一個偏向低端的「桌氣場」:
+```
+tableField = mean(luck) − negBias·(mean − min)      // negBias≈0.6(seed),往衰神偏
+每座位 i:
+  pull = (tableField < luck_i) ? contagionDown       // 被往下拖:強(≈0.5)
+                               : contagionUp          // 被往上拉:弱(≈0.25)
+  finalLuck_i = clamp( luck_i + pull·(tableField − luck_i) , 0, 100 )
+```
+→ **一個衰神拖垮全桌(0.5),一個財神只能溫和救場(0.25)**。係數全 seed 於 `balance.luck`。
+
+### 16.4 風水抵抗上限 `fengshuiResistCap`(能抵抗、不無敵)
+風水對「缺的運氣」最多補到一個上限點數:
+```
+fengshuiLift = min( fengshuiResistCap, (effectiveFengshui/100)·luckGainMax )
+```
+- 例 `fengshuiResistCap=+20`:運氣 10 的衰神,風水拉滿最多到 30 → **變好但仍是麻煩**,穿透上限的負值繼續走 §16.5 後果;財神(85)根本用不到。
+- **極端衰神穿透上限** = 風水保平均盤、逼你動座位/占卜/化煞。
+
+### 16.5 後果:低運氣 → 反應差(全接既有系統,不新造後果)
+`finalLuck` 低 → 該客反應差,分流到既有管線(全走 deterministic,§16.10):
+| 後果 | 接到 |
+|---|---|
+| 滋事機率↑ | `troubleRisk`(clientflow)→ 鬧事事件(**保全**壓) |
+| 心情差→客單價/停留↓ | mood/ambience 係數(clientflow §6.8) |
+| 負評湧入 | review driver → `catalogs.reviewChannels`(衰→刷 Threads/地標負評) |
+| 回頭率↓ | returnProb → 熟客層(§16.6) |
+- **高 finalLuck 反向**:客單價/回頭/buzz↑、更會買開運小物(upsell 正回饋,接 §P 店內銷售)。
+
+### 16.6 衰神💀 / 財神🤑(一對鏡像常客,持久 luckTrait)
+| | 💀 衰神 | 🤑 財神 |
+|---|---|---|
+| `luckTrait` | 持久低 | 持久高 |
+| 傳染 | 負傳染強(拖全桌) | 正傳染弱(溫和抬桌,符合不對稱) |
+| 招牌價值 | 反覆毒害的難題;**衰神大戶兩難**=留他進帳 vs 趕他乾淨+少負評 | 磁鐵:帶旺+大家想跟贏家同桌→拉湊咖/客流;配桌鎮爛咖 |
+| 玩家處置 | 婉拒入場/隔離座位/化煞鎮那格/占卜揪出 | 招待(comp)、指定好位留住 |
+- **逐次揭露**(沿用員工面試 tell):常客來 N 次後跳線索(「這位客人最近手氣…」),帶雜訊、逐步確定是衰神/財神。
+- **衰神大戶**:數值上要能同時是高 spend + 低 luckTrait,撐起「留他還是趕他」的核心抉擇。
+
+### 16.7 加成來源各自吃上限(防疊無敵)
+風水(§16.4)、開運小物(§P)、占卜師(§16.9)三條加成來源**各有各的 cap 分開結算**,不可疊成「無敵衰神也能救」:
+```
+luckGain = min(fengshuiResistCap, fengshuiLift)
+         + min(goodsLuckCap,      goodsLuck)
+         + min(diviBuffCap,       diviBuff)
+// 三者仍受 luckBase 的 clamp(...,0,100) 總封頂
+```
+
+### 16.8 熟客層資料模型(要設計)
+- **散客**:luck 純 seededNoise 派生,散場即忘,不存。
+- **常客 `parlors.regulars[]`**:上限陣列(如常來前 N=20~30 名,按 visitCount 汰換),每筆:
+```jsonc
+{ "customerId":"c_...", "clientType":"whale", "luckTrait": 12, "spendTier": 3,
+  "visitCount": 7, "revealLevel": 2, "kind": "jinx|god|normal", "heldGoods": ["pixiu"] }
+```
+- ⚠️ **寫入走 `UpdateCommand`**(記憶/§13-C:ParlorDAO PutCommand 整筆覆寫會洗掉並發更新);roster 設上限避免 item 膨脹,長大再拆獨立表 `mahjong-tycoon-regulars`(PK=parlorId,SK=customerId)。
+- 開運小物「持有中」:散客當次有效、**常客可持有累積**(寫 `heldGoods`,持久加成)。
+
+### 16.9 占卜師 🔮(新顧問類,與風水老師平行)— config `catalogs.diviners`
+解掉「運氣看不見」的盲點:
+| 服務 | 效果 |
+|---|---|
+| **占卜揭露** | 揭示指定客人/常客的 `luckTrait` 與 kind(揪出衰神/財神);花錢買診斷 |
+| **改運 buff** | 對單一客人下**臨時運氣 buff**(化煞的「對人版」,`diviBuff`,吃 §16.7 cap) |
+| **開運駐場** | 常駐吸引運勢客群(elderly/whale)→ 客流/buzz↑ |
+- 分級沿用**江湖術士 charlatanRisk**(可能誤報/亂改運)→ 準師傅。schema 仿 `catalogs.fengshuiMasters`(tier/cost/accuracy/charlatanRisk/cooldown)。
+
+### 16.10 Determinism(必守,§13-B 同款鐵律)
+所有 luck roll、傳染、衰神/財神揭露、占卜結果、抽籤結果**用 `hash(parlorId, tableId, bucketTs, seat)` seed**,不現場亂數;常客 `luckTrait` 一經生成即持久(不重抽)。防玩家狂點刷新重抽運氣。
+
+### 16.11 config / parlors 新增
+- config:`catalogs.diviners`(占卜師)、`balance.luck`(negBias/contagionUp/Down/fengshuiResistCap/luckGainMax/goodsLuckCap/diviBuffCap/衰神財神生成率/揭露門檻)。
+- parlors:`regulars[]`(§16.8)。
+
+### 16.12 驗收點(給 Codex)
+1. luckBase 由 effectiveFengshui+trait+goods+divi+seededNoise 派生,同輸入→同輸出(狂刷不變)。
+2. 桌級不對稱傳染:同一衰神令全桌 finalLuck 下拉幅度 > 同級財神上抬幅度。
+3. 風水抵抗上限:高 fengshui 也無法把 luck 10 衰神拉過 `fengshuiResistCap`,穿透部分仍觸發 §16.5 後果。
+4. 三加成來源各自吃 cap,無法疊成無敵。
+5. 低 finalLuck → troubleRisk/負評 driver/回頭↓,高 → 客單價/buzz/開運小物銷量↑。
+6. 衰神/財神常客持久、逐次揭露(revealLevel 遞增、帶雜訊)、衰神大戶兩難數值成立。
+7. regulars 走 UpdateCommand、上限汰換、heldGoods 持有加成(常客持久/散客當次)。
+8. 占卜師揭露/改運 buff/駐場、江湖術士 charlatanRisk 誤報。
