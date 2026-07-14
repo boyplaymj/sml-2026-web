@@ -110,10 +110,13 @@
 
 ## 7. 資料表（DynamoDB，沿用現有 DAO 慣例）
 
-- `election-meta`：PK=electionId。{guildId, roleId, voterRoleId, title, phase, votingDeadline, createdBy, winnerId}
-- `election-candidate`：PK=electionId, SK=userId。{name, slogan, policy, manifesto, photoUrl, style(A/B/C/M), posterUrl, deposit, signatureCount, official(bool), ballotNo}
-- `election-signature`：PK=electionId#candidateId, SK=voterId。（連署防重複）
-- `election-vote`：PK=electionId, SK=voterId。{candidateId, votedAt} ← **plan A：userId→票，管理者可稽核，conditional put 防重複**
+> **表名一律 `sweetbot-` 前綴**（站上所有 DDB 表慣例，如 sweetbot-random-event-topic / sweetbot-puzzle）。config 表已上線，bot 端各表請照下列名稱建，勿用無前綴版本（避免後台與 bot 各查各的表）。
+
+- `sweetbot-election-config`：PK=id。**已上線**：單筆 `id='__config__'`，`{config:{...後台所有可調欄位}, updatedAt, updatedBy}`；後台 election_admin.html 寫、甜甜 bot 讀。
+- `sweetbot-election-meta`：PK=electionId。{guildId, roleId, voterRoleId, title, phase, votingDeadline, createdBy, winnerId}
+- `sweetbot-election-candidate`：PK=electionId, SK=userId。{name, slogan, policy, manifesto, photoUrl, style(A/B/C/M), posterUrl, deposit, signatureCount, official(bool), ballotNo} ← 後台 config Lambda 的 `listCandidates` 已掃此表名（表未建時回空陣列）。
+- `sweetbot-election-signature`：PK=electionId#candidateId, SK=voterId。（連署防重複）
+- `sweetbot-election-vote`：PK=electionId, SK=voterId。{candidateId, votedAt} ← **plan A：userId→票，管理者可稽核，conditional put 防重複**
 
 ## 8. 前置/地雷
 
