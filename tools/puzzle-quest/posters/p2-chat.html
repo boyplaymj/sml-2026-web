@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Sans CJK TC",sans-serif;}
+  html,body{background:#222;}
+  .phone{width:720px;height:1180px;background:#a9c3d6;position:relative;display:flex;flex-direction:column;}
+  .status{height:44px;background:#7d9bb3;display:flex;align-items:center;justify-content:space-between;padding:0 26px;color:#fff;font-size:22px;font-weight:600;}
+  .head{height:80px;background:#6f8fa9;display:flex;align-items:center;padding:0 20px;color:#fff;gap:14px;}
+  .head .back{font-size:30px;}
+  .head .av{width:48px;height:48px;border-radius:50%;background:#8a7db5;flex:none;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;}
+  .head .name{font-size:25px;font-weight:700;flex:1;}
+  .head .name small{display:block;font-size:15px;font-weight:400;opacity:.85;}
+  .head .ic{display:flex;align-items:center;opacity:.9;}
+  .msgs{flex:1;padding:22px 22px 30px;display:flex;flex-direction:column;gap:14px;overflow:hidden;}
+  .day{align-self:center;background:rgba(0,0,0,.24);color:#fff;font-size:16px;padding:5px 16px;border-radius:14px;margin:4px 0;}
+  .row{display:flex;align-items:flex-start;gap:9px;max-width:80%;}
+  .row.me{align-self:flex-end;flex-direction:row-reverse;}
+  .col{display:flex;flex-direction:column;gap:3px;}
+  .line{display:flex;align-items:flex-end;gap:8px;}
+  .row.me .line{flex-direction:row-reverse;}
+  .bubble{padding:13px 17px;font-size:22px;line-height:1.5;border-radius:20px;}
+  .them .bubble{background:#fff;color:#1a1a1a;border-top-left-radius:6px;}
+  .me .bubble{background:#8de05a;color:#12300a;border-top-right-radius:6px;}
+  .time{font-size:14px;color:#33445a;white-space:nowrap;}
+</style></head>
+<body>
+  <div class="phone">
+    <div class="status"><div>20:35</div><div style="display:flex;align-items:center;gap:7px;font-size:20px;"><svg width="24" height="18" viewBox="0 0 24 18" fill="#fff"><path d="M12 4C7.5 4 3.7 6.4 1.5 9.2L12 17 22.5 9.2C20.3 6.4 16.5 4 12 4z"/></svg><span>5G</span><span style="display:inline-block;width:30px;height:15px;border:2px solid #fff;border-radius:3px;position:relative;"><span style="position:absolute;right:-4px;top:4px;width:3px;height:5px;background:#fff;"></span><span style="display:block;height:100%;width:62%;background:#fff;"></span></span></div></div>
+    <div class="head">
+      <div class="back">‹</div>
+      <div class="av">周</div>
+      <div class="name">周敬堯（周總）<small>上次上線 今天</small></div>
+      <div class="ic"><svg width="26" height="26" viewBox="0 0 26 26" fill="#fff"><rect x="3" y="5" width="20" height="3" rx="1.5"/><rect x="3" y="11.5" width="20" height="3" rx="1.5"/><rect x="3" y="18" width="20" height="3" rx="1.5"/></svg></div>
+    </div>
+    <div class="msgs">
+      <div class="day">6月3日 星期二</div>
+
+      <div class="row me"><div class="col"><div class="line"><div class="time">19:48</div><div class="bubble">敬堯，那幾筆帳我請會計拉出來了，你抽空跟我對一下</div></div></div></div>
+
+      <div class="row them"><div class="col"><div class="line"><div class="bubble">幹嘛突然要查這個，我們合作這麼多年了</div><div class="time">19:57</div></div></div></div>
+
+      <div class="row me"><div class="col"><div class="line"><div class="time">20:04</div><div class="bubble">對清楚而已，不然拆夥也要算明白</div></div></div></div>
+
+      <div class="row them"><div class="col">
+        <div class="line"><div class="bubble">你認真要拆？</div><div class="time">20:11</div></div>
+        <div class="line"><div class="bubble">別逼我難看啊</div><div class="time">20:12</div></div>
+      </div></div>
+
+      <div class="row me"><div class="col"><div class="line"><div class="time">20:19</div><div class="bubble">就事論事。禮拜五之前給我</div></div></div></div>
+    </div>
+  </div>
+</body>
+</html>
