@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Sans CJK TC",sans-serif;}
+  html,body{background:#222;}
+  .phone{width:720px;height:1180px;background:#f2f2f6;position:relative;display:flex;flex-direction:column;}
+  .status{height:44px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 26px;color:#111;font-size:22px;font-weight:600;}
+  .head{background:#fff;padding:10px 24px 14px;border-bottom:1px solid #d8d8dc;}
+  .head .tabs{display:flex;justify-content:center;margin-bottom:12px;}
+  .head .tabs span{font-size:16px;padding:6px 22px;border:1px solid #b9b9c0;color:#555;}
+  .head .tabs .on{background:#e4e4ea;color:#111;font-weight:700;}
+  .head .tabs span:first-child{border-radius:8px 0 0 8px;}
+  .head .tabs span:last-child{border-radius:0 8px 8px 0;border-left:none;}
+  .head h1{font-size:36px;font-weight:800;color:#111;letter-spacing:2px;}
+  .list{flex:1;background:#fff;overflow:hidden;}
+  .sect{padding:14px 24px 8px;font-size:17px;color:#7a7a82;font-weight:600;background:#f2f2f6;border-bottom:1px solid #e2e2e8;letter-spacing:1px;}
+  .row{display:flex;align-items:center;gap:16px;padding:20px 24px;border-bottom:1px solid #ececf0;}
+  .dir{width:34px;flex:none;display:flex;align-items:center;justify-content:center;}
+  .col{flex:1;min-width:0;}
+  .nm{font-size:25px;color:#111;font-weight:600;line-height:1.3;}
+  .nm.missed{color:#e03a2f;}
+  .sub{font-size:16px;color:#8a8a92;margin-top:2px;letter-spacing:1px;}
+  .tm{font-size:19px;color:#8a8a92;flex:none;letter-spacing:1px;}
+  .info{flex:none;width:32px;height:32px;border:2px solid #3478f6;border-radius:50%;color:#3478f6;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;font-family:Georgia,serif;}
+  .homebar{height:34px;background:#fff;display:flex;align-items:center;justify-content:center;}
+  .homebar i{width:150px;height:6px;border-radius:3px;background:#c9c9cf;}
+</style></head>
+<body>
+  <div class="phone">
+    <div class="status"><div>10:12</div><div style="display:flex;align-items:center;gap:7px;font-size:20px;"><svg width="24" height="18" viewBox="0 0 24 18" fill="#111"><path d="M12 4C7.5 4 3.7 6.4 1.5 9.2L12 17 22.5 9.2C20.3 6.4 16.5 4 12 4z"/></svg><span>5G</span><span style="display:inline-block;width:30px;height:15px;border:2px solid #111;border-radius:3px;position:relative;"><span style="position:absolute;right:-4px;top:4px;width:3px;height:5px;background:#111;"></span><span style="display:block;height:100%;width:65%;background:#111;"></span></span></div></div>
+    <div class="head">
+      <div class="tabs"><span class="on">全部</span><span>未接來電</span></div>
+      <h1>通話紀錄</h1>
+    </div>
+    <div class="list">
+      <div class="sect">6月12日 星期四</div>
+
+      <div class="row">
+        <div class="dir"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#3478f6" stroke-width="2.4"><path d="M19 15v4H5V5h4"/><path d="M20 11V4h-7"/><path d="M20 4 10 14"/></svg></div>
+        <div class="col"><div class="nm">怡君（妻）</div><div class="sub">來電・行動電話・1分05秒</div></div>
+        <div class="tm">22:41</div>
+        <div class="info">i</div>
+      </div>
+
+      <div class="row">
+        <div class="dir"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#34a853" stroke-width="2.4"><path d="M19 15v4H5V5h4"/><path d="M13 4h7v7"/><path d="M20 4 10 14"/></svg></div>
+        <div class="col"><div class="nm">王會計</div><div class="sub">去電・行動電話・3分47秒</div></div>
+        <div class="tm">22:19</div>
+        <div class="info">i</div>
+      </div>
+
+      <div class="row">
+        <div class="dir"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#e03a2f" stroke-width="2.4"><path d="M4 4l16 16M20 4 4 20"/></svg></div>
+        <div class="col"><div class="nm missed">蔡明凱</div><div class="sub">未接來電・行動電話</div></div>
+        <div class="tm">21:48</div>
+        <div class="info">i</div>
+      </div>
+
+      <div class="row">
+        <div class="dir"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#3478f6" stroke-width="2.4"><path d="M19 15v4H5V5h4"/><path d="M20 11V4h-7"/><path d="M20 4 10 14"/></svg></div>
+        <div class="col"><div class="nm">周敬堯（周總）</div><div class="sub">來電・行動電話・6分12秒</div></div>
+        <div class="tm">21:32</div>
+        <div class="info">i</div>
+      </div>
+
+      <div class="row">
+        <div class="dir"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#34a853" stroke-width="2.4"><path d="M19 15v4H5V5h4"/><path d="M13 4h7v7"/><path d="M20 4 10 14"/></svg></div>
+        <div class="col"><div class="nm">阿龍</div><div class="sub">去電・行動電話</div></div>
+        <div class="tm">18:47</div>
+        <div class="info">i</div>
+      </div>
+
+      <div class="sect">6月11日 星期三</div>
+
+      <div class="row">
+        <div class="dir"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#34a853" stroke-width="2.4"><path d="M19 15v4H5V5h4"/><path d="M13 4h7v7"/><path d="M20 4 10 14"/></svg></div>
+        <div class="col"><div class="nm">泓昌辦公室</div><div class="sub">去電・公司・11分20秒</div></div>
+        <div class="tm">16:03</div>
+        <div class="info">i</div>
+      </div>
+
+      <div class="row">
+        <div class="dir"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#3478f6" stroke-width="2.4"><path d="M19 15v4H5V5h4"/><path d="M20 11V4h-7"/><path d="M20 4 10 14"/></svg></div>
+        <div class="col"><div class="nm">阿龍</div><div class="sub">來電・行動電話・0分48秒</div></div>
+        <div class="tm">09:15</div>
+        <div class="info">i</div>
+      </div>
+    </div>
+    <div class="homebar"><i></i></div>
+  </div>
+</body>
+</html>

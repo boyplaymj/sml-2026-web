@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Sans CJK TC",sans-serif;}
+  html,body{background:#000;}
+  .stage{width:640px;height:1140px;position:relative;background:#05070d;overflow:hidden;color:#fff;}
+  /* 深夜房間意象:窗外雨 + 半空酒杯 */
+  .bgimg{position:absolute;inset:0;background:linear-gradient(180deg,#0a1226 0%,#0d1830 40%,#0a0f1c 72%,#060810 100%);}
+  .window{position:absolute;left:70px;top:180px;width:340px;height:430px;background:linear-gradient(200deg,#16264a,#0b1428 70%);border:10px solid #1a1d24;box-shadow:0 0 60px rgba(40,70,140,.25);}
+  .window::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:8px;background:#1a1d24;transform:translateX(-50%);}
+  .window::after{content:"";position:absolute;left:0;right:0;top:50%;height:8px;background:#1a1d24;transform:translateY(-50%);}
+  .rain{position:absolute;inset:0;background:repeating-linear-gradient(105deg,transparent 0,transparent 26px,rgba(180,205,255,.16) 26px,rgba(180,205,255,.16) 28px);}
+  .cityglow{position:absolute;left:100px;top:430px;width:280px;height:120px;background:radial-gradient(ellipse at 50% 100%,rgba(90,120,190,.35),transparent 70%);}
+  .table{position:absolute;left:0;right:0;bottom:0;height:300px;background:linear-gradient(#20180f,#0c0906 80%);}
+  .glass{position:absolute;left:420px;bottom:210px;width:110px;height:130px;}
+  .glass .cup{position:absolute;inset:0;background:linear-gradient(rgba(200,215,235,.16),rgba(200,215,235,.05));border:3px solid rgba(210,225,245,.35);border-top:2px solid rgba(210,225,245,.5);border-radius:6px 6px 12px 12px;}
+  .glass .wine{position:absolute;left:6px;right:6px;bottom:6px;height:44px;background:linear-gradient(#7a1f26,#4c0f14);border-radius:0 0 9px 9px;}
+  .glass::after{content:"";position:absolute;left:-30px;right:-30px;bottom:-16px;height:18px;background:radial-gradient(ellipse,rgba(0,0,0,.6),transparent 70%);}
+  .vig{position:absolute;inset:0;background:radial-gradient(circle at 50% 42%,transparent 40%,rgba(0,0,0,.55) 100%);}
+  .grain{position:absolute;inset:0;pointer-events:none;opacity:.12;mix-blend-mode:overlay;background:repeating-radial-gradient(circle at 34% 44%,#000 0,transparent 2px);}
+  /* IG 限動介面 */
+  .bar{position:absolute;left:14px;right:14px;top:14px;height:4px;border-radius:2px;background:rgba(255,255,255,.3);}
+  .bar i{display:block;width:72%;height:100%;border-radius:2px;background:rgba(255,255,255,.92);}
+  .hd{position:absolute;left:16px;top:30px;display:flex;align-items:center;gap:12px;}
+  .av{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#f09433,#dc2743,#bc1888);padding:2px;}
+  .av i{display:block;width:100%;height:100%;border-radius:50%;background:#3a4550;}
+  .hd b{font-size:19px;}
+  .hd small{font-size:16px;color:rgba(255,255,255,.75);margin-left:2px;}
+  .more{position:absolute;right:18px;top:42px;font-size:24px;letter-spacing:2px;color:#fff;}
+  /* 大字限動文字 */
+  .txt{position:absolute;left:40px;right:40px;top:47%;transform:translateY(-50%);text-align:center;font-size:40px;font-weight:800;line-height:1.75;letter-spacing:3px;text-shadow:0 2px 18px rgba(0,0,0,.85);}
+  /* 底部回覆列 */
+  .reply{position:absolute;left:18px;right:18px;bottom:20px;display:flex;align-items:center;gap:14px;}
+  .reply .box{flex:1;height:52px;border:1.5px solid rgba(255,255,255,.55);border-radius:26px;display:flex;align-items:center;padding:0 20px;font-size:17px;color:rgba(255,255,255,.75);}
+  /* 截圖標註 */
+  .cap{position:absolute;left:0;right:0;top:88px;display:flex;justify-content:center;}
+  .cap span{background:rgba(0,0,0,.62);border:1px solid rgba(255,255,255,.35);color:#ffd9a0;font-size:16px;letter-spacing:1.5px;padding:6px 16px;border-radius:6px;}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="bgimg"></div>
+    <div class="window"><div class="rain"></div></div>
+    <div class="cityglow"></div>
+    <div class="table"></div>
+    <div class="glass"><div class="cup"></div><div class="wine"></div></div>
+    <div class="vig"></div>
+    <div class="grain"></div>
+    <div class="bar"><i></i></div>
+    <div class="hd"><div class="av"><i></i></div><b>fang_yijun</b><small>23:47</small></div>
+    <div class="more">···</div>
+    <div class="cap"><span>限時動態・6月9日 23:47・已於隔日刪除（朋友截圖）</span></div>
+    <div class="txt">有些事，不說，<br>是不是就能當作<br>沒發生。</div>
+    <div class="reply">
+      <div class="box">傳送訊息…</div>
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M20.8 4.6a5 5 0 0 0-7 0L12 6.3l-1.8-1.7a5 5 0 1 0-7 7L12 20l8.8-8.4a5 5 0 0 0 0-7z"/></svg>
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></svg>
+    </div>
+  </div>
+</body>
+</html>
