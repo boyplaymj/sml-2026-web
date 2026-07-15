@@ -16,10 +16,10 @@
     "cmd": "!甜甜",
     "title": "🍬 邀請甜甜加入你的伺服器",
     "desc": "點下方連結，把甜甜 SweetBot 邀進你的 Discord 伺服器～",
-    "url": "https://discord.com/oauth2/authorize?client_id=909624656846286899&scope=bot&permissions=1073741824",
+    "url": "https://discord.com/oauth2/authorize?client_id=1526556858662260858&permissions=8&integration_type=0&scope=bot+applications.commands",
     "color": 16361172,
     "fields": [
-      { "name": "🔗 加入連結", "value": "https://discord.com/oauth2/authorize?client_id=909624656846286899&scope=bot&permissions=1073741824" }
+      { "name": "🔗 加入連結", "value": "https://discord.com/oauth2/authorize?client_id=1526556858662260858&permissions=8&integration_type=0&scope=bot+applications.commands" }
     ]
   }
 ]
