@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 40% 30%,#45403a,#221f1b 80%);perspective:2400px;font-family:"Noto Sans CJK TC",sans-serif;}
+  .doc{position:relative;width:700px;min-height:920px;padding:42px 46px;background:#fdfdfb;color:#1a1a1a;transform:rotateX(3deg) rotateZ(1deg) rotateY(-1deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 60px rgba(0,0,0,.6);}
+  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 26%,transparent 76%,rgba(60,55,45,.13));mix-blend-mode:soft-light;}
+  .hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #17304d;padding-bottom:10px;}
+  .co{font-size:23px;font-weight:900;color:#17304d;letter-spacing:1px;}.co small{display:block;font-size:13px;color:#6a6155;font-weight:400;letter-spacing:2px;}
+  .ttl{font-size:18px;font-weight:800;letter-spacing:2px;color:#333;}
+  .docno{display:flex;justify-content:space-between;font-size:14px;color:#555;margin-top:8px;}
+  .meta{font-size:16.5px;line-height:2;margin:14px 0 6px;}
+  .meta .k{display:inline-block;min-width:110px;color:#5a6472;font-weight:700;}
+  table{width:100%;border-collapse:collapse;font-size:16px;margin-top:8px;}
+  th,td{border:1px solid #c7ccd4;padding:10px 12px;text-align:left;vertical-align:top;line-height:1.7;}
+  th{background:#eaeef4;font-weight:800;width:130px;}
+  tr.key td{background:#fff6d8;font-weight:800;}
+  .sum{margin-top:16px;border:1px solid #cdd3dc;background:#f2f5f8;padding:13px 16px;font-size:15.5px;line-height:1.9;color:#333;}
+  .sum b{color:#a01414;}
+  .sign{margin-top:26px;display:flex;justify-content:space-between;align-items:flex-end;font-size:16px;color:#444;}
+  .sig{font-size:24px;color:#25406a;transform:rotate(-3deg);display:inline-block;margin-top:4px;letter-spacing:3px;}
+  .stamp{position:absolute;right:58px;bottom:170px;width:104px;height:104px;border:3px solid rgba(160,20,20,.42);border-radius:50%;color:rgba(160,20,20,.55);display:flex;align-items:center;justify-content:center;text-align:center;font-size:15px;font-weight:900;line-height:1.35;transform:rotate(-10deg);}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="hd"><div class="co">泓昌貿易股份有限公司<small>HUNGCHANG TRADING CO., LTD.</small></div><div class="ttl">人事處分通知</div></div>
+      <div class="docno"><span>文號：泓人字第 1140312 號</span><span>發文日期：中華民國 114 年 3 月</span></div>
+      <div class="meta">
+        <div><span class="k">受處分人</span>蔡明凱（業務部・專案經理）</div>
+        <div><span class="k">到職年資</span>7 年 4 個月</div>
+      </div>
+      <table>
+        <tr><th>事由</th><td>「宏益案」交付作業疏失，致貨況延誤、客戶求償，造成公司重大損失。經專案檢討會議認定，本案交付管理由當事人負主要責任。</td></tr>
+        <tr class="key"><th>核議處分</th><td>記過乙次、暫緩晉升。</td></tr>
+        <tr><th>依據</th><td>本公司工作規則第 42 條、獎懲辦法第 8 條。</td></tr>
+        <tr><th>生效日</th><td>自公告日起生效，列入年度考核。</td></tr>
+      </table>
+      <div class="sum">附註：本處分經總經理室核定。<b>當事人對處分結果表示不服</b>，並於檢討會議中對責任認定提出異議，惟經複議後維持原處分。</div>
+      <div class="sign">
+        <div>承辦：人事課 林○文<br>覆核：管理部經理</div>
+        <div style="text-align:right;">核定：總經理<br><span class="sig">楊士豪</span></div>
+      </div>
+      <div class="stamp">泓昌貿易<br>人事室<br>公告</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>

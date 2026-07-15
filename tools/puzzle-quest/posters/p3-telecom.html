@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 28%,#46413a,#221f1b 82%);perspective:2200px;font-family:"Noto Sans CJK TC",sans-serif;}
+  .doc{position:relative;width:720px;min-height:880px;padding:42px 44px;background:#fcfdfd;color:#1a1a1a;transform:rotateX(3deg) rotateZ(-1deg) rotateY(1deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);}
+  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 26%,transparent 76%,rgba(60,55,45,.13));mix-blend-mode:soft-light;}
+  .hdr{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #17130d;padding-bottom:10px;}
+  .co{font-size:21px;font-weight:900;}.co small{display:block;font-size:12px;color:#6a6155;font-weight:400;letter-spacing:1px;}
+  .ttl{font-size:19px;font-weight:800;letter-spacing:2px;}
+  .meta{display:flex;justify-content:space-between;font-size:13.5px;color:#555;margin-top:8px;}
+  .sysbar{margin-top:14px;background:#eef3f6;border:1px solid #9eb3c3;color:#1d3a5a;font-size:15px;padding:9px 13px;font-weight:700;}
+  table{width:100%;border-collapse:collapse;margin-top:14px;font-size:16px;font-family:"Noto Sans Mono CJK TC","Noto Sans CJK TC",monospace;}
+  th,td{border:1px solid #c2c8cc;padding:10px 11px;text-align:left;line-height:1.6;}
+  th{background:#eaeff1;font-weight:800;font-family:"Noto Sans CJK TC";}
+  tr.key td{background:#fff6d8;font-weight:800;}
+  .in{color:#1d6a3a;}.out{color:#8a5a14;}.miss{color:#a01414;}
+  .note{margin-top:18px;font-size:14.5px;line-height:1.9;color:#333;background:#f4f6f6;border-left:4px solid #17304d;padding:10px 14px;font-family:"Noto Sans CJK TC";}
+  .stamp{position:absolute;right:54px;bottom:110px;width:110px;height:110px;border:3px solid rgba(23,48,77,.4);border-radius:50%;color:rgba(23,48,77,.5);display:flex;align-items:center;justify-content:center;text-align:center;font-size:14.5px;font-weight:900;line-height:1.35;transform:rotate(-10deg);}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="hdr"><div class="co">台亞電信股份有限公司　法務調閱窗口<small>依調閱公文提供・機房系統紀錄匯出</small></div><div class="ttl">通聯紀錄調閱</div></div>
+      <div class="meta"><span>調閱門號：0933-152-668（登記用戶：楊士豪）</span><span>覆文號：台亞法字第 1140627 號</span></div>
+      <div class="meta" style="margin-top:4px;"><span>調閱單位：城中市警察局刑事警察大隊</span><span>調閱區間：114/06/12　20:00 – 24:00</span></div>
+      <div class="sysbar">本清單為交換機房通聯紀錄（CDR）原始匯出，紀錄留存於機房端。</div>
+      <table>
+        <tr><th>時間</th><th>類別</th><th>對方號碼</th><th>秒數</th></tr>
+        <tr><td>21:32</td><td class="in">來話（受話）</td><td>0919-402-115（周敬堯）</td><td>6分12秒</td></tr>
+        <tr><td>21:48</td><td class="miss">來話（未接）</td><td>0987-664-231（蔡明凱）</td><td>未接聽</td></tr>
+        <tr class="key"><td>22:05</td><td class="out">去話（撥出）</td><td>0912-337-084（未登記）</td><td>3分12秒</td></tr>
+        <tr><td>22:19</td><td class="out">去話（撥出）</td><td>0955-218-676（王記會計事務所）</td><td>3分47秒</td></tr>
+        <tr><td>22:41</td><td class="in">來話（受話）</td><td>0921-745-330（方怡君）</td><td>1分05秒</td></tr>
+      </table>
+      <div class="note">※ 括號內為門號登記名義人；「未登記」表該門號為預付卡或登記資料不全，無法逕行對應名義人。<br>※ 本清單依電信業者機房紀錄產出，完整無缺漏。</div>
+      <div class="stamp">台亞電信<br>法務調閱<br>專用章</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>
