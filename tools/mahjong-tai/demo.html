@@ -54,8 +54,8 @@
 <div class="wrap">
   <h1>🀄 麻將語音判台 Demo</h1>
   <p class="sub">按鈕後直接說出牌型(例:<b>「門清 正花 獨聽」</b>),
-     系統辨識 → 判台 → 顯示結果讓你<b>確認</b>再送出。<br>
-     ASR = 瀏覽器內建 Web Speech API(<b>免費、零後端</b>),需 Chrome/Edge。</p>
+     系統辨識 →〔<b style="color:var(--green)">音近校正</b>〕→ 判台 → 顯示結果讓你<b>確認</b>再送出。<br>
+     ASR = 瀏覽器內建 Web Speech API,再用<b>拼音比對</b>把「門青/讀聽/大思喜」等同音誤聽拉回正規台種。<b>免費、零後端</b>,需 Chrome/Edge。</p>
 
   <div id="err" class="err" style="display:none"></div>
 
@@ -68,32 +68,83 @@
   </div>
 
   <div id="result" class="card hidden"></div>
+
+  <div id="fly" class="sub" style="text-align:center;margin-top:6px;font-size:12.5px"></div>
 </div>
 
+<script src="vendor/pinyin-pro.js"></script>
+<script src="phonetic.js"></script>
+<script src="feedback.js"></script>
 <script src="scoring.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 let TABLE = null;
-let currentHits = null; // 供「移除某台種」後重算
+let currentHits = null; // 供「移除/補上台種」後重算
+let lastRaw = '', lastParsedIds = []; // 供飛輪:原始輸入 + 系統原判(用來算糾正差異)
+let taughtThisRound = false;          // 這回合使用者有沒有手動「補台」
 
-// 載入對照表
-fetch('./fan_table.json').then(r => r.json()).then(t => { TABLE = t; })
-  .catch(() => showErr('讀不到 fan_table.json — 請用本機伺服器開啟(見下方說明),不要用 file:// 直接開。'));
+// ---- 飛輪儲存(瀏覽器 localStorage;之後可換 DDB) ----
+const LS_KEY = 'mahjongCorrections';
+function loadCorrections() { try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch(e) { return []; } }
+function saveCorrection(rec) { const a = loadCorrections(); a.push(rec); try { localStorage.setItem(LS_KEY, JSON.stringify(a)); } catch(e){} }
+
+// 把累積的糾正萃取成建議 → 回灌對照表 → 重建音近索引(single-user demo:minCount=1 即時見效)
+function applyLearning() {
+  if (!window.MahjongFeedback || !TABLE) return 0;
+  let applied = 0;
+  try {
+    const sugg = MahjongFeedback.extractSuggestions(loadCorrections(), TABLE, { minCount: 1 });
+    sugg.forEach(s => { if (MahjongFeedback.applySuggestion(TABLE, s)) applied++; });
+    if (applied && window.MahjongPhonetic) MahjongPhonetic.buildIndex(TABLE);
+  } catch(e){}
+  return applied;
+}
+function refreshFly() {
+  const learned = (TABLE ? TABLE.fans.reduce((n,f)=> n + ((f.asr_confusions||[]).length), 0) : 0);
+  const collected = loadCorrections().length;
+  const el = $('#fly');
+  if (el) el.innerHTML = `🧠 飛輪:已學會 <b>${learned}</b> 條同音校正 · 已蒐集 <b>${collected}</b> 筆修正`
+    + (collected ? ` · <a href="#" id="flyReset" style="color:var(--dim)">清空</a>` : '');
+  const rs = $('#flyReset'); if (rs) rs.onclick = e => { e.preventDefault(); localStorage.removeItem(LS_KEY); location.reload(); };
+}
+
+// 載入對照表 + 建音近索引 + 套用已學會的校正
+fetch('./fan_table.json').then(r => r.json()).then(t => {
+  TABLE = t;
+  if (window.MahjongPhonetic) { try { MahjongPhonetic.buildIndex(TABLE); } catch(e){} }
+  applyLearning();
+  refreshFly();
+}).catch(() => showErr('讀不到 fan_table.json — 請用本機伺服器開啟(見下方說明),不要用 file:// 直接開。'));
 
 function showErr(msg) { const e = $('#err'); e.style.display = 'block'; e.innerHTML = msg; }
 
 // ---- 判讀 + 渲染確認卡 ----
-function analyze(text) {
+function analyze(rawText) {
   if (!TABLE) { showErr('對照表尚未載入'); return; }
+  // ① 音近校正:不信任 ASR 的「字」,只信「音」,把誤聽拉回正規台種名
+  let text = rawText, corrected = null;
+  if (window.MahjongPhonetic) {
+    const norm = MahjongPhonetic.normalize(rawText);
+    if (norm.normalizedText) { text = norm.normalizedText; corrected = norm; }
+  }
   const res = MahjongTai.parse(text, TABLE);
   currentHits = res.hits.slice();
-  render(text, res);
+  lastRaw = rawText;
+  lastParsedIds = res.hits.map(h => h.id); // 系統原判(飛輪用來對照使用者的糾正)
+  taughtThisRound = false;
+  render(rawText, corrected, res);
 }
 
-function render(heardText, res) {
+function render(heardText, corrected, res) {
   const card = $('#result');
   card.classList.remove('hidden');
   let html = `<div class="heard">聽到:<b>${escapeHtml(heardText) || '(空)'}</b></div>`;
+  if (corrected && corrected.normalizedText && corrected.normalizedText !== (heardText||'').trim()) {
+    html += `<div class="heard" style="color:var(--green)">音近校正:<b style="color:var(--green)">${escapeHtml(corrected.normalizedText)}</b></div>`;
+  }
+  if (corrected && corrected.leftover) {
+    html += `<div class="heard" style="color:var(--dim)">未對到的音:<i>${escapeHtml(corrected.leftover)}</i></div>`;
+  }
 
   if (!res.hits.length) {
     html += `<div class="empty">沒有判讀到任何台種,請重講或改用打字。</div>`;
@@ -113,6 +164,17 @@ function render(heardText, res) {
   });
   if (res.unmatched) html += `<div class="unmatched">未識別殘字:${escapeHtml(res.unmatched)}(可能是漏收錄的詞或誤聽)</div>`;
 
+  // 教學:補上系統漏掉的台(餵飛輪 add_confusion 的來源)
+  const inSet = new Set(currentHits.map(h => h.id));
+  const teachOpts = TABLE.fans.filter(f => !inSet.has(f.id))
+    .map(f => `<option value="${f.id}">${escapeHtml(f.name)}(${f.tai}台)</option>`).join('');
+  html += `<div style="display:flex;gap:8px;margin:2px 0 12px">
+    <select id="teachSel" style="flex:1;background:#233049;border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:9px;font-size:14px">
+      <option value="">➕ 判錯/少了台?選一個教它…</option>${teachOpts}
+    </select>
+    <button id="teachBtn" style="border:none;border-radius:9px;padding:0 14px;background:#39445c;color:#fff;cursor:pointer;font-size:14px">補上</button>
+  </div>`;
+
   html += `<button class="confirm" id="confirmBtn">✅ 確認送出 ${res.total} 台</button>`;
   card.innerHTML = html;
 
@@ -120,11 +182,39 @@ function render(heardText, res) {
   card.querySelectorAll('.x').forEach(btn => btn.onclick = () => {
     currentHits = currentHits.filter(h => h.id !== btn.dataset.id);
     const total = currentHits.reduce((s,h)=>s+h.tai,0) + (res.base||0);
-    render(heardText, { hits: currentHits, total, base: res.base, warnings: res.warnings, unmatched: res.unmatched });
+    render(heardText, corrected, { hits: currentHits, total, base: res.base, warnings: res.warnings, unmatched: res.unmatched });
   });
+  // 補上漏掉的台 → 重算 + 標記本回合有教學
+  const teachBtn = $('#teachBtn');
+  if (teachBtn) teachBtn.onclick = () => {
+    const id = $('#teachSel').value; if (!id) return;
+    const f = TABLE.fans.find(x => x.id === id); if (!f) return;
+    currentHits.push({ id: f.id, name: f.name, tai: f.tai, units: 1 });
+    taughtThisRound = true;
+    const total = currentHits.reduce((s,h)=>s+h.tai,0) + (res.base||0);
+    render(heardText, corrected, { hits: currentHits, total, base: res.base, warnings: res.warnings, unmatched: res.unmatched });
+  };
   $('#confirmBtn').onclick = () => {
     const total = currentHits.reduce((s,h)=>s+h.tai,0) + (res.base||0);
-    $('#status').textContent = `已確認送出:${total} 台(Demo 不接後端,僅示意)`;
+    // ---- 飛輪:記錄「系統原判 vs 使用者確認」的差異 ----
+    if (window.MahjongFeedback) {
+      const correctedIds = currentHits.map(h => h.id);
+      const changed = taughtThisRound
+        || correctedIds.length !== lastParsedIds.length
+        || correctedIds.some(id => !lastParsedIds.includes(id));
+      if (changed) {
+        // 只在「整句就是一個被漏掉的台」時把原句當誤聽詞自動學,避免把混合句污染進詞庫
+        const cleanTeach = taughtThisRound && lastParsedIds.length === 0;
+        saveCorrection(MahjongFeedback.recordCorrection({
+          text: lastRaw, parsed: lastParsedIds, corrected: correctedIds,
+          unmatched: cleanTeach ? lastRaw : (res.unmatched || ''), ts: Date.now()
+        }));
+        applyLearning();
+        refreshFly();
+        if (cleanTeach) { $('#status').textContent = `🧠 學會了:下次「${lastRaw}」會直接聽成「${currentHits.map(h=>h.name).join(' ')}」`; }
+      }
+    }
+    if (!$('#status').textContent) $('#status').textContent = `已確認送出:${total} 台(Demo 不接後端,僅示意)`;
     card.classList.add('hidden');
   };
 }
