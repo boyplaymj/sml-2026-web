@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Sans CJK TC",sans-serif;}
+  html,body{background:#111;}
+  .stage{width:640px;background:#fff;color:#111;position:relative;overflow:hidden;}
+  .hd{display:flex;align-items:center;gap:12px;padding:12px 14px;}
+  .av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#f09433,#dc2743,#bc1888);padding:2px;}
+  .av i{display:block;width:100%;height:100%;border-radius:50%;background:#4a5560;}
+  .nm{flex:1;line-height:1.25;}
+  .nm b{font-size:18px;}
+  .nm small{display:block;font-size:13px;color:#555;}
+  .more{font-size:22px;color:#333;letter-spacing:2px;}
+  /* photo：深夜開車回家的路（純 CSS） */
+  .photo{width:640px;height:640px;position:relative;background:linear-gradient(180deg,#0c1420 0%,#121c29 46%,#171008 100%);overflow:hidden;}
+  .sky{position:absolute;inset:0 0 52% 0;background:radial-gradient(ellipse at 62% 22%,rgba(60,86,124,.45),transparent 62%);}
+  .road{position:absolute;left:0;right:0;bottom:0;height:52%;background:linear-gradient(#1a2029,#0a0d12);clip-path:polygon(0 100%,38% 0,62% 0,100% 100%);}
+  .road::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:10px;transform:translateX(-50%);background:repeating-linear-gradient(#e8c24a,#e8c24a 26px,transparent 26px,transparent 60px);opacity:.75;}
+  .lamp{position:absolute;top:20%;width:5px;height:26%;background:#2b313a;}
+  .lamp::after{content:"";position:absolute;left:-7px;top:-6px;width:18px;height:12px;border-radius:50%;background:radial-gradient(circle,rgba(255,196,120,.95),rgba(255,196,120,.15) 70%);}
+  .l1{left:20%;}.l2{left:78%;top:24%;height:22%;}.l3{left:34%;top:26%;height:18%;}
+  .car{position:absolute;left:50%;bottom:6%;transform:translateX(-50%);width:180px;height:70px;background:linear-gradient(#3a424e,#171b21);border-radius:40px 40px 16px 16px;box-shadow:0 8px 22px rgba(0,0,0,.6);}
+  .car .tl{position:absolute;bottom:16px;width:26px;height:12px;border-radius:6px;background:radial-gradient(circle,#ff5a4a,#7a1a12);}
+  .car .tl.l{left:18px;}.car .tl.r{right:18px;}
+  .grain{position:absolute;inset:0;pointer-events:none;opacity:.14;mix-blend-mode:overlay;background:repeating-radial-gradient(circle at 30% 40%,#000 0,transparent 2px);}
+  .act{display:flex;gap:16px;padding:12px 14px 6px;font-size:24px;}
+  .act .sp{flex:1;}
+  .likes{padding:0 14px;font-size:15px;font-weight:700;}
+  .cap{padding:6px 14px 4px;font-size:17px;line-height:1.55;}
+  .cap b{margin-right:6px;}
+  .tm{padding:2px 14px 16px;font-size:12px;color:#8a8a8a;letter-spacing:1px;}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="hd">
+      <div class="av"><i></i></div>
+      <div class="nm"><b>xu_bojun</b><small>城中市</small></div>
+      <div class="more">···</div>
+    </div>
+    <div class="photo">
+      <div class="sky"></div>
+      <div class="lamp l1"></div><div class="lamp l2"></div><div class="lamp l3"></div>
+      <div class="road"></div>
+      <div class="car"><div class="tl l"></div><div class="tl r"></div></div>
+      <div class="grain"></div>
+    </div>
+    <div class="act">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="1.8"><path d="M20.8 4.6a5 5 0 0 0-7 0L12 6.3l-1.8-1.7a5 5 0 1 0-7 7L12 20l8.8-8.4a5 5 0 0 0 0-7z"/></svg>
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="1.8"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.9-.9L3 20l1-4.1A8.4 8.4 0 1 1 21 11.5z"/></svg>
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="1.8"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></svg>
+      <span class="sp"></span>
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="1.8"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+    </div>
+    <div class="likes">31 人說讚</div>
+    <div class="cap"><b>xu_bojun</b>連跑一整天客戶，累到快虛脫。深夜的外環道安靜到有點療癒，慢慢開回家。明天再拚。</div>
+    <div class="tm">5 月 8 日</div>
+  </div>
+</body>
+</html>

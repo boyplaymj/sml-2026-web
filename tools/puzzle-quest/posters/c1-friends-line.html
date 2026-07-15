@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Sans CJK TC",sans-serif;}
+  html,body{background:#222;}
+  .phone{width:720px;height:1180px;background:#8fb0c9;position:relative;display:flex;flex-direction:column;}
+  .status{height:44px;background:#5f82a0;display:flex;align-items:center;justify-content:space-between;padding:0 26px;color:#fff;font-size:22px;font-weight:600;}
+  .head{height:80px;background:#557295;display:flex;align-items:center;padding:0 20px;color:#fff;gap:14px;}
+  .head .back{font-size:30px;}
+  .head .av{width:48px;height:48px;border-radius:50%;background:#cdd8e6;flex:none;display:flex;align-items:center;justify-content:center;font-size:22px;color:#557295;}
+  .head .name{font-size:25px;font-weight:700;flex:1;}
+  .head .name small{display:block;font-size:15px;font-weight:400;opacity:.85;}
+  .head .ic{font-size:26px;opacity:.9;}
+  .msgs{flex:1;padding:22px 22px 30px;display:flex;flex-direction:column;gap:14px;overflow:hidden;}
+  .day{align-self:center;background:rgba(0,0,0,.26);color:#fff;font-size:16px;padding:5px 16px;border-radius:14px;margin:4px 0;}
+  .sys{align-self:center;color:#334;font-size:15px;opacity:.8;}
+  .row{display:flex;align-items:flex-start;gap:9px;max-width:82%;}
+  .row.me{align-self:flex-end;flex-direction:row-reverse;}
+  .av2{width:46px;height:46px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:19px;color:#fff;}
+  .a1{background:#d98a8a;}.a2{background:#7fae7f;}.a3{background:#c8a35a;}
+  .col{display:flex;flex-direction:column;gap:3px;}
+  .who{font-size:15px;color:#2c3a4e;margin-left:4px;}
+  .line{display:flex;align-items:flex-end;gap:8px;}
+  .row.me .line{flex-direction:row-reverse;}
+  .bubble{padding:13px 17px;font-size:22px;line-height:1.5;border-radius:20px;}
+  .them .bubble{background:#fff;color:#1a1a1a;border-top-left-radius:6px;}
+  .me .bubble{background:#8de05a;color:#12300a;border-top-right-radius:6px;}
+  .time{font-size:14px;color:#334;white-space:nowrap;}
+</style></head>
+<body>
+  <div class="phone">
+    <div class="status"><div>20:41</div><div style="display:flex;align-items:center;gap:7px;font-size:20px;"><svg width="24" height="18" viewBox="0 0 24 18" fill="#fff"><path d="M12 4C7.5 4 3.7 6.4 1.5 9.2L12 17 22.5 9.2C20.3 6.4 16.5 4 12 4z"/></svg><span>5G</span><span style="display:inline-block;width:30px;height:15px;border:2px solid #fff;border-radius:3px;position:relative;"><span style="position:absolute;right:-4px;top:4px;width:3px;height:5px;background:#fff;"></span><span style="display:block;height:100%;width:60%;background:#fff;"></span></span></div></div>
+    <div class="head">
+      <div class="back">‹</div>
+      <div class="av">球</div>
+      <div class="name">週末打球那群<small>成員 7 人</small></div>
+      <div class="ic">☰</div>
+    </div>
+    <div class="msgs">
+      <div class="day">5月9日 星期五</div>
+      <div class="sys">— 今日 —</div>
+
+      <div class="row them"><div class="av2 a1">豪</div><div class="col"><div class="who">阿豪</div>
+        <div class="line"><div class="bubble">博鈞的事你們看到新聞了嗎…外環道自撞那個</div><div class="time">20:20</div></div>
+        <div class="line"><div class="bubble">我到現在還是不敢相信</div><div class="time">20:20</div></div>
+      </div></div>
+
+      <div class="row me"><div class="col"><div class="line"><div class="time">20:26</div><div class="bubble">新聞說疑似酒駕…可是他這輩子滴酒不沾欸？</div></div></div></div>
+
+      <div class="row them"><div class="av2 a2">榮</div><div class="col"><div class="who">阿榮</div>
+        <div class="line"><div class="bubble">對啊 他碰都不碰酒的 這點我最清楚</div><div class="time">20:31</div></div>
+        <div class="line"><div class="bubble">會不會是太累了…他最近跑客戶跑得很兇</div><div class="time">20:31</div></div>
+      </div></div>
+
+      <div class="row them"><div class="av2 a1">豪</div><div class="col"><div class="who">阿豪</div>
+        <div class="line"><div class="bubble">而且他開車超穩的 怎麼會自己去撞電線桿…</div><div class="time">20:36</div></div>
+      </div></div>
+
+      <div class="row them"><div class="av2 a3">婷</div><div class="col"><div class="who">婷婷</div>
+        <div class="line"><div class="bubble">唉 別亂猜了 等調查吧 週末大家找時間去看看他</div><div class="time">20:39</div></div>
+      </div></div>
+    </div>
+  </div>
+</body>
+</html>

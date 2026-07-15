@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Sans CJK TC",sans-serif;}
+  html,body{background:#20242b;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 44% 24%,#33404f,#161b22 82%);perspective:2200px;}
+  .card{position:relative;width:660px;background:#fbfbf9;color:#1a1a1a;transform:rotateX(3deg) rotateZ(-1deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);overflow:hidden;}
+  .banner{background:#1f3a63;color:#fff;padding:18px 26px;display:flex;align-items:baseline;justify-content:space-between;}
+  .banner .t{font-size:30px;font-weight:900;letter-spacing:3px;}
+  .banner .sub{font-size:14px;letter-spacing:2px;opacity:.92;}
+  .sealbar{display:flex;align-items:center;justify-content:space-between;background:#e8edf3;padding:10px 26px;font-size:15px;color:#33404f;border-bottom:1px solid #cdd6e0;letter-spacing:1px;}
+  .sealbar .no{font-family:"Courier New",monospace;font-weight:700;}
+  .ph{width:100%;height:230px;background:linear-gradient(160deg,#2b3038,#0e1218);position:relative;overflow:hidden;filter:contrast(1.02);}
+  .ph .road{position:absolute;left:0;right:0;bottom:0;height:52%;background:linear-gradient(#232830,#0c0f13);}
+  .ph .lane{position:absolute;left:0;right:0;bottom:22%;height:5px;background:repeating-linear-gradient(90deg,#c9b24a,#c9b24a 40px,transparent 40px,transparent 78px);opacity:.7;}
+  .ph .pole{position:absolute;left:60%;top:12%;width:10px;height:66%;background:#3a3f47;}
+  .ph .car{position:absolute;left:20%;bottom:20%;width:150px;height:64px;background:linear-gradient(#616b79,#2f353d);border-radius:16px 24px 12px 8px;transform:skewX(-6deg);box-shadow:0 5px 12px rgba(0,0,0,.55);}
+  .ph .car::after{content:"";position:absolute;right:-8px;top:10px;width:26px;height:44px;background:#242a31;clip-path:polygon(0 0,100% 34%,100% 66%,0 100%);}
+  .ph .glow{position:absolute;left:46%;top:6%;width:76px;height:76px;background:radial-gradient(circle,rgba(255,180,90,.55),transparent 70%);}
+  .ph .badge{position:absolute;right:14px;bottom:12px;background:rgba(0,0,0,.6);color:#ffe;font-size:13px;padding:5px 10px;letter-spacing:1px;}
+  .in{padding:22px 34px 26px;}
+  .kind{display:inline-block;background:#8a1414;color:#fff;font-size:16px;font-weight:800;letter-spacing:2px;padding:4px 12px;}
+  .rows{margin-top:16px;font-size:19px;line-height:2.15;}
+  .rows .k{display:inline-block;width:110px;color:#5a6472;font-weight:700;}
+  .note{margin-top:16px;background:#eef2f6;border-left:4px solid #1f3a63;padding:14px 16px;font-size:16.5px;line-height:1.85;color:#33404f;}
+  .cta{margin-top:20px;display:flex;align-items:center;justify-content:space-between;border-top:1px dashed #ccd3dc;padding-top:14px;font-size:16px;color:#5a6472;}
+  .tagline{position:absolute;left:0;right:0;bottom:0;background:#151a21;color:#c2cad6;font-size:13px;letter-spacing:2px;text-align:center;padding:8px;}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="card">
+      <div class="banner"><div class="t">重大交通事故　現場通報</div><div class="sub">城中市政府警察局・交通警察大隊</div></div>
+      <div class="sealbar"><span>通報單編號</span><span class="no">CC-0508-081</span></div>
+      <div class="ph"><div class="road"></div><div class="lane"></div><div class="pole"></div><div class="car"></div><div class="glow"></div><div class="badge">現場・外環道北向</div></div>
+      <div class="in">
+        <div class="kind">A1 類・當場死亡</div>
+        <div class="rows">
+          <div><span class="k">發生時間</span>114 年 05 月 08 日　23：38</div>
+          <div><span class="k">發生地點</span>城中外環道 12K 北向（近工業區、路燈稀疏）</div>
+          <div><span class="k">車輛人員</span>自小客一輛・駕駛許姓男子（34 歲）當場無生命跡象</div>
+          <div><span class="k">現場概況</span>車頭自撞路旁電線桿、無他車捲入、路面無明顯煞車痕</div>
+          <div><span class="k">初步研判</span>疑駕駛人酒後或疲勞自撞（車內採得酒瓶）</div>
+        </div>
+        <div class="note">
+          ＊本通報為現場初步紀錄，非最終肇因認定。詳細死因、酒測及肇事原因，均待相驗與後續調查釐清，請勿逕自對外引述。
+        </div>
+        <div class="cta"><span>處理單位　交通大隊 事故處理組</span><span>值勤：夜四班</span></div>
+      </div>
+      <div class="tagline">城中市政府警察局・交通事故現場通報系統</div>
+    </div>
+  </div>
+</body>
+</html>

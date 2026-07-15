@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Sans CJK TC",sans-serif;}
+  html,body{background:#111;}
+  .stage{width:760px;background:#e9e6df;color:#1a1a1a;position:relative;overflow:hidden;padding:20px 20px 16px;}
+  .bar{display:flex;align-items:center;justify-content:space-between;font-size:15px;color:#3a352c;letter-spacing:1px;padding-bottom:12px;}
+  .bar b{font-size:17px;letter-spacing:2px;}
+  .photo{width:720px;height:720px;position:relative;background:#0a0d10 url('c1-scene-base.png') center/cover;border:3px solid #1a1a1a;overflow:hidden;filter:contrast(1.02) saturate(.92);}
+  .ph-grain{position:absolute;inset:0;pointer-events:none;opacity:.16;mix-blend-mode:overlay;background:repeating-radial-gradient(circle at 40% 30%,#000 0,transparent 2px);}
+  .flash{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 46%,rgba(200,220,255,.14),transparent 55%);}
+  .marker{position:absolute;left:16%;bottom:15%;width:52px;height:60px;background:#f6d64a;color:#111;border:2px solid #222;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;transform:perspective(300px) rotateX(38deg);box-shadow:0 6px 10px rgba(0,0,0,.5);}
+  .ruler{position:absolute;right:6%;bottom:9%;width:150px;height:16px;background:repeating-linear-gradient(90deg,#f4f0e6,#f4f0e6 14px,#111 14px,#111 28px);border:1px solid #111;opacity:.9;}
+  .stamp{position:absolute;right:12px;bottom:10px;font-family:"Courier New",monospace;color:#ff9a3c;font-size:20px;letter-spacing:1px;text-shadow:0 0 3px rgba(0,0,0,.9);}
+  .tag{position:absolute;font-size:13px;color:#fff;background:rgba(20,20,20,.7);padding:3px 8px;letter-spacing:1px;border:1px solid rgba(255,255,255,.4);}
+  .t1{left:6%;top:12%;}
+  .t1::after{content:"";position:absolute;left:100%;top:50%;width:56px;height:1px;background:rgba(255,255,255,.6);}
+  .t2{right:6%;top:20%;}
+  .cap{display:flex;justify-content:space-between;font-size:14px;color:#4a453c;padding-top:10px;letter-spacing:.5px;}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="bar"><b>城中市政府警察局・交通大隊 現場採證</b><span>案件編號 CC-0508-081</span></div>
+    <div class="photo">
+      <div class="tag t1">車前保險桿：撞損變形</div>
+      <div class="tag t2">散落物範圍</div>
+      <div class="marker">1</div>
+      <div class="ruler"></div>
+      <div class="flash"></div>
+      <div class="ph-grain"></div>
+      <div class="stamp">05/09 00:14</div>
+    </div>
+    <div class="cap"><span>採證項目：事故現場全景（自小客自撞、路面無明顯煞車痕）</span><span>攝影：鑑識課</span></div>
+  </div>
+</body>
+</html>
