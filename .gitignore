@@ -19,3 +19,4 @@ desktop.ini
 aws/discord-bridge/sml-discord-bridge
 aws/codex-bridge/sml-codex-bridge
 __pycache__/
+tools/bin/
