@@ -11,7 +11,10 @@
   .head .name{font-size:25px;font-weight:700;flex:1;}
   .head .name small{display:block;font-size:15px;font-weight:400;opacity:.85;}
   .head .ic{display:flex;align-items:center;opacity:.9;}
-  .msgs{flex:1;padding:22px 22px 30px;display:flex;flex-direction:column;gap:14px;overflow:hidden;}
+  .msgs{flex:1;padding:22px 22px 24px;display:flex;flex-direction:column;justify-content:flex-end;gap:14px;overflow:hidden;}
+  .sticker{width:168px;height:168px;border-radius:16px;background:linear-gradient(160deg,#bfe3c8,#8ccfa4);position:relative;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.15);}
+  .sticker .chk{position:absolute;left:50%;top:34px;transform:translateX(-50%);width:62px;height:62px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.12);}
+  .sticker .st{position:absolute;left:0;right:0;bottom:24px;text-align:center;color:#12683c;font-weight:900;font-size:32px;text-shadow:0 1px 1px rgba(255,255,255,.5);}
   .day{align-self:center;background:rgba(0,0,0,.26);color:#fff;font-size:16px;padding:5px 16px;border-radius:14px;margin:4px 0;}
   .sys{align-self:center;color:#334;font-size:15px;opacity:.8;}
   .row{display:flex;align-items:flex-start;gap:9px;max-width:82%;}
@@ -37,6 +40,24 @@
       <div class="ic"><svg width="26" height="26" viewBox="0 0 26 26" fill="#fff"><rect x="3" y="5" width="20" height="3" rx="1.5"/><rect x="3" y="11.5" width="20" height="3" rx="1.5"/><rect x="3" y="18" width="20" height="3" rx="1.5"/></svg></div>
     </div>
     <div class="msgs">
+      <div class="day">6月10日 星期二</div>
+
+      <div class="row them"><div class="av2 a1">哲</div><div class="col"><div class="who">阿哲</div>
+        <div class="line"><div class="bubble">明天要去拜訪宏益的廠商，誰有空一起？</div><div class="time">15:40</div></div>
+      </div></div>
+
+      <div class="row them"><div class="av2 a3">敏</div><div class="col"><div class="who">小敏</div>
+        <div class="line"><div class="sticker"><div class="chk"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#12683c" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div><div class="st">我來！</div></div><div class="time">15:44</div></div>
+      </div></div>
+
+      <div class="row them"><div class="av2 a3">敏</div><div class="col"><div class="who">小敏</div>
+        <div class="line"><div class="bubble">我去，順便帶上次那批樣品過去</div><div class="time">15:45</div></div>
+      </div></div>
+
+      <div class="row them"><div class="av2 a1">哲</div><div class="col"><div class="who">阿哲</div>
+        <div class="line"><div class="bubble">讚，早上九點樓下集合</div><div class="time">15:51</div></div>
+      </div></div>
+
       <div class="day">6月15日 星期日</div>
 
       <div class="row them"><div class="av2 a1">哲</div><div class="col"><div class="who">阿哲</div>
