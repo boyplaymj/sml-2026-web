@@ -132,5 +132,5 @@
       { "stage": 4, "title": "真相：妻／嫉妒", "believe": "—", "give": "毒化報告（乙二醇＋草酸鈣結晶）＝投毒；那杯只有妻天天親手泡＝機會鎖；妻手機曖昧發現＋嫉妒語音＝動機；22:05 被刪那通號碼＝女同事；洗清合夥人（不在場）、同事（無接觸）", "reveal": "真兇＝妻、動機＝嫉妒疑外遇。三 core 齊" }
     ]
   },
-  "_note": "依 DESIGN_DIRECTION 出題（見 CASE-12-泓昌投毒.md 設計聖經）：三 core（投毒/妻/嫉妒）皆 S4 才齊；合夥人(錢)、同事(職場)為紅鯡魚→partial；S1 埋真結局微伏筆（被刪限動）＋跨階段通話刪除解謎（S1 缺22:05×S3電信通聯有）；電話AI阿龍知情面寫厚（修CASE-11問不出線索）；線索媒介多樣＋3語音線索（p1-voicemail/p3-voice/p4-voice，使用者變聲器錄→ffmpeg微調）。keystone(乙二醇/草酸鈣)只S4、hints/nudges/npc.system/fallback 不含毒/嫉妒/外遇/妻等core名詞。含 caseNo:12、每階段 audio 欄位、storyboard(後台劇情走向面板用)。🔴素材(約22張+3語音+hongchang.html)尚未製作;此JSON先供後台劇情走向面板審閱+引擎驗證。"
+  "_note": "依 DESIGN_DIRECTION 出題（見 CASE-12-泓昌投毒.md 設計聖經）：三 core（投毒/妻/嫉妒）皆 S4 才齊；合夥人(錢)、同事(職場)為紅鯡魚→partial；S1 埋真結局微伏筆（被刪限動）＋跨階段通話刪除解謎（S1 缺22:05×S3電信通聯有）；電話AI阿龍知情面寫厚（修CASE-11問不出線索）；線索媒介多樣＋3語音線索（p1-voicemail/p3-voice/p4-voice，使用者變聲器錄→ffmpeg微調）。keystone(乙二醇/草酸鈣)只S4、hints/nudges/npc.system/fallback 不含毒/嫉妒/外遇/妻等core名詞。含 caseNo:12、每階段 audio 欄位、storyboard(後台劇情走向面板用)。19張圖素材+hongchang.html已完成、上圖床、進甜甜data/puzzle-assets;Codex複驗過無blocking。🔴剩3段語音(p1-voicemail/p3-voice/p4-voice)待使用者錄→ffmpeg微調+cp+上圖床,然後開案(JSON已在DDB未開案)。"
 }
