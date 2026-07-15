@@ -9,35 +9,47 @@
   .conf{color:#a01414;font-weight:800;font-size:13px;letter-spacing:3px;border:2px solid #a01414;display:inline-block;padding:2px 10px;position:absolute;top:40px;right:44px;transform:rotate(6deg);}
   .org{font-size:22px;font-weight:900;letter-spacing:2px;}
   .doctype{font-size:16px;letter-spacing:4px;color:#555;margin:2px 0 12px;border-bottom:2px solid #17130d;padding-bottom:10px;}
-  .meta{display:flex;justify-content:space-between;font-size:13.5px;color:#555;margin-top:10px;}
-  table{width:100%;border-collapse:collapse;margin-top:12px;font-size:15px;}
-  th,td{border:1px solid #c2ccc8;padding:9px 11px;text-align:left;line-height:1.6;}
-  th{background:#eaf1ef;font-weight:800;}
-  tr.key td{background:#fff6d8;font-weight:800;}
-  .em{color:#a01414;font-weight:800;}
-  .ok{color:#1d6a3a;font-weight:700;}
-  .find{margin-top:18px;font-size:15px;line-height:1.9;background:#f4f6f6;border-left:4px solid #8a5a14;padding:11px 14px;}
-  .concl{margin-top:14px;background:#f6f1ea;border-left:4px solid #a01414;padding:12px 16px;font-size:16.5px;line-height:1.85;font-weight:800;}
-  .sign{margin-top:20px;text-align:right;font-size:14px;color:#333;}
+  .meta{display:flex;justify-content:space-between;font-size:13.5px;color:#555;margin:10px 0 4px;}
+  .sec{margin-top:18px;font-size:16px;font-weight:900;color:#333;border-left:4px solid #7a6f52;padding-left:10px;}
+  .list{margin-top:8px;font-size:15px;line-height:1.95;}
+  .list .it{display:flex;gap:8px;margin-bottom:4px;}
+  .list .it::before{content:"·";color:#8a7a3a;font-weight:900;}
+  table{width:100%;border-collapse:collapse;margin-top:8px;font-size:15px;}
+  th,td{border:1px solid #c2ccc8;padding:9px 11px;text-align:left;line-height:1.6;vertical-align:top;}
+  th{background:#eef1ee;font-weight:800;}
+  .foot{margin-top:22px;font-size:14px;color:#555;border-top:1px dashed #cabfa2;padding-top:10px;display:flex;justify-content:space-between;}
   .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
 </style></head>
 <body>
   <div class="stage">
     <div class="doc">
       <div class="conf">機密 · 偵字卷</div>
-      <div class="org">城中地方檢察署　偵查報告</div>
-      <div class="doctype">泓昌案　關係人接觸分析（偵字卷）</div>
-      <div class="meta"><span>分析標的：死者楊士豪 睡前養生藥酒（每晚一杯）</span><span>偵字第 114-412 號</span></div>
+      <div class="org">城中地方檢察署　偵查隊</div>
+      <div class="doctype">泓昌案　查訪暨物證 彙整（偵字卷）</div>
+      <div class="meta"><span>案由：楊士豪 住處猝逝案</span><span>偵字第 114-412 號</span></div>
+
+      <div class="sec">一、現場採得物證</div>
+      <div class="list">
+        <div class="it">死者住處車庫查獲車用防凍劑一罐，已開封、有使用痕跡；送鑑識比對。</div>
+        <div class="it">死者睡前所飲養生藥酒之酒瓶及杯內殘液，送毒物化驗（另卷）。</div>
+      </div>
+
+      <div class="sec">二、家戶與生活作息</div>
+      <div class="list">
+        <div class="it">死者與配偶 方怡君 同住；子女在外地就學。</div>
+        <div class="it">死者有睡前小酌之習慣，飲用之養生藥酒平日由配偶於家中調製、置於床頭。</div>
+        <div class="it">住處門禁單純，日常出入以家人為主。</div>
+      </div>
+
+      <div class="sec">三、關係人案發期間行蹤（查訪）</div>
       <table>
-        <tr><th style="width:150px;">關係人</th><th style="width:150px;">與死者關係</th><th>接觸情形</th><th style="width:130px;">能否接觸藥酒</th></tr>
-        <tr class="key"><td>方怡君</td><td>配偶</td><td>同住；<span class="em">每日親手調製該藥酒</span></td><td class="em">有接觸</td></tr>
-        <tr><td>周敬堯</td><td>合夥人</td><td>僅公司往來；命案夜人在高雄（不在場已查證）</td><td class="ok">無接觸</td></tr>
-        <tr><td>蔡明凱</td><td>下屬</td><td>職場往來；不出入死者住處</td><td class="ok">無接觸</td></tr>
-        <tr><td>林筱婷</td><td>同事</td><td>職場往來</td><td class="ok">無接觸</td></tr>
+        <tr><th style="width:130px;">關係人</th><th style="width:110px;">關係</th><th>查訪所得</th></tr>
+        <tr><td>周敬堯</td><td>合夥人</td><td>6/12 人在高雄（住宿、ETC 佐證），未返城中。</td></tr>
+        <tr><td>蔡明凱</td><td>下屬</td><td>6/12 晚間於城中友人聚會，有多人可證。</td></tr>
+        <tr><td>林筱婷</td><td>同事</td><td>與死者為工作往來；無出入死者住處之紀錄。</td></tr>
       </table>
-      <div class="find">補充查證：另於死者住處<b>車庫</b>查獲<span class="em">車用防凍劑（含乙二醇）一罐，開封使用過</span>，已送鑑識比對。</div>
-      <div class="concl">結論：具接觸該藥酒之機會者，<span class="em">僅配偶一人</span>。</div>
-      <div class="sign">偵查隊彙整　114/06/15</div>
+
+      <div class="foot"><span>※ 以上為現階段查訪彙整，各項續行查證。</span><span>偵查隊　114/06/15</span></div>
     </div>
     <div class="vig"></div>
   </div>
