@@ -96,6 +96,14 @@
 
 ---
 
-## 6. 沿用既有規範
+## 6. 線索媒介與語音（CASE-11 玩後要求，CASE-12 起適用）
+- **線索形式要多樣**，別再集中在「LINE 截圖 ＋ 文件/報告卡」。每案讓「截圖類 / 文件類 / 照片(採證照)類 / 其他類」都各有幾張（其他＝語音、手寫便條、收據、行事曆、瀏覽紀錄、地圖、監視截圖、實物特寫…）。
+- **每題至少 3 項語音線索**（使用者硬性要求）。使用者用自己的變聲器錄好 → 我用 `tools/bin/ffmpeg` 微調（電話帶通/降噪/音量/加效果）→ 交付。管線與配方見記憶 `reference_audio_clue_pipeline.md`。語音類型例：答錄機留言、行車記錄器收音、監聽片段、匿名報案電話、對話錄音、通聯。
+  - 進：使用者貼 Discord **訊息連結** → 我用 bot token（SSM `/sml/discord-bot/token`）打 API 抓附件下載。出：bot POST multipart 發回頻道試聽。
+  - 🔴**遊戲內交付前提**：panel 目前只附圖片；語音要在遊戲裡當線索，需先在 `PuzzleQuest.js` panel 加每階段 `audio` 欄位 → push `AttachmentBuilder`（音訊不設 embed image）。此引擎小改動出 CASE-12 時一併做（甜甜重啟生效）。
+  - 語音線索**同樣守埋深/提示規範**：早階段語音不得含 keystone/core 名詞；keystone 只在 S4 相關素材。
+
+## 7. 沿用既有規範
 - 💰 成本：燒 LLM（電話 AI）者照 `tools/COST_CONTROL.md` 四件套（帳本表/月封頂/後台卡/kill switch）——CASE-09 已建 `sweetbot-puzzle-ai-usage`，新題沿用同表、只是換 puzzleId。
 - 製圖管線、panel 讀本地檔、restart=部署等踩雷見 `CASE-09-HANDOFF.md` §4/§6。
+- 電話 AI「知道」清單要寫厚（CASE-11 回饋，見 `archive/LESSONS.md`）、面板案件編號要加 `caseNo` 欄位、線索媒介多樣化——出題前先掃 `LESSONS.md`。
