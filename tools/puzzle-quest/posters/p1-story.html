@@ -6,35 +6,46 @@
   .stage{width:640px;height:1140px;position:relative;background:#05070d;overflow:hidden;color:#fff;}
   /* 深夜房間意象:窗外雨 + 半空酒杯 */
   .bgimg{position:absolute;inset:0;background:linear-gradient(180deg,#0a1226 0%,#0d1830 40%,#0a0f1c 72%,#060810 100%);}
-  .window{position:absolute;left:70px;top:180px;width:340px;height:430px;background:linear-gradient(200deg,#16264a,#0b1428 70%);border:10px solid #1a1d24;box-shadow:0 0 60px rgba(40,70,140,.25);}
+  .window{position:absolute;left:70px;top:200px;width:340px;height:420px;background:linear-gradient(200deg,#16264a,#0b1428 70%);border:10px solid #1a1d24;box-shadow:0 0 60px rgba(40,70,140,.25);}
   .window::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:8px;background:#1a1d24;transform:translateX(-50%);}
   .window::after{content:"";position:absolute;left:0;right:0;top:50%;height:8px;background:#1a1d24;transform:translateY(-50%);}
   .rain{position:absolute;inset:0;background:repeating-linear-gradient(105deg,transparent 0,transparent 26px,rgba(180,205,255,.16) 26px,rgba(180,205,255,.16) 28px);}
-  .cityglow{position:absolute;left:100px;top:430px;width:280px;height:120px;background:radial-gradient(ellipse at 50% 100%,rgba(90,120,190,.35),transparent 70%);}
+  .cityglow{position:absolute;left:100px;top:450px;width:280px;height:120px;background:radial-gradient(ellipse at 50% 100%,rgba(90,120,190,.35),transparent 70%);}
   .table{position:absolute;left:0;right:0;bottom:0;height:300px;background:linear-gradient(#20180f,#0c0906 80%);}
   .glass{position:absolute;left:420px;bottom:210px;width:110px;height:130px;}
   .glass .cup{position:absolute;inset:0;background:linear-gradient(rgba(200,215,235,.16),rgba(200,215,235,.05));border:3px solid rgba(210,225,245,.35);border-top:2px solid rgba(210,225,245,.5);border-radius:6px 6px 12px 12px;}
   .glass .wine{position:absolute;left:6px;right:6px;bottom:6px;height:44px;background:linear-gradient(#7a1f26,#4c0f14);border-radius:0 0 9px 9px;}
   .glass::after{content:"";position:absolute;left:-30px;right:-30px;bottom:-16px;height:18px;background:radial-gradient(ellipse,rgba(0,0,0,.6),transparent 70%);}
-  .vig{position:absolute;inset:0;background:radial-gradient(circle at 50% 42%,transparent 40%,rgba(0,0,0,.55) 100%);}
+  .vig{position:absolute;inset:0;background:radial-gradient(circle at 50% 44%,transparent 40%,rgba(0,0,0,.55) 100%);}
   .grain{position:absolute;inset:0;pointer-events:none;opacity:.12;mix-blend-mode:overlay;background:repeating-radial-gradient(circle at 34% 44%,#000 0,transparent 2px);}
+  /* 手機狀態列 */
+  .status{position:absolute;left:0;right:0;top:0;height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 26px;font-size:18px;font-weight:600;color:#fff;z-index:5;}
+  .status .r{display:flex;align-items:center;gap:7px;}
+  .batt{display:inline-block;width:30px;height:15px;border:2px solid #fff;border-radius:3px;position:relative;}
+  .batt::after{content:"";position:absolute;right:-4px;top:4px;width:3px;height:5px;background:#fff;}
+  .batt i{display:block;height:100%;width:58%;background:#fff;}
   /* IG 限動介面 */
-  .bar{position:absolute;left:14px;right:14px;top:14px;height:4px;border-radius:2px;background:rgba(255,255,255,.3);}
+  .bar{position:absolute;left:14px;right:14px;top:50px;height:4px;border-radius:2px;background:rgba(255,255,255,.3);}
   .bar i{display:block;width:72%;height:100%;border-radius:2px;background:rgba(255,255,255,.92);}
-  .hd{position:absolute;left:16px;top:30px;display:flex;align-items:center;gap:12px;}
-  .av{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#f09433,#dc2743,#bc1888);padding:2px;}
+  .hd{position:absolute;left:16px;top:64px;display:flex;align-items:center;gap:12px;}
+  .av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#f09433,#dc2743,#bc1888);padding:2px;}
   .av i{display:block;width:100%;height:100%;border-radius:50%;background:#3a4550;}
   .hd b{font-size:19px;}
   .hd small{font-size:16px;color:rgba(255,255,255,.75);margin-left:2px;}
-  .more{position:absolute;right:18px;top:42px;font-size:24px;letter-spacing:2px;color:#fff;}
+  .more{position:absolute;right:18px;top:74px;font-size:24px;letter-spacing:2px;color:#fff;}
+  /* 通知橫幅（截圖當下滑下來的通知；家人群組 @阿賢 = 這支手機是阿賢的） */
+  .notif{position:absolute;left:16px;right:16px;top:126px;background:rgba(28,28,32,.8);border-radius:20px;padding:12px 15px;display:flex;gap:12px;align-items:flex-start;z-index:6;box-shadow:0 8px 24px rgba(0,0,0,.5);}
+  .notif .ic{width:36px;height:36px;border-radius:10px;background:#06c755;flex:none;display:flex;align-items:center;justify-content:center;}
+  .notif .body{flex:1;min-width:0;color:#fff;}
+  .notif .toprow{display:flex;justify-content:space-between;font-size:13px;color:rgba(255,255,255,.7);}
+  .notif .t1{font-weight:700;font-size:15.5px;margin-top:1px;}
+  .notif .t2{font-size:14.5px;color:rgba(255,255,255,.9);margin-top:2px;line-height:1.35;}
+  .notif .mention{color:#7db4ff;font-weight:600;}
   /* 大字限動文字 */
-  .txt{position:absolute;left:40px;right:40px;top:47%;transform:translateY(-50%);text-align:center;font-size:40px;font-weight:800;line-height:1.75;letter-spacing:3px;text-shadow:0 2px 18px rgba(0,0,0,.85);}
+  .txt{position:absolute;left:40px;right:40px;top:49%;transform:translateY(-50%);text-align:center;font-size:40px;font-weight:800;line-height:1.75;letter-spacing:3px;text-shadow:0 2px 18px rgba(0,0,0,.85);}
   /* 底部回覆列 */
   .reply{position:absolute;left:18px;right:18px;bottom:20px;display:flex;align-items:center;gap:14px;}
   .reply .box{flex:1;height:52px;border:1.5px solid rgba(255,255,255,.55);border-radius:26px;display:flex;align-items:center;padding:0 20px;font-size:17px;color:rgba(255,255,255,.75);}
-  /* 截圖標註 */
-  .cap{position:absolute;left:0;right:0;top:88px;display:flex;justify-content:center;}
-  .cap span{background:rgba(0,0,0,.62);border:1px solid rgba(255,255,255,.35);color:#ffd9a0;font-size:16px;letter-spacing:1.5px;padding:6px 16px;border-radius:6px;}
 </style></head>
 <body>
   <div class="stage">
@@ -45,11 +56,24 @@
     <div class="glass"><div class="cup"></div><div class="wine"></div></div>
     <div class="vig"></div>
     <div class="grain"></div>
+
+    <div class="status"><div>23:52</div><div class="r"><svg width="26" height="18" viewBox="0 0 24 18" fill="#fff"><path d="M12 4C7.5 4 3.7 6.4 1.5 9.2L12 17 22.5 9.2C20.3 6.4 16.5 4 12 4z"/></svg><span>5G</span><span class="batt"><i></i></span></div></div>
+
     <div class="bar"><i></i></div>
-    <div class="hd"><div class="av"><i></i></div><b>fang_yijun</b><small>23:47</small></div>
+    <div class="hd"><div class="av"><i></i></div><b>fang_yijun</b><small>10 小時</small></div>
     <div class="more">···</div>
-    <div class="cap"><span>限時動態・6月9日 23:47・已於隔日刪除（朋友截圖）</span></div>
+
+    <div class="notif">
+      <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M12 3C6.5 3 2 6.7 2 11.2c0 2.6 1.5 4.9 3.8 6.4-.2.7-.7 2.3-.8 2.7 0 0-.02.2.12.28.14.08.3.02.3.02.4-.06 2.5-1.65 3.4-2.3.98.15 2 .2 3.06.2 5.5 0 10-3.7 10-8.2S17.5 3 12 3z"/></svg></div>
+      <div class="body">
+        <div class="toprow"><span>LINE</span><span>現在</span></div>
+        <div class="t1">士豪的家人朋友</div>
+        <div class="t2">小敏：<span class="mention">@阿賢</span> 你也還醒著喔…你有看到嗎</div>
+      </div>
+    </div>
+
     <div class="txt">有些事，不說，<br>是不是就能當作<br>沒發生。</div>
+
     <div class="reply">
       <div class="box">傳送訊息…</div>
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M20.8 4.6a5 5 0 0 0-7 0L12 6.3l-1.8-1.7a5 5 0 1 0-7 7L12 20l8.8-8.4a5 5 0 0 0 0-7z"/></svg>
