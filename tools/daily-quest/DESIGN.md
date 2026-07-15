@@ -188,3 +188,44 @@ B 類 `mention_user`/`button_click`/`add_reaction`（趣味任務）列 **P2 擴
 - **P2**：連續 streak + 里程碑獎（沿用 DailyCheckIn 曲線）。
 - **P3**：VIP 加任務數 + 後台管理頁（`sweetbot-quest-config` + Lambda + 遊戲館頁）。
 - **P4**：擴事件 + 經濟數值對表微調 + 轉化/參與後台卡。
+
+---
+
+## 10. 初始任務池 seed（後台可再增刪改）
+
+獎勵預設 **Tier C**：一般 `150🦷 + 30EXP`；挑戰級 `250🦷 + 50EXP`（後台可調）。
+`weight` = 抽取權重（越高越常出現）；`難度` 供後台分組/篩選。
+**埋點策略**：每個 miniGame 結算時同時發 `game_play:any` + `game_play:<key>`（一點兩用），首發即可支援指定遊戲任務。
+
+### P1 可上線子集（只用已埋 🟢 事件）
+| id | 名稱 | event | target | 難度 | weight | 獎勵 |
+|---|---|---|---|---|---|---|
+| q_checkin | 簽到小尖兵 | `checkin` | 1 | 簡單 | 10 | 150🦷+30 |
+| q_play1 | 動動手指 | `game_play:any` | 1 | 簡單 | 10 | 150🦷+30 |
+| q_play3 | 遊戲咖 | `game_play:any` | 3 | 普通 | 8 | 150🦷+30 |
+| q_play5 | 遊戲狂人 | `game_play:any` | 5 | 挑戰 | 4 | 250🦷+50 |
+| q_win1 | 旗開得勝 | `game_win:any` | 1 | 普通 | 8 | 150🦷+30 |
+| q_win2 | 常勝軍 | `game_win:any` | 2 | 挑戰 | 4 | 250🦷+50 |
+| q_msg1 | 打個招呼 | `post_message` | 1 | 簡單 | 10 | 150🦷+30 |
+| q_msg3 | 話匣子 | `post_message` | 3 | 普通 | 6 | 150🦷+30 |
+| q_upw | 密碼高手 | `game_play:upw` | 1 | 普通 | 6 | 150🦷+30 |
+| q_sicbo | 骰運亨通 | `game_play:sicbo` | 3 | 普通 | 6 | 150🦷+30 |
+| q_bjm | 21點賭神 | `game_win:bjm` | 1 | 挑戰 | 4 | 250🦷+50 |
+| q_cross | 過馬路達人 | `game_play:crossroad` | 1 | 普通 | 6 | 150🦷+30 |
+| q_poke | 戳戳樂 | `game_play:pokingfun` | 2 | 普通 | 6 | 150🦷+30 |
+
+（P1 埋點：`checkin`＋各 miniGame 的 `game_play:any/<key>`＋`game_win:any/<key>`＋`post_message`；首發先埋 upw/sicbo/bjm/crossroad/pokingfun 五款高流量遊戲。）
+
+### P2+ 擴充池（待對應事件埋點）
+| id | 名稱 | event | target | 難度 | 獎勵 |
+|---|---|---|---|---|---|
+| q_mention | 呼朋引伴 | `mention_user` | 1 | 社交 | 150🦷+30 |
+| q_famous | 人氣王 | `get_mentioned` | 3 | 社交 | 150🦷+30 |
+| q_react | 情緒表達 | `add_reaction` | 3 | 社交 | 150🦷+30 |
+| q_btn | 按鈕控 | `button_click:<key>` | 1 | 趣味 | 150🦷+30 |
+| q_redpkt | 手氣紅包 | `redpacket_grab` | 1 | 經濟 | 150🦷+30 |
+| q_vote | 競猜參一咖 | `vote_join` | 1 | 養成 | 150🦷+30 |
+| q_exp | 經驗獵人 | `exp_gain` | 100 | 養成 | 150🦷+30 |
+| q_spend | 血拼一波 | `teeth_spent` | 500 | 經濟 | 150🦷+30 |
+
+**每日抽取**：從 enabled 池按 weight 隨機不重複抽 N 張（N = 3 + VIP等級）；建議每日至少含 1 張簡單、避免整組都挑戰級勸退。
