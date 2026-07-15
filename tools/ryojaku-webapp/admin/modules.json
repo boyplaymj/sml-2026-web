@@ -7,6 +7,7 @@
       "id": "overview",
       "title": "總覽",
       "modules": [
+        { "id": "foundation", "title": "產品基石(正典)", "doc": "../modules/foundation.md", "status": "live", "icon": "🧭" },
         { "id": "spec", "title": "現有架構還原規格", "doc": "../SPEC.md", "status": "live", "icon": "📐" },
         { "id": "arch", "title": "後台架構與治理", "doc": "../ARCHITECTURE.md", "status": "live", "icon": "🏛️" }
       ]
