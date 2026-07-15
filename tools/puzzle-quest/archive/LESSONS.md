@@ -44,6 +44,9 @@
 
 ---
 
+### 引擎／面板（跨題）
+- [ ] **面板「案件編號 CASE-XX」是位置編號、不等於劇情編號**（CASE-11 發現）：`sweetbot-next/model/PuzzleQuest.js:461-462` 的 `caseNo = puzzles().findIndex(...)+1`，取的是該題在**排序後題庫清單裡的位置**（封存題會讓位置錯開），故顯示的號碼常與作者命名的 CASE-XX 對不上（CASE-11 顯示成 CASE-10）。**下一題根治**：① 在該題 JSON 加 `"caseNo": 12`（或 `caseLabel`）② 把該兩行改成 `const caseNo = puzzle.caseNo ?? (this.puzzles().findIndex(...)+1)`（要 sweetbot commit + 離峰重啟才生效）。純資料無法單獨修，需這個小程式改動。
+
 ## §2 逐案結論（供下次改編參考）
 
 ### CASE-09 `shengyao-fall-coverup`（昇曜生技 品保課長墜樓）— 封存
