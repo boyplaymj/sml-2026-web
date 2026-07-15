@@ -28,6 +28,7 @@
 - [ ] 錯字、標點全形/半形混用、公司/機關名前後不一致。
 - [ ] **覆蓋同名素材後，圖床要清 CloudFront 快取**（CASE-11）：image.boyplaymj.link 走 CloudFront（distribution `E2IJWN6FWT2XYG`），重傳同一個 `pq/assets/xxx.png` 後，S3 origin 已更新但 CDN 邊緣仍送舊圖（`?nocache=` 也繞不過，快取鍵不含 query）。改圖後務必 `aws cloudfront create-invalidation --distribution-id E2IJWN6FWT2XYG --paths "/pq/assets/xxx.png"`，再請對方強制重新整理（瀏覽器端也會快取）。**首次上傳的新檔名不受影響**，只有覆蓋才要清。
 - [ ] **車輛場景一律左駕（台灣）＋多張要一致**（CASE-11）：Bedrock 生車內/車禍圖常隨機出成右駕（方向盤在右）。台灣是左駕（方向盤在左、靠右行駛）。生圖 prompt 明寫 "left-hand-drive, steering wheel on the LEFT"，且**同案多張車輛圖的駕駛座方向要彼此一致**（現場照 vs 駕駛座特寫別一左一右）；生完逐張確認方向盤在左。
+- [ ] **安全帶「扣座位置＋是否扣著」超難生、要多候選＋逐項核**（CASE-11 耗最多輪）：①左駕駕駛座扣座在座椅**右側**（靠鞍座），肩帶自**左上 B 柱斜跨到右下**；②「扣著」＝扣片**插入扣座、帶子繃緊**（鬆垂會被讀成沒扣）；③極特寫小扣子 SD 常畫殘缺→改**中景**含方向盤(佐證左駕)＋繃緊帶子＋扣片入座，一次生 3–4 張挑，逐張核「方向盤在左／扣座在右／明顯扣著」三項全中才用。必要時請使用者給參考圖對幾何。
 
 ### 邏輯／一致性
 - [ ] 時間軸矛盾（歇業年份 vs 廢墟仍在、生年 vs 享壽…；puzzles.json 歷史上被玩家抓過多次）。
