@@ -1,56 +1,99 @@
 <!DOCTYPE html>
 <html lang="zh-Hant"><head><meta charset="utf-8">
 <style>
-  *{margin:0;padding:0;box-sizing:border-box;}
-  html,body{background:#2a2723;}
-  .stage{width:900px;height:1180px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 40% 30%,#45403a,#221f1b 80%);perspective:2400px;font-family:"Noto Sans CJK TC",sans-serif;}
-  .doc{position:relative;width:700px;min-height:900px;padding:42px 46px;background:#fdfdfb;color:#1a1a1a;transform:rotateX(3deg) rotateZ(1deg) rotateY(-1deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 60px rgba(0,0,0,.6);}
-  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 26%,transparent 76%,rgba(60,55,45,.13));mix-blend-mode:soft-light;}
-  .hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #275a7a;padding-bottom:10px;}
-  .co{font-size:23px;font-weight:900;color:#275a7a;letter-spacing:1px;}.co small{display:block;font-size:13px;color:#6a6155;font-weight:400;letter-spacing:2px;}
-  .ttl{font-size:18px;font-weight:800;letter-spacing:2px;color:#333;}
-  .meta{font-size:16px;line-height:2;margin:14px 0 6px;}
-  .meta .k{display:inline-block;min-width:96px;color:#5a6472;font-weight:700;}
-  table{width:100%;border-collapse:collapse;font-size:15.5px;margin-top:8px;}
-  th,td{border:1px solid #c5d2da;padding:10px 12px;text-align:left;vertical-align:top;line-height:1.6;}
-  th{background:#e7f0f5;font-weight:800;white-space:nowrap;}
-  .warn{color:#a01414;font-weight:800;}
-  .sum{margin-top:16px;border:1px solid #cdd7dd;background:#f1f7fa;padding:14px 16px;font-size:16.5px;line-height:1.9;}
-  .sum b{color:#a01414;}
-  .sign{margin-top:26px;display:flex;justify-content:space-between;font-size:16px;color:#444;}
-  .sig{font-size:22px;color:#25406a;transform:rotate(-3deg);display:inline-block;margin-top:4px;letter-spacing:2px;}
-  .stamp{position:absolute;right:60px;bottom:130px;width:100px;height:100px;border:3px solid rgba(39,90,122,.4);border-radius:50%;color:rgba(39,90,122,.55);display:flex;align-items:center;justify-content:center;text-align:center;font-size:14px;font-weight:900;line-height:1.3;transform:rotate(-9deg);}
-  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Sans CJK TC",sans-serif;}
+  html,body{background:#0d1418;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 26%,#20303a,#0c1216 82%);}
+  .emr{width:780px;background:#f3f7f8;border-radius:16px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.55);color:#1b2b31;}
+  /* 系統標題列 */
+  .topbar{background:linear-gradient(90deg,#0f7d82,#12959a);color:#fff;display:flex;align-items:center;gap:12px;padding:16px 22px;}
+  .topbar .cross{width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;flex:none;}
+  .topbar .nm{font-size:20px;font-weight:900;letter-spacing:1px;}
+  .topbar .nm small{display:block;font-size:12px;font-weight:400;opacity:.9;letter-spacing:2px;}
+  .topbar .sys{margin-left:auto;text-align:right;font-size:12.5px;opacity:.92;line-height:1.6;}
+  /* 病患列 */
+  .patient{display:flex;align-items:center;gap:16px;padding:18px 24px;background:#e4eef0;border-bottom:1px solid #cfe0e2;}
+  .patient .ava{width:56px;height:56px;border-radius:50%;background:#0f7d82;color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;flex:none;}
+  .patient .who{flex:1;}
+  .patient .who .n{font-size:22px;font-weight:900;}
+  .patient .who .sub{font-size:14px;color:#4c6169;margin-top:2px;}
+  .patient .mrn{text-align:right;font-size:14px;color:#4c6169;font-family:"Noto Sans Mono CJK TC",monospace;}
+  .patient .mrn b{display:block;font-size:18px;color:#0f7d82;letter-spacing:1px;}
+  /* 生命徵象 */
+  .vitals{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:18px 24px 6px;}
+  .vital{background:#fff;border:1px solid #d9e6e8;border-radius:12px;padding:12px 14px;}
+  .vital .lb{font-size:12.5px;color:#6b8088;}
+  .vital .vl{font-size:22px;font-weight:900;margin-top:3px;}
+  .vital .u{font-size:12px;color:#8aa0a8;font-weight:400;margin-left:3px;}
+  .vital.hi .vl{color:#c2410c;}
+  .vital.hi .lb::after{content:" ▲";color:#c2410c;font-size:11px;}
+  /* 就診卡片 */
+  .sec{padding:8px 24px;font-size:14px;font-weight:800;color:#0f7d82;letter-spacing:1px;margin-top:6px;}
+  .visits{padding:0 24px;display:flex;flex-direction:column;gap:14px;}
+  .visit{display:flex;gap:16px;background:#fff;border:1px solid #d9e6e8;border-left:5px solid #12959a;border-radius:12px;padding:16px 18px;}
+  .visit .date{flex:none;width:96px;text-align:center;}
+  .visit .date .d{font-size:22px;font-weight:900;color:#0f7d82;line-height:1.1;}
+  .visit .date .w{font-size:13px;color:#6b8088;margin-top:2px;}
+  .visit .body{flex:1;font-size:15px;line-height:1.7;}
+  .visit .row{display:flex;gap:8px;margin-bottom:5px;}
+  .visit .row .k{flex:none;width:70px;color:#6b8088;font-weight:700;}
+  .visit .row .v{flex:1;}
+  .visit.flag{border-left-color:#c2410c;background:#fff8f3;}
+  .warn{color:#b91c1c;font-weight:800;}
+  .assess{margin:16px 24px 0;background:#eef7f6;border:1px solid #cbe6e2;border-radius:12px;padding:14px 18px;font-size:15.5px;line-height:1.8;}
+  .assess b{color:#b91c1c;}
+  .foot{display:flex;justify-content:space-between;align-items:flex-end;padding:16px 24px 22px;font-size:13.5px;color:#5a6f77;}
+  .foot .sig{font-size:20px;color:#20415a;letter-spacing:2px;display:inline-block;margin-top:4px;}
 </style></head>
 <body>
   <div class="stage">
-    <div class="doc">
-      <div class="hd"><div class="co">城中內科診所<small>CHENGCHUNG INTERNAL MEDICINE CLINIC</small></div><div class="ttl">就診紀錄摘要</div></div>
-      <div class="meta">
-        <div><span class="k">病患</span>楊士豪（男・42）　<span class="k">病歷號</span>CM-58217</div>
-        <div><span class="k">調閱範圍</span>114 年 06 月　　<span class="k">列印日期</span>114 年 06 月 14 日</div>
+    <div class="emr">
+      <div class="topbar">
+        <div class="cross"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M10 2h4v6h6v4h-6v6h-4v-6H4v-4h6z"/></svg></div>
+        <div class="nm">城中內科診所<small>電子病歷系統　HIS</small></div>
+        <div class="sys">就診紀錄摘要（唯讀）<br>列印：114/06/14　操作員：櫃檯</div>
       </div>
-      <table>
-        <tr><th>就診日期</th><th>主訴</th><th>檢查所見／處置</th></tr>
-        <tr>
-          <td>114/06/02<br>（一）</td>
-          <td>頭暈、噁心、視力模糊</td>
-          <td>血壓略高（148/94）。初步診斷：疑高血壓／疲勞，予症狀治療，建議追蹤。</td>
-        </tr>
-        <tr>
-          <td>114/06/08<br>（日）</td>
-          <td>症狀反覆、步態不穩、噁心加劇</td>
-          <td>血糖、心電圖等各項檢查大致正常，<span class="warn">未查出明確病因</span>。建議至大型醫院進一步檢查。</td>
-        </tr>
-      </table>
-      <div class="sum">綜合評估：<b>病患近期反覆不適、症狀與檢查結果不完全相符，建議轉診進一步查因。</b>囑病患若症狀加劇應立即就醫。</div>
-      <div class="sign">
+
+      <div class="patient">
+        <div class="ava">楊</div>
+        <div class="who"><div class="n">楊士豪</div><div class="sub">男性・42 歲　｜　自費・初診轉複診</div></div>
+        <div class="mrn">病歷號<b>CM-58217</b></div>
+      </div>
+
+      <div class="vitals">
+        <div class="vital hi"><div class="lb">血壓</div><div class="vl">148/94<span class="u">mmHg</span></div></div>
+        <div class="vital"><div class="lb">體溫</div><div class="vl">36.6<span class="u">°C</span></div></div>
+        <div class="vital"><div class="lb">脈搏</div><div class="vl">88<span class="u">bpm</span></div></div>
+        <div class="vital"><div class="lb">SpO₂</div><div class="vl">98<span class="u">%</span></div></div>
+      </div>
+
+      <div class="sec">就診紀錄</div>
+      <div class="visits">
+        <div class="visit">
+          <div class="date"><div class="d">06/02</div><div class="w">星期一</div></div>
+          <div class="body">
+            <div class="row"><span class="k">主訴</span><span class="v">頭暈、噁心、視力模糊，持續數日。</span></div>
+            <div class="row"><span class="k">理學檢查</span><span class="v">血壓略高；神經學檢查無明顯異常。</span></div>
+            <div class="row"><span class="k">診斷／處置</span><span class="v">疑高血壓／疲勞，予症狀治療、衛教，建議追蹤。</span></div>
+          </div>
+        </div>
+        <div class="visit flag">
+          <div class="date"><div class="d">06/08</div><div class="w">星期日</div></div>
+          <div class="body">
+            <div class="row"><span class="k">主訴</span><span class="v">症狀反覆、步態不穩、噁心加劇。</span></div>
+            <div class="row"><span class="k">檢查</span><span class="v">血糖、電解質、心電圖等大致正常，<span class="warn">未查出明確病因</span>。</span></div>
+            <div class="row"><span class="k">診斷／處置</span><span class="v">病因未明，建議轉診大型醫院進一步檢查。</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="assess">綜合評估：<b>病患近期反覆不適、症狀與各項檢查結果不完全相符，病因未明，建議轉診查因。</b>囑病患若症狀加劇立即就醫。</div>
+
+      <div class="foot">
         <div>主治醫師：吳○哲（內科專科）<br><span class="sig">吳承哲</span></div>
-        <div style="text-align:right;">中華民國 114 年 6 月 14 日</div>
+        <div style="text-align:right;">城中內科診所<br>電子病歷．未經授權不得外流</div>
       </div>
-      <div class="stamp">城中內科<br>病歷摘要</div>
     </div>
-    <div class="vig"></div>
   </div>
 </body>
 </html>
