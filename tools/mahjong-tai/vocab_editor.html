@@ -54,6 +54,15 @@
   .btn-sm { border:none; border-radius:9px; padding:6px 12px; background:#39445c; color:#fff; font-size:13px; cursor:pointer; }
   .btn-add { background:#4338ca; }
   .btn-del { background:#3a2733; color:#f0a3a3; margin-left:auto; }
+  .mobcard { display:flex; gap:14px; align-items:center; background:linear-gradient(135deg,#182740,#182033);
+             border:1px solid #2f5a44; border-radius:12px; padding:12px 14px; margin-bottom:14px; }
+  .mobinfo { flex:1; min-width:0; }
+  .moblabel { font-size:14px; font-weight:800; color:#7ee0b0; margin-bottom:4px; }
+  .moblink { display:block; color:#8ab4ff; font-size:12.5px; word-break:break-all; text-decoration:none; margin-bottom:8px; }
+  .moblink:hover { text-decoration:underline; }
+  .mobbtns { display:flex; gap:8px; flex-wrap:wrap; }
+  .mobbtns a.btn-sm { text-decoration:none; display:inline-block; }
+  .mobqr { flex:none; width:104px; height:104px; border-radius:8px; background:#fff; padding:5px; }
 </style>
 </head>
 <body>
@@ -61,6 +70,20 @@
   <h1>🀄 牌型同義詞管理</h1>
   <p class="sub">每個牌型填入你會講的<b>同義詞 / 口語 / 常見誤聽</b>。語音辨識到任一個(含同音),就對到那個牌型並回傳它的
      <b>idx</b>(可直接跟後台計分交叉核對)。台數不影響比對。</p>
+
+  <div class="mobcard">
+    <div class="mobinfo">
+      <div class="moblabel">📱 手機版・語音訓練站</div>
+      <a class="moblink" id="mobUrl" href="https://image.boyplaymj.link/mahjong-tai/demo.html" target="_blank" rel="noopener">image.boyplaymj.link/mahjong-tai/demo.html</a>
+      <div class="mobbtns">
+        <a class="btn-sm btn-add" href="https://image.boyplaymj.link/mahjong-tai/demo.html" target="_blank" rel="noopener">↗ 開啟手機版</a>
+        <button class="btn-sm" id="copyMob" type="button">📋 複製連結</button>
+      </div>
+      <div class="note" style="margin-top:6px">拿手機掃右邊 QR(或點連結),就能在手機上語音報牌型訓練 —— 同一套牌型/組合語/略過詞詞庫。</div>
+    </div>
+    <img class="mobqr" id="mobQr" alt="手機版 QR" onerror="this.style.display='none'"
+         src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=0&data=https%3A%2F%2Fimage.boyplaymj.link%2Fmahjong-tai%2Fdemo.html">
+  </div>
 
   <div class="bar">
     <div class="test">
@@ -94,6 +117,13 @@
 <script src="phonetic.js"></script>
 <script>
 const $ = s => document.querySelector(s);
+// 📱 手機版・語音訓練站(公開圖床,手機可直接開、無登入牆)
+const MOBILE_URL = 'https://image.boyplaymj.link/mahjong-tai/demo.html';
+$('#copyMob').onclick = () => {
+  const done = ()=>{ const b=$('#copyMob'), t=b.textContent; b.textContent='✅ 已複製'; setTimeout(()=>b.textContent=t,1200); };
+  if (navigator.clipboard) navigator.clipboard.writeText(MOBILE_URL).then(done).catch(()=>prompt('複製這個連結:',MOBILE_URL));
+  else prompt('複製這個連結:', MOBILE_URL);
+};
 const LS_KEY = 'voiceVocab';        // { "3": ["正花","對花",...], ... } 只存使用者的覆蓋
 let SEED = [];                      // 種子(以後台 yakuList 為骨架)
 let VOCAB = [];                     // [{idx,name,tai,synonyms:[]}]
