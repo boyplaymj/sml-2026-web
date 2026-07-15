@@ -99,7 +99,7 @@ S4：`c4-suspect-line`(msg) / `c4-autopsy`🔬 / `c4-blood`🔬 / `c4-alcohol` /
 ＋ 假討論串頁 `waihuan.html`（比照 wenshan.html，隨 stage 增修留言）。
 > ⚠️ 顯示文字**一律繁體、無 emoji**（emoji 變豆腐框）；文件/截圖類走 HTML 版型→shot.py，現場照片類走 Bedrock 底圖+程式疊字。
 > 🔬＝鑑識採證照類（版型 `posters/w1-scene.html`，Bedrock 純材質底 + HTML 疊採證標牌/比例尺/時間戳）。使用者特別偏好此類（CASE-10 的 w1-scene/w4-brazier 大受好評）；本案主打 `c1-scene`（車禍現場）、`c1-seat`（駕駛座/安全帶）、`c4-blood`（血跡型態）三張。標牌只描述現象（散落物範圍/無煞車痕/安全帶扣具/血滴痕），**不解釋含意、不出現 core 名詞**。
-> **進度**：設計聖經 + 引擎 JSON 完成（本檔 + `CASE-11-waihuan.json`）。**待辦：① 生 20 張素材 + `waihuan.html`（分批）② cp 進甜甜 `data/puzzle-assets/` + 上圖床 ③ Codex 依 DESIGN_DIRECTION §5 複驗 ④ DDB put（JSON 已含 `_type:"puzzle"`、`clues` 用裸檔名，直接 put 即可）+ 開案。**
+> **進度（2026-07-15）**：✅ 設計聖經 + 引擎 JSON + **全 20 張素材 + `waihuan.html` 全部完成、上圖床、commit**（S1 六張含實拍安全帶真圖／S2 四張／S3 四張／S4 六張含拱心石相驗報告；c1-scene/c1-seat 為採證照）。素材源在 `posters/`，均逐張目視驗過（繁體無豆腐、時間軸一致、逐階段 core 自檢零洩漏）。假網站 4 個 stage 皆 200。**待辦：① cp 20 張 PNG 進甜甜 `data/puzzle-assets/` + sweetbot commit ② Codex 依 DESIGN_DIRECTION §5 整套複驗 ③ DDB put `waihuan-crash-coverup`（JSON 已含 `_type:"puzzle"`＋裸檔名，直接 put）④ 開案（設 activePuzzleId）。**
 
 ## §7 引擎相容 / 合規 / LESSONS 對照
 - 引擎：stages/npc/solution/hints/reveal 欄位與 CASE-09/10 同構，四階段推進 + 電話AI（含新版保底引導）直接沿用，**不需改引擎**。
