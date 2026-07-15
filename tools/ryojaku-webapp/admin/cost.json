@@ -1,0 +1,42 @@
+{
+  "updated": "2026-07-15",
+  "currency": "USD",
+  "dataSource": "placeholder",
+  "note": "両雀後端在工程師的 AWS 帳號，實際用量與帳單尚未接通。以下為結構示意，數字待接（工程師開端點 / 跨帳號唯讀 role / 手動月填）。",
+  "usage": {
+    "users": { "total": null, "dau": null, "mau": null, "newThisMonth": null },
+    "activity": {
+      "eventsCreated": null,
+      "posts": null,
+      "chatMessages": null,
+      "ratings": null,
+      "ledgerEntries": null,
+      "pushSubscribers": null
+    },
+    "apiCalls": { "total": null, "byEndpoint": [] }
+  },
+  "cost": {
+    "month": "2026-07",
+    "total": null,
+    "byService": [
+      { "service": "伺服器 / 運算 (EC2·Fargate)", "amount": null },
+      { "service": "Lambda", "amount": null },
+      { "service": "API Gateway", "amount": null },
+      { "service": "DynamoDB", "amount": null },
+      { "service": "S3 圖床", "amount": null },
+      { "service": "CloudFront", "amount": null },
+      { "service": "AWS Location Service", "amount": null },
+      { "service": "Bedrock / LLM", "amount": null },
+      { "service": "推播 · 其他", "amount": null }
+    ],
+    "trend": []
+  },
+  "governance": {
+    "llmCaps": [
+      { "feature": "APP內遊戲 · AI出題", "capUSD": 15, "spentUSD": null, "killSwitch": "未啟用" },
+      { "feature": "訓練工具 · AI教練", "capUSD": 15, "spentUSD": null, "killSwitch": "未啟用" }
+    ],
+    "alerts": []
+  },
+  "unitEconomics": { "costPerUser": null, "costPerEvent": null }
+}

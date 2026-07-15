@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>💰 成本控管 · Cost &amp; Usage — 両雀 Ryōjaku</title>
+<style>
+  :root {
+    --bg: #050b14;
+    --panel: #0f172a;
+    --glass: rgba(15, 23, 42, 0.6);
+    --border: rgba(6, 182, 212, 0.15);
+    --cyan: #06b6d4;
+    --pink: #d946ef;
+    --yellow: #facc15;
+    --purple: #8b5cf6;
+    --green: #10b981;
+    --red: #ef4444;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --sans: "Inter", "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
+    --mono: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+    position: relative;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(6, 182, 212, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(6, 182, 212, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 88%, transparent);
+            mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 88%, transparent);
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 68rem;
+    margin: 0 auto;
+    padding: 1.5rem 1.25rem 3.5rem;
+  }
+
+  /* ---------- Header ---------- */
+  .hdr {
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  .hdr h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-shadow: 0 0 18px rgba(6, 182, 212, 0.4);
+    white-space: nowrap;
+  }
+  .hdr h1 .en {
+    font-family: var(--mono);
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+  .hdr .updated {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-left: auto;
+    white-space: nowrap;
+  }
+  .hdr .updated b { color: var(--yellow); font-weight: 600; }
+
+  /* ---------- Data-source banner ---------- */
+  .banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.75rem;
+    border-radius: 0.75rem;
+    font-size: 0.85rem;
+    line-height: 1.55;
+  }
+  .banner.amber {
+    background: rgba(250, 204, 21, 0.07);
+    border: 1px solid rgba(250, 204, 21, 0.35);
+    color: #fde68a;
+  }
+  .banner.amber .b-icon { flex: none; font-size: 1rem; line-height: 1.4; }
+  .banner.amber .b-tag {
+    flex: none;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--yellow);
+    border: 1px solid rgba(250, 204, 21, 0.4);
+    border-radius: 999px;
+    padding: 0.14rem 0.55rem;
+    margin-top: 0.15rem;
+    background: rgba(250, 204, 21, 0.1);
+    white-space: nowrap;
+  }
+  .pill-ok {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--green);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    border-radius: 999px;
+    padding: 0.25rem 0.8rem;
+    background: rgba(16, 185, 129, 0.08);
+    margin-bottom: 1.75rem;
+  }
+  .pill-ok::before {
+    content: "";
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.8);
+  }
+
+  /* ---------- Sections ---------- */
+  .section { margin-bottom: 2.25rem; }
+  .sec-title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 0.9rem;
+  }
+  .sec-title::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(6, 182, 212, 0.4), transparent);
+  }
+  .sec-sub {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    text-transform: none;
+  }
+
+  /* ---------- Cards ---------- */
+  .card {
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+    transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
+  }
+  .card:hover {
+    border-color: rgba(6, 182, 212, 0.4);
+    box-shadow: 0 0 18px rgba(6, 182, 212, 0.18);
+    transform: translateY(-1px);
+  }
+
+  .grid { display: grid; gap: 0.8rem; }
+  .grid.stats  { grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); }
+  .grid.acts   { grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); }
+  .grid.duo    { grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
+
+  .stat .s-label {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .stat .s-value {
+    font-family: var(--mono);
+    font-size: 1.55rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--text);
+  }
+  .stat.accent-cyan   .s-value { color: var(--cyan);   text-shadow: 0 0 14px rgba(6,182,212,0.35); }
+  .stat.accent-pink   .s-value { color: var(--pink);   text-shadow: 0 0 14px rgba(217,70,239,0.3); }
+  .stat.accent-yellow .s-value { color: var(--yellow); text-shadow: 0 0 14px rgba(250,204,21,0.3); }
+  .stat.accent-purple .s-value { color: var(--purple); text-shadow: 0 0 14px rgba(139,92,246,0.35); }
+  .stat.accent-green  .s-value { color: var(--green);  text-shadow: 0 0 14px rgba(16,185,129,0.35); }
+
+  .ph {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--muted);
+    opacity: 0.85;
+    letter-spacing: 0.03em;
+  }
+  .stat .s-value .ph { font-size: 0.95rem; }
+  .hint {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 0.7rem;
+    font-family: var(--mono);
+    letter-spacing: 0.03em;
+  }
+
+  /* ---------- API table ---------- */
+  .api-card { margin-top: 0.8rem; }
+  .api-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+  }
+  .api-head .s-label { margin-bottom: 0; }
+  .api-total {
+    font-family: var(--mono);
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--purple);
+  }
+  table.mini {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.75rem;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+  }
+  table.mini th {
+    text-align: left;
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    padding: 0.35rem 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  table.mini td {
+    padding: 0.4rem 0.5rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    color: var(--text);
+  }
+  table.mini td.num { text-align: right; color: var(--yellow); }
+  table.mini tr:last-child td { border-bottom: none; }
+  table.mini tr:hover td { background: rgba(6, 182, 212, 0.05); }
+
+  /* ---------- Cost bars ---------- */
+  .big-total { display: flex; align-items: center; gap: 1.4rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
+  .big-total .s-value { font-size: 2.2rem; }
+  .month-tag {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    color: var(--cyan);
+    border: 1px solid var(--border);
+    background: rgba(6, 182, 212, 0.08);
+    border-radius: 999px;
+    padding: 0.18rem 0.7rem;
+  }
+
+  .svc-row {
+    display: grid;
+    grid-template-columns: minmax(9rem, 15rem) 1fr minmax(5.5rem, auto);
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.42rem 0;
+    border-bottom: 1px dashed rgba(148, 163, 184, 0.1);
+  }
+  .svc-row:last-child { border-bottom: none; }
+  .svc-name { font-size: 0.84rem; color: var(--text); }
+  .svc-track {
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.12);
+    overflow: hidden;
+    position: relative;
+  }
+  .svc-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--cyan), var(--purple));
+    box-shadow: 0 0 8px rgba(6, 182, 212, 0.5);
+    transition: width 0.5s ease;
+  }
+  .svc-track.empty { background: repeating-linear-gradient(45deg, rgba(148,163,184,0.08) 0 6px, transparent 6px 12px); }
+  .svc-amt { font-family: var(--mono); font-size: 0.8rem; text-align: right; color: var(--yellow); }
+
+  /* ---------- Trend ---------- */
+  .trend-card { margin-top: 0.8rem; }
+  .trend-svg { display: block; width: 100%; height: auto; margin-top: 0.6rem; }
+  .trend-empty {
+    margin-top: 0.6rem;
+    padding: 1.6rem 1rem;
+    text-align: center;
+    border: 1px dashed rgba(148, 163, 184, 0.25);
+    border-radius: 0.6rem;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+  }
+
+  /* ---------- Governance ---------- */
+  .cap-card { display: flex; flex-direction: column; gap: 0.55rem; }
+  .cap-head { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+  .cap-name { font-size: 0.92rem; font-weight: 600; color: var(--text); flex: 1; min-width: 8rem; }
+  .chip {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.16rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .chip.ks-off { color: var(--green); border-color: rgba(16,185,129,0.4); background: rgba(16,185,129,0.08); }
+  .chip.ks-on  { color: var(--red);   border-color: rgba(239,68,68,0.5);  background: rgba(239,68,68,0.1); }
+  .cap-track {
+    height: 9px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.12);
+    overflow: hidden;
+  }
+  .cap-fill { height: 100%; border-radius: 999px; transition: width 0.5s ease; }
+  .cap-fill.ok   { background: var(--green);  box-shadow: 0 0 8px rgba(16,185,129,0.55); }
+  .cap-fill.warn { background: var(--yellow); box-shadow: 0 0 8px rgba(250,204,21,0.55); }
+  .cap-fill.hot  { background: var(--red);    box-shadow: 0 0 8px rgba(239,68,68,0.55); }
+  .cap-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.6rem;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.03em;
+  }
+  .cap-meta .spent { color: var(--text); }
+
+  .alerts { margin-top: 0.8rem; }
+  .alert-item {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    padding: 0.6rem 0.9rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid rgba(250, 204, 21, 0.35);
+    background: rgba(250, 204, 21, 0.06);
+    border-radius: 0.6rem;
+    font-size: 0.84rem;
+    color: #fde68a;
+  }
+  .no-alert {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-top: 0.8rem;
+  }
+  .no-alert::before {
+    content: "";
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px rgba(16, 185, 129, 0.7);
+  }
+
+  /* ---------- Error state ---------- */
+  .err {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--muted);
+  }
+  .err .big { font-size: 2.2rem; display: block; margin-bottom: 0.7rem; }
+  .err code {
+    font-family: var(--mono);
+    color: var(--pink);
+    background: rgba(217, 70, 239, 0.08);
+    border: 1px solid rgba(217, 70, 239, 0.25);
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.3rem;
+    font-size: 0.8rem;
+  }
+
+  @media (max-width: 40rem) {
+    .wrap { padding: 1rem 0.8rem 2.5rem; }
+    .hdr h1 { font-size: 1.25rem; }
+    .svc-row { grid-template-columns: 1fr; gap: 0.3rem; }
+    .svc-amt { text-align: left; }
+    .big-total .s-value { font-size: 1.7rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hdr">
+    <h1>💰 成本控管 <span class="en">· Cost &amp; Usage</span></h1>
+    <span class="updated" id="updated"></span>
+  </header>
+  <div id="banner"></div>
+  <main id="app">
+    <div class="err"><span class="big">⏳</span>載入 <code>cost.json</code> 中…</div>
+  </main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var app = document.getElementById("app");
+  var CUR = "USD";
+  var PH = '<span class="ph">待接資料 —</span>';
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function isNil(v) { return v === null || v === undefined; }
+  function fmtNum(v) {
+    if (isNil(v)) return PH;
+    return '<span>' + Number(v).toLocaleString("en-US") + '</span>';
+  }
+  function fmtCost(v) {
+    if (isNil(v)) return PH;
+    return '<span>$' + Number(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) +
+      ' <small style="font-size:0.6em;color:var(--muted);font-weight:500;">' + esc(CUR) + '</small></span>';
+  }
+  function statCard(label, valueHtml, accent) {
+    return '<div class="card stat' + (accent ? " accent-" + accent : "") + '">' +
+      '<div class="s-label">' + label + '</div>' +
+      '<div class="s-value">' + valueHtml + '</div></div>';
+  }
+
+  function render(d) {
+    CUR = d.currency || "USD";
+
+    /* Header + banner */
+    if (d.updated) {
+      document.getElementById("updated").innerHTML = "UPDATED <b>" + esc(d.updated) + "</b>";
+    }
+    var banner = document.getElementById("banner");
+    if (d.dataSource === "placeholder") {
+      banner.innerHTML =
+        '<div class="banner amber"><span class="b-icon">⚠️</span>' +
+        '<span class="b-tag">Placeholder</span>' +
+        '<span>' + esc(d.note || "數字尚未接通，以下為結構示意。") + '</span></div>';
+    } else {
+      banner.innerHTML = '<span class="pill-ok">資料已接 · LIVE DATA</span>';
+    }
+
+    var u = (d.usage || {});
+    var users = u.users || {};
+    var act = u.activity || {};
+    var api = u.apiCalls || {};
+    var cost = d.cost || {};
+    var gov = d.governance || {};
+    var unit = d.unitEconomics || {};
+    var html = "";
+
+    /* ===== A. 客戶用量 ===== */
+    html += '<section class="section"><div class="sec-title">A · 客戶用量 <span class="sec-sub">USAGE</span></div>';
+    html += '<div class="grid stats">' +
+      statCard("使用者總數", fmtNum(users.total), "cyan") +
+      statCard("DAU · 日活", fmtNum(users.dau), "green") +
+      statCard("MAU · 月活", fmtNum(users.mau), "purple") +
+      statCard("本月新增", fmtNum(users.newThisMonth), "pink") +
+      '</div>';
+
+    var actDefs = [
+      ["🀄 開團", act.eventsCreated],
+      ["📝 貼文", act.posts],
+      ["💬 聊天訊息", act.chatMessages],
+      ["⭐ 評分", act.ratings],
+      ["📒 記帳筆數", act.ledgerEntries],
+      ["🔔 推播訂閱", act.pushSubscribers]
+    ];
+    html += '<div class="grid acts" style="margin-top:0.8rem;">' +
+      actDefs.map(function (a) { return statCard(a[0], fmtNum(a[1])); }).join("") +
+      '</div>';
+
+    html += '<div class="card api-card"><div class="api-head">' +
+      '<div class="s-label" style="font-family:var(--mono);font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);">🛰️ API 呼叫量（本月）</div>' +
+      '<span class="api-total">' + (isNil(api.total) ? PH : Number(api.total).toLocaleString("en-US")) + '</span></div>';
+    var eps = api.byEndpoint || [];
+    if (eps.length) {
+      html += '<table class="mini"><thead><tr><th>Endpoint</th><th style="text-align:right;">Calls</th></tr></thead><tbody>' +
+        eps.map(function (e) {
+          return '<tr><td>' + esc(e.path) + '</td><td class="num">' +
+            (isNil(e.count) ? PH : Number(e.count).toLocaleString("en-US")) + '</td></tr>';
+        }).join("") + '</tbody></table>';
+    } else {
+      html += '<div class="hint">各端點呼叫量待接資料 — 需工程師開 API Gateway metrics。</div>';
+    }
+    html += '</div></section>';
+
+    /* ===== B. 實際花費成本 ===== */
+    html += '<section class="section"><div class="sec-title">B · 實際花費成本 <span class="sec-sub">SPEND</span></div>';
+    html += '<div class="card"><div class="big-total">' +
+      '<div class="stat accent-yellow" style="border:none;background:none;padding:0;">' +
+      '<div class="s-label">本月合計</div><div class="s-value">' + fmtCost(cost.total) + '</div></div>' +
+      (cost.month ? '<span class="month-tag">' + esc(cost.month) + '</span>' : '') +
+      '</div>';
+
+    var svcs = cost.byService || [];
+    var amounts = svcs.map(function (s) { return isNil(s.amount) ? null : Number(s.amount); });
+    var max = amounts.reduce(function (m, v) { return v !== null && v > m ? v : m; }, 0);
+    var allNull = svcs.length > 0 && amounts.every(function (v) { return v === null; });
+    if (svcs.length) {
+      html += '<div style="margin-top:0.4rem;">' + svcs.map(function (s, i) {
+        var v = amounts[i];
+        var w = (v !== null && max > 0) ? Math.max(2, (v / max) * 100) : 0;
+        return '<div class="svc-row">' +
+          '<span class="svc-name">' + esc(s.service) + '</span>' +
+          '<span class="svc-track' + (v === null ? " empty" : "") + '">' +
+          (v !== null ? '<span class="svc-fill" style="display:block;width:' + w + '%;"></span>' : '') +
+          '</span>' +
+          '<span class="svc-amt">' + fmtCost(s.amount) + '</span></div>';
+      }).join("") + '</div>';
+      if (allNull) {
+        html += '<div class="hint">各服務金額待接資料 — 帳單在工程師 AWS 帳號，接通 Cost Explorer / 跨帳號唯讀 role 後即顯示。</div>';
+      }
+    } else {
+      html += '<div class="hint">尚無服務分項資料。</div>';
+    }
+    html += '</div>';
+
+    /* trend */
+    html += '<div class="card trend-card">' +
+      '<div class="s-label" style="font-family:var(--mono);font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);">📈 近 6 個月趨勢</div>';
+    var trend = (cost.trend || []).filter(function (t) { return t && !isNil(t.amount); }).slice(-6);
+    if (trend.length) {
+      var W = 600, H = 170, padB = 26, padT = 14;
+      var tmax = trend.reduce(function (m, t) { return Number(t.amount) > m ? Number(t.amount) : m; }, 0) || 1;
+      var bw = W / trend.length;
+      var bars = trend.map(function (t, i) {
+        var v = Number(t.amount);
+        var bh = Math.max(2, (v / tmax) * (H - padB - padT));
+        var x = i * bw + bw * 0.22;
+        var y = H - padB - bh;
+        return '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + (bw * 0.56).toFixed(1) +
+          '" height="' + bh.toFixed(1) + '" rx="3" fill="url(#tg)" opacity="0.9"></rect>' +
+          '<text x="' + (i * bw + bw / 2).toFixed(1) + '" y="' + (y - 5).toFixed(1) +
+          '" text-anchor="middle" fill="#facc15" font-size="10" font-family="JetBrains Mono, monospace">$' + v.toLocaleString("en-US") + '</text>' +
+          '<text x="' + (i * bw + bw / 2).toFixed(1) + '" y="' + (H - 8) +
+          '" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="JetBrains Mono, monospace">' + esc(t.month) + '</text>';
+      }).join("");
+      html += '<svg class="trend-svg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="近 6 個月成本趨勢">' +
+        '<defs><linearGradient id="tg" x1="0" y1="1" x2="0" y2="0">' +
+        '<stop offset="0%" stop-color="#06b6d4"></stop><stop offset="100%" stop-color="#8b5cf6"></stop>' +
+        '</linearGradient></defs>' +
+        '<line x1="0" y1="' + (H - padB) + '" x2="' + W + '" y2="' + (H - padB) + '" stroke="rgba(6,182,212,0.25)" stroke-width="1"></line>' +
+        bars + '</svg>';
+    } else {
+      html += '<div class="trend-empty">待接資料 — 尚無月度趨勢數據</div>';
+    }
+    html += '</div></section>';
+
+    /* ===== C. 治理 ===== */
+    html += '<section class="section"><div class="sec-title">C · 治理 <span class="sec-sub">COST_CONTROL 四件套</span></div>';
+    var caps = gov.llmCaps || [];
+    if (caps.length) {
+      html += '<div class="grid duo">' + caps.map(function (c) {
+        var cap = isNil(c.capUSD) ? null : Number(c.capUSD);
+        var spent = isNil(c.spentUSD) ? null : Number(c.spentUSD);
+        var pct = (spent !== null && cap) ? Math.min(100, (spent / cap) * 100) : 0;
+        var cls = pct < 70 ? "ok" : (pct < 90 ? "warn" : "hot");
+        var ksRaw = c.killSwitch;
+        var ksOn = ksRaw === true || (typeof ksRaw === "string" && /^(on|true|啟用|已啟用)$/i.test(ksRaw.trim()));
+        var ksLabel = typeof ksRaw === "string" && ksRaw ? esc(ksRaw) : (ksOn ? "啟用" : "未啟用");
+        var spentTxt = spent === null
+          ? '本月 <span class="ph">—</span>'
+          : '本月 <span class="spent">$' + spent.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</span>';
+        var capTxt = cap === null ? 'cap <span class="ph">—</span>'
+          : 'cap $' + cap.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return '<div class="card cap-card">' +
+          '<div class="cap-head"><span class="cap-name">' + esc(c.feature) + '</span>' +
+          '<span class="chip ' + (ksOn ? "ks-on" : "ks-off") + '">⛔ Kill Switch · ' + ksLabel + '</span></div>' +
+          '<div class="cap-track"><div class="cap-fill ' + cls + '" style="width:' + pct.toFixed(1) + '%;"></div></div>' +
+          '<div class="cap-meta"><span>' + spentTxt + ' / ' + capTxt + '</span>' +
+          '<span>' + (spent !== null ? pct.toFixed(0) + "%" : "月封頂") + '</span></div>' +
+          '</div>';
+      }).join("") + '</div>';
+    } else {
+      html += '<div class="hint">尚無 LLM 月封頂項目。</div>';
+    }
+    var alerts = gov.alerts || [];
+    if (alerts.length) {
+      html += '<div class="alerts">' + alerts.map(function (a) {
+        var txt = typeof a === "string" ? a : (a && (a.message || a.text)) || JSON.stringify(a);
+        return '<div class="alert-item"><span>🚨</span><span>' + esc(txt) + '</span></div>';
+      }).join("") + '</div>';
+    } else {
+      html += '<div class="no-alert">無警報 · ALL CLEAR</div>';
+    }
+    html += '</section>';
+
+    /* ===== D. 單位經濟 ===== */
+    html += '<section class="section"><div class="sec-title">D · 單位經濟 <span class="sec-sub">UNIT ECONOMICS</span></div>' +
+      '<div class="grid duo">' +
+      statCard("每位使用者成本 · Cost / User", fmtCost(unit.costPerUser), "cyan") +
+      statCard("每場開團成本 · Cost / Event", fmtCost(unit.costPerEvent), "purple") +
+      '</div></section>';
+
+    app.innerHTML = html;
+  }
+
+  fetch("./cost.json", { cache: "no-cache" })
+    .then(function (res) {
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    })
+    .then(render)
+    .catch(function (err) {
+      app.innerHTML = '<div class="err"><span class="big">⚠️</span>' +
+        '無法載入 <code>cost.json</code>（' + esc(err.message) + '）。<br>' +
+        '請透過 HTTP 伺服器開啟此頁，並確認檔案存在。</div>';
+    });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+{
+  "app": "両雀 Ryōjaku",
+  "tagline": "ELITE COMMUNITY · 後台中樞",
+  "updated": "2026-07-15",
+  "groups": [
+    {
+      "id": "overview",
+      "title": "總覽",
+      "modules": [
+        { "id": "spec", "title": "現有架構還原規格", "doc": "../SPEC.md", "status": "live", "icon": "📐" },
+        { "id": "arch", "title": "後台架構與治理", "doc": "../ARCHITECTURE.md", "status": "live", "icon": "🏛️" }
+      ]
+    },
+    {
+      "id": "new",
+      "title": "新專區",
+      "modules": [
+        { "id": "ladder",   "title": "賽事天梯",   "doc": "../modules/ladder.md",   "status": "design", "icon": "🏆" },
+        { "id": "ingame",   "title": "APP 內遊戲", "doc": "../modules/ingame.md",   "status": "design", "icon": "🎮" },
+        { "id": "parlor",   "title": "麻將館專區", "doc": "../modules/parlor.md",   "status": "design", "icon": "🀄" },
+        { "id": "training", "title": "訓練工具",   "doc": "../modules/training.md", "status": "design", "icon": "🎯" }
+      ]
+    },
+    {
+      "id": "governance",
+      "title": "治理",
+      "modules": [
+        { "id": "cost", "title": "成本控管", "type": "page", "url": "./cost.html", "doc": "../modules/cost.md", "status": "live", "icon": "💰" }
+      ]
+    }
+  ]
+}
