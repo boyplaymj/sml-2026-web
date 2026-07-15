@@ -1,0 +1,96 @@
+# 甜甜遷移旁生發現：66 個「新舊 bot 都用不到」的寫死 emoji
+
+> 產生於 2026-07-14，甜甜→tenten 身分遷移時的旁生檢查。
+> **重點：這些不是遷移弄壞的**——用舊 bot 反查，舊 bot 自己也用不到（不在其群、也非舊 app app-emoji）。
+> 即遷移前就是死連結（既有技術債）。此清單供日後想修相關遊戲時查對。
+
+## 來龍去脈
+- 遊戲碼裡有 647 個寫死的 `<:name:id>` emoji（沒走 registry），其中 **581 個新 bot 正常可用**、**66 個用不到**。
+- 這 66 個：**1 個已從 Discord 刪除(CDN 404)**、**65 個仍存在但住在新舊 bot 都不在的伺服器**。
+- 修法（日後若要）：把要用的 emoji 重傳到新 bot 在的金庫或新 app → 更新對應檔案裡寫死的 id。
+
+## 檔案分佈
+
+| 檔案 | 數量 |
+|---|---|
+| `Common/PokerCards.js` | 52 |
+| `const/emoji.js` | 8 |
+| `model/DrawLots.js` | 3 |
+| `Common/Poker.js` | 1 |
+| `model/Bingo.js` | 1 |
+| `model/VipControl.js` | 1 |
+
+## 完整清單
+
+| emoji 名 | 舊 id | 主要檔案 | 引用次數 | CDN 狀態 |
+|---|---|---|---|---|
+| pb | `1062237589106597988` | `Common/Poker.js` | 1 | 存在(某群) |
+| C10 | `1062240180074975262` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| C2 | `1062240160399491132` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| C3 | `1062240162110779413` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| C4 | `1062240165055168552` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| C5 | `1062240168041533492` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| C6 | `1062240170029613108` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| C7 | `1062240172932075582` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| C8 | `1062240174806945842` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| C9 | `1062240178271440926` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| CA | `1062240186806833252` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| CJ | `1062240192527863830` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| CK | `1062240195728126032` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| CQ | `1062240197753970708` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| D10 | `1062241408536281088` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| D2 | `1062241386251964498` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| D3 | `1062241387547992095` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| D4 | `1062241390643396628` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| D5 | `1062241395013845012` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| D6 | `1062241399526924340` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| D7 | `1062241401271754843` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| D8 | `1062241404010631248` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| D9 | `1062241406741135461` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| DA | `1062241411396816926` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| DJ | `1062241413087109160` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| DK | `1062241416169926698` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| DQ | `1062241417621151754` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| H10 | `1062241514589265980` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| H2 | `1062241496541171825` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| H3 | `1062241499800162304` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| H4 | `1062241501477867540` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| H5 | `1062241504917196850` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| H6 | `1062241506917892167` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| H7 | `1062241509560299560` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| H8 | `1062237735382945864` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| H9 | `1062241511347077241` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| HA | `1062241516904517672` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| HJ | `1062241930177691699` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| HK | `1062241932195143781` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| HQ | `1062241935307321414` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| S10 | `1062239177233670185` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| S2 | `1062239159240105994` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| S3 | `1062239161135943720` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| S4 | `1062239164352954438` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| S5 | `1062239167133786132` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| S6 | `1062239168673087498` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| S7 | `1062235390892843019` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| S8 | `1062239171533611120` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| S9 | `1062239173790146560` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| SA | `1062239180001902592` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| SJ | `1062239181755125821` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| SK | `1062239184305262662` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| SQ | `1062239185798438922` | `Common/PokerCards.js` | 1 | 存在(某群) |
+| bd1 | `1097340517639004251` | `const/emoji.js` | 1 | 存在(某群) |
+| bd2 | `1097340521216757790` | `const/emoji.js` | 1 | 存在(某群) |
+| bd3 | `1097340522563125419` | `const/emoji.js` | 1 | 存在(某群) |
+| bd4 | `1097340526270890034` | `const/emoji.js` | 1 | 存在(某群) |
+| bd5 | `1097340529571799040` | `const/emoji.js` | 1 | 存在(某群) |
+| bd6 | `1097340531450839051` | `const/emoji.js` | 1 | 存在(某群) |
+| bd7 | `1097340534118424746` | `const/emoji.js` | 1 | 存在(某群) |
+| hbdcake | `816763602550652928` | `const/emoji.js` | 1 | 存在(某群) |
+| arrow_lower_right,arrow_right | `1028298014995001344` | `model/Bingo.js` | 2 | 已刪404 |
+| baw | `1097793423488061501` | `model/DrawLots.js` | 2 | 存在(某群) |
+| bg | `1097792660196053022` | `model/DrawLots.js` | 2 | 存在(某群) |
+| sm | `1097792661961842788` | `model/DrawLots.js` | 2 | 存在(某群) |
+| pepecreditcard | `820664013272645723` | `model/VipControl.js` | 1 | 存在(某群) |
+
+## 備註
+- `PokerCards.js` 的 52 張是整副撲克牌(♠♥♦♣ A~K)；撲克/21點/十三支等牌桌遊戲若真的用到會破圖，但這在遷移前已如此。
+- `VipControl.js` 另有 3 個 `1525…` 是**角色 id 非 emoji**(YouTube VIP 身分組)，不在此清單、無問題。
