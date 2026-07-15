@@ -26,6 +26,7 @@
       - ⚠️ 例外：`solution.core.any` 的比對詞庫**可以**留幾個簡體變體（用來接玩家打簡體的作答），那是後端比對、不顯示，OK；但**顯示文案零簡體**。
 - [ ] emoji 在截圖會變豆腐框 → 改文字或 inline SVG（見 HANDOFF §4 製圖管線）。
 - [ ] 錯字、標點全形/半形混用、公司/機關名前後不一致。
+- [ ] **覆蓋同名素材後，圖床要清 CloudFront 快取**（CASE-11）：image.boyplaymj.link 走 CloudFront（distribution `E2IJWN6FWT2XYG`），重傳同一個 `pq/assets/xxx.png` 後，S3 origin 已更新但 CDN 邊緣仍送舊圖（`?nocache=` 也繞不過，快取鍵不含 query）。改圖後務必 `aws cloudfront create-invalidation --distribution-id E2IJWN6FWT2XYG --paths "/pq/assets/xxx.png"`，再請對方強制重新整理（瀏覽器端也會快取）。**首次上傳的新檔名不受影響**，只有覆蓋才要清。
 - [ ] **車輛場景一律左駕（台灣）＋多張要一致**（CASE-11）：Bedrock 生車內/車禍圖常隨機出成右駕（方向盤在右）。台灣是左駕（方向盤在左、靠右行駛）。生圖 prompt 明寫 "left-hand-drive, steering wheel on the LEFT"，且**同案多張車輛圖的駕駛座方向要彼此一致**（現場照 vs 駕駛座特寫別一左一右）；生完逐張確認方向盤在左。
 
 ### 邏輯／一致性
