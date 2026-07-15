@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<!--
+  偽文件解謎遊戲道具 — CASE-12「泓昌貿易 老闆猝死案」假討論串頁。
+  全虛構——地點、人物、情節、公司皆原創虛構，不影射任何真實個案或人物。
+  階段來源：?stage=N 覆寫（授權/測試用，不對玩家顯示階段數）；否則讀共用 sml_config/puzzle_stage，每 15 秒輪詢。
+-->
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>城中大小事｜泓昌那個老闆走得好突然…</title>
+<style>
+  :root{ --bg:#12151a; --card:#1b1f27; --ink:#dbe1e8; --sub:#8790a0; --line:#2a3140; --accent:#5aa6b8; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+  a{color:var(--accent);text-decoration:none}
+  header{background:linear-gradient(120deg,#171b22,#1f2530);border-bottom:1px solid var(--line)}
+  .bar{max-width:760px;margin:0 auto;padding:13px 18px;display:flex;align-items:center;gap:12px}
+  .logo{width:34px;height:34px;border-radius:9px;background:var(--accent);color:#0e1216;font-weight:900;display:grid;place-items:center;font-size:17px}
+  .brand{font-weight:800;letter-spacing:.5px}
+  .brand small{display:block;font-weight:400;color:var(--sub);font-size:11px;letter-spacing:2px}
+  nav{margin-left:auto;display:flex;gap:15px;font-size:13px;color:var(--sub)}
+  .hero{max-width:760px;margin:0 auto;padding:20px 18px 4px}
+  .crumbs{font-size:12px;color:var(--sub);margin-bottom:9px}
+  h1{font-size:21px;margin:0 0 10px;line-height:1.4}
+  .op{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;padding:13px 15px;color:#c2cad4;font-size:14px;line-height:1.75}
+  .op .who{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+  .op .who .a{width:30px;height:30px;border-radius:50%;background:#3a4453;display:grid;place-items:center;font-size:13px;color:#cfd6df;font-weight:700}
+  .op .who b{font-size:14px}.op .who span{color:var(--sub);font-size:12px}
+  .wrap{max-width:760px;margin:14px auto 60px;padding:0 18px}
+  .board{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .bhead{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line);font-weight:700}
+  .bhead .cnt{margin-left:auto;font-weight:400;color:var(--sub);font-size:13px}
+  .acc{display:inline-block;width:4px;height:15px;background:var(--accent);border-radius:2px;margin-right:8px;vertical-align:-2px}
+  .cmt{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .cmt:last-child{border-bottom:0}
+  .ava{flex:0 0 auto;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:#0e1216;font-weight:700;font-size:14px}
+  .cbody{flex:1;min-width:0}
+  .crow{display:flex;align-items:baseline;gap:8px}
+  .cname{font-weight:700;font-size:14px}
+  .ctime{color:var(--sub);font-size:12px}
+  .ctext{margin:5px 0 6px;font-size:14.5px;line-height:1.7;word-break:break-word;color:#d3dae2}
+  .cfoot{font-size:12px;color:var(--sub);display:flex;gap:16px}
+  .removed .ava{background:#39414d!important;color:#7a8494}
+  .removed .ctext{color:#79828f;font-style:italic;background:#191d24;border:1px dashed #313a48;border-radius:8px;padding:9px 12px;display:inline-block}
+  .foot{max-width:760px;margin:0 auto;padding:20px 18px 40px;color:var(--sub);font-size:12px;line-height:1.9;border-top:1px solid var(--line)}
+  .sync{font-size:11px;color:#5c6675;text-align:center;padding:10px}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="logo">城</div>
+    <div class="brand">城中大小事<small>C H E N G C H U N G · 在地討論版</small></div>
+    <nav><span>熱門</span><span>在地</span><span>爆料</span><span>發文</span></nav>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="crumbs">在地 ＞ 商界 ＞ 討論串</div>
+  <h1>泓昌貿易那個楊老闆…走得好突然，你們有聽說嗎？</h1>
+  <div class="op">
+    <div class="who"><div class="a">樓</div><div><b>樓主・認識他們家的</b> <span>· 發文於 6/13</span></div></div>
+    泓昌的楊董在家裡走了，才 42 歲。大家都說他有高血壓、又愛應酬喝兩杯，大概是身體垮了。可是我怎麼想都覺得不太對——他前陣子明明一直喊不舒服、還跑醫院。開一串讓大家聊聊。（勿肉搜、勿散布未證實消息）
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="board">
+    <div class="bhead"><i class="acc"></i>留言 <span class="cnt" id="cnt">—</span></div>
+    <div id="thread"></div>
+  </div>
+  <div class="sync" id="sync">本串留言由系統自動同步</div>
+</div>
+
+<div class="foot">
+  © 城中大小事 在地討論版｜本版內容由網友自由發表，不代表本站立場。<br>
+  <span style="color:#4c5563">（本頁為解謎遊戲虛構道具，地點／人物／情節皆屬原創虛構，不影射任何真實個案。）</span>
+</div>
+
+<script>
+/* 留言：appear=第幾階段出現；deleteAt/hideAt=第幾階段起變刪除/隱藏 */
+const THREAD = [
+  { id:'c1', name:'匿名 A', color:'#8fb0c9', time:'6/13 09:20', text:'R.I.P…楊董人不錯的。高血壓又愛喝，唉，這年紀真的要顧身體。', likes:52, appear:1 },
+  { id:'c2', name:'公司附近的', color:'#c9b48f', time:'6/13 10:41', text:'可是他最近不是一直說頭暈想吐嗎？聽說跑了好幾次醫院都查不出原因…怪。', likes:88, appear:1 },
+  { id:'c3', name:'業界的', color:'#9fc98f', time:'6/14 12:30', text:'我聽說他跟合夥人周總最近為了公司帳的事鬧超僵，還放話要查帳、拆夥。', likes:134, appear:2 },
+  { id:'c4', name:'匿名 B', color:'#c98f9f', time:'6/14 15:02', text:'周總那陣子臉超臭…錢的事嘛，什麼都做得出來。', likes:97, appear:2 },
+  { id:'c5', name:'鄰居', color:'#8f9fc9', time:'6/14 20:15', text:'其實他們家最近氣氛也怪怪的，怡君（他太太）常常一個人在陽台…算了，我不該講這個。', likes:61, appear:2, deleteAt:3 },
+  { id:'c6', name:'知情人', color:'#c9a88f', time:'6/15 13:11', text:'欸更新：那晚周總根本在高雄出差，不在城中；帳的事也私下喬好了。倒是蔡明凱——被楊董推去揹黑鍋、升遷還被壓。', likes:170, appear:3 },
+  { id:'c7', name:'前同事', color:'#8fc9c0', time:'6/15 21:48', text:'蔡某尾牙喝多真的有撂話，說要讓楊董好看…這種帳他記很久的。', likes:142, appear:3 },
+  { id:'c8', name:'匿名 C', color:'#b08fc9', time:'6/16 08:26', text:'可是要是跟公司、跟同事都沒關係呢…會不會其實是他家裡？', likes:120, appear:3, hideAt:4 },
+  { id:'c9', name:'看新聞的', color:'#5aa6b8', time:'6/17 10:10', text:'檢察官改用他殺方向偵辦了！新聞說相驗驗出中毒、根本不是自然病死…到底誰下的手', likes:268, appear:4 },
+  { id:'c10', name:'版務', color:'#6f7c8c', time:'6/17 11:35', text:'本案已進入偵查程序，偵查不公開，請勿再散布未經證實之訊息或個資，違者刪文送辦。', likes:13, appear:4 },
+];
+
+function render(stage){
+  const box = document.getElementById('thread'); box.innerHTML=''; let shown=0;
+  THREAD.forEach(c=>{
+    if (c.appear>stage) return; shown++;
+    const deleted = c.deleteAt && stage>=c.deleteAt;
+    const hidden  = c.hideAt   && stage>=c.hideAt;
+    const el=document.createElement('div');
+    el.className='cmt'+(deleted||hidden?' removed':'');
+    if (deleted||hidden){
+      const label = deleted?'［此留言已被原作者刪除］':'［此留言已被檢舉隱藏］';
+      el.innerHTML=`<div class="ava">－</div><div class="cbody"><div class="crow"><span class="cname" style="color:#7a8494">${c.name}</span><span class="ctime">${c.time}</span></div><div class="ctext">${label}</div></div>`;
+    } else {
+      const ini=c.name.replace(/\s/g,'').slice(-2);
+      el.innerHTML=`<div class="ava" style="background:${c.color}">${ini}</div><div class="cbody"><div class="crow"><span class="cname">${c.name}</span><span class="ctime">${c.time}</span></div><div class="ctext">${c.text}</div><div class="cfoot"><span>讚 ${c.likes}</span><span>回覆</span><span>檢舉</span></div></div>`;
+    }
+    box.appendChild(el);
+  });
+  document.getElementById('cnt').textContent = `共 ${shown} 則`;
+}
+
+const PUZZLE_ID='hongchang-poison-coverup';
+const FB='AIzaSyAZaa_yHu7gsRaj71YL8x3REHfL_V5Tq4w';
+const CFG=`https://firestore.googleapis.com/v1/projects/sml2026newscore/databases/(default)/documents/sml_config/puzzle_stage?key=${FB}`;
+const override=parseInt(new URLSearchParams(location.search).get('stage'),10);
+let current=1;
+function clamp(n){ return Math.min(4,Math.max(1,n||1)); }
+if (override>=1 && override<=4){
+  render(clamp(override));
+} else {
+  render(1);
+  const poll=()=>fetch(CFG).then(r=>r.json()).then(d=>{
+    const f=(d&&d.fields)||{};
+    const pid=(f.puzzleId&&f.puzzleId.stringValue)||'';
+    const st=parseInt((f.stage&&f.stage.integerValue)||'1',10);
+    const use=(pid===PUZZLE_ID)?clamp(st):1;
+    if (use!==current){ current=use; render(current); }
+  }).catch(()=>{});
+  poll(); setInterval(poll,15000);
+}
+</script>
+</body>
+</html>
