@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 28%,#46413a,#221f1b 82%);perspective:2200px;font-family:"Noto Sans CJK TC",sans-serif;}
+  .doc{position:relative;width:720px;min-height:900px;padding:44px 46px;background:#fcfdfd;color:#1a1a1a;transform:rotateX(3deg) rotateZ(-1deg) rotateY(1deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);}
+  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 26%,transparent 76%,rgba(60,55,45,.13));mix-blend-mode:soft-light;}
+  .conf{color:#a01414;font-weight:800;font-size:13px;letter-spacing:3px;border:2px solid #a01414;display:inline-block;padding:2px 10px;position:absolute;top:40px;right:44px;transform:rotate(6deg);}
+  .org{font-size:22px;font-weight:900;letter-spacing:2px;}
+  .doctype{font-size:16px;letter-spacing:4px;color:#555;margin:2px 0 12px;border-bottom:2px solid #17130d;padding-bottom:10px;}
+  .meta{display:flex;justify-content:space-between;font-size:13.5px;color:#555;margin-top:10px;}
+  table{width:100%;border-collapse:collapse;margin-top:12px;font-size:15px;}
+  th,td{border:1px solid #c2ccc8;padding:9px 11px;text-align:left;line-height:1.6;}
+  th{background:#eaf1ef;font-weight:800;}
+  tr.key td{background:#fff6d8;font-weight:800;}
+  .em{color:#a01414;font-weight:800;}
+  .ok{color:#1d6a3a;font-weight:700;}
+  .find{margin-top:18px;font-size:15px;line-height:1.9;background:#f4f6f6;border-left:4px solid #8a5a14;padding:11px 14px;}
+  .concl{margin-top:14px;background:#f6f1ea;border-left:4px solid #a01414;padding:12px 16px;font-size:16.5px;line-height:1.85;font-weight:800;}
+  .sign{margin-top:20px;text-align:right;font-size:14px;color:#333;}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="conf">機密 · 偵字卷</div>
+      <div class="org">城中地方檢察署　偵查報告</div>
+      <div class="doctype">泓昌案　關係人接觸分析（偵字卷）</div>
+      <div class="meta"><span>分析標的：死者楊士豪 睡前養生藥酒（每晚一杯）</span><span>偵字第 114-412 號</span></div>
+      <table>
+        <tr><th style="width:150px;">關係人</th><th style="width:150px;">與死者關係</th><th>接觸情形</th><th style="width:130px;">能否接觸藥酒</th></tr>
+        <tr class="key"><td>方怡君</td><td>配偶</td><td>同住；<span class="em">每日親手調製該藥酒</span></td><td class="em">有接觸</td></tr>
+        <tr><td>周敬堯</td><td>合夥人</td><td>僅公司往來；命案夜人在高雄（不在場已查證）</td><td class="ok">無接觸</td></tr>
+        <tr><td>蔡明凱</td><td>下屬</td><td>職場往來；不出入死者住處</td><td class="ok">無接觸</td></tr>
+        <tr><td>林筱婷</td><td>同事</td><td>職場往來</td><td class="ok">無接觸</td></tr>
+      </table>
+      <div class="find">補充查證：另於死者住處<b>車庫</b>查獲<span class="em">車用防凍劑（含乙二醇）一罐，開封使用過</span>，已送鑑識比對。</div>
+      <div class="concl">結論：具接觸該藥酒之機會者，<span class="em">僅配偶一人</span>。</div>
+      <div class="sign">偵查隊彙整　114/06/15</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>

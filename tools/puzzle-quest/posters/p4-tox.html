@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 28%,#46413a,#221f1b 82%);perspective:2200px;font-family:"Noto Serif CJK TC","Noto Sans CJK TC",serif;}
+  .doc{position:relative;width:668px;min-height:900px;padding:48px 52px;background:#fbfbf8;color:#1a1a1a;transform:rotateX(3deg) rotateZ(-1deg) rotateY(1deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);}
+  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 26%,transparent 76%,rgba(60,55,45,.13));mix-blend-mode:soft-light;}
+  .org{text-align:center;font-size:24px;font-weight:900;letter-spacing:3px;}
+  .doctype{text-align:center;font-size:18px;letter-spacing:6px;color:#555;margin:4px 0 12px;}
+  .conf{color:#a01414;font-weight:800;font-size:14px;letter-spacing:4px;border:2px solid #a01414;display:inline-block;padding:2px 12px;position:absolute;top:44px;right:48px;transform:rotate(6deg);}
+  .rows{font-size:15px;line-height:1.9;border-top:2px solid #17130d;border-bottom:1px solid #999;padding:10px 0;margin-top:6px;font-family:"Noto Sans CJK TC";}
+  .rows .r{display:flex;gap:8px;}.rows .k{font-weight:800;width:96px;}
+  .sec{margin-top:16px;font-size:15.5px;line-height:1.95;font-family:"Noto Sans CJK TC";}
+  .sec .h{font-weight:900;letter-spacing:1px;margin-bottom:4px;}
+  .sec ol{margin-left:24px;}
+  .sec li{margin-bottom:10px;}
+  .em{color:#a01414;font-weight:800;}
+  .big{background:#fff2b0;font-weight:900;padding:0 4px;}
+  .concl{margin-top:18px;background:#f6f1ea;border-left:4px solid #a01414;padding:12px 16px;font-size:16.5px;line-height:1.85;font-family:"Noto Sans CJK TC";}
+  .sign{margin-top:22px;text-align:right;font-size:15px;line-height:1.8;color:#333;font-family:"Noto Sans CJK TC";}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="conf">機密 · 偵字卷</div>
+      <div class="org">城中地方檢察署　法醫相驗</div>
+      <div class="doctype">相驗暨毒物化驗 摘要報告</div>
+      <div class="rows">
+        <div class="r"><span class="k">死者</span><span>楊士豪（男，42）</span></div>
+        <div class="r"><span class="k">案由</span><span>住處猝逝（原報請病死相驗，經檢驗改列偵辦）</span></div>
+        <div class="r"><span class="k">相驗日</span><span>6/13 – 6/15（含毒物化驗）</span></div>
+      </div>
+      <div class="sec">
+        <div class="h">相驗與毒物化驗發現：</div>
+        <ol>
+          <li>血液及玻璃體液檢出<span class="em">乙二醇（ethylene glycol）及其代謝物乙醇酸</span>，濃度達<span class="big">中毒致死範圍</span>。</li>
+          <li>腎臟組織可見<span class="em">大量草酸鈣結晶</span>沉積；併發<span class="em">高陰離子間隙代謝性酸中毒</span>——<b>為乙二醇中毒之典型變化</b>。</li>
+          <li>血中酒精濃度偏低，<span class="em">與「酒醉」不符</span>；死者近期之頭暈、噁心、視力模糊、步態不穩，符合<span class="big">乙二醇慢性中毒</span>表現（初期酷似酒醉，故就醫難以查出病因）。</li>
+        </ol>
+      </div>
+      <div class="concl">綜合研判：死者<span class="em">係乙二醇中毒致死，非自然病死、亦非酒精所致</span>；由代謝物及腎臟結晶研判，係<span class="em">經口重複攝入、偽裝成急病之投毒</span>。<b>建議以他殺方向偵辦。</b></div>
+      <div class="sign">相驗法醫　陳靜宜<br>檢察官　偵字第 114-412 號</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>

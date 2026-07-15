@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Sans CJK TC",sans-serif;}
+  html,body{background:#222;}
+  .phone{width:720px;height:1180px;background:#f7f4ec;position:relative;display:flex;flex-direction:column;}
+  .status{height:44px;background:#f7f4ec;display:flex;align-items:center;justify-content:space-between;padding:0 26px;color:#333;font-size:22px;font-weight:600;border-bottom:1px solid #e3ddd0;}
+  .nav{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;color:#b08a2e;font-size:22px;}
+  .nav .back{display:flex;align-items:center;gap:4px;}
+  .nav .back .arrow{font-size:32px;line-height:1;}
+  .note{flex:1;padding:10px 34px 30px;color:#2a2620;overflow:hidden;}
+  .ntitle{font-size:30px;font-weight:800;margin-bottom:4px;}
+  .ndate{font-size:15px;color:#9a927f;margin-bottom:22px;}
+  .p{font-size:23px;line-height:1.75;margin-bottom:20px;}
+  .dmark{font-size:16px;color:#9a927f;margin:26px 0 8px;letter-spacing:1px;}
+  .tel{color:#1a6fc4;text-decoration:underline;text-underline-offset:4px;font-weight:700;}
+  .dots{align-self:center;color:#b08a2e;font-size:26px;letter-spacing:2px;}
+  .toolbar{height:70px;border-top:1px solid #e3ddd0;display:flex;align-items:center;justify-content:space-around;padding:0 30px;}
+  .toolbar svg{opacity:.75;}
+</style></head>
+<body>
+  <div class="phone">
+    <div class="status"><div>23:47</div><div style="display:flex;align-items:center;gap:8px;font-size:19px;"><span>5G</span><span style="display:inline-block;width:30px;height:15px;border:2px solid #333;border-radius:3px;position:relative;"><span style="position:absolute;right:-4px;top:4px;width:3px;height:5px;background:#333;"></span><span style="display:block;height:100%;width:48%;background:#333;"></span></span></div></div>
+    <div class="nav">
+      <div class="back"><span class="arrow">‹</span><span>備忘錄</span></div>
+      <div class="dots">…</div>
+    </div>
+    <div class="note">
+      <div class="ntitle">（不想寫標題）</div>
+      <div class="ndate">6月1日 23:47 更新　｜　建立於 5月14日</div>
+
+      <div class="dmark">—— 5月14日 深夜</div>
+      <div class="p">他手機裡都是林筱婷。訊息、還有那張合照……幾點幾點還一起。我到底算什麼。</div>
+      <div class="p">那個號碼我背下來了——林筱婷　<span class="tel">0912-337-084</span>。連存進通訊錄都不敢。</div>
+
+      <div class="dmark">—— 5月26日</div>
+      <div class="p">問他最近怎麼常加班，他眼睛都不看我。我沒有吵，也沒有鬧。我等著看他能瞞多久。</div>
+
+      <div class="dmark">—— 6月1日</div>
+      <div class="p">打給阿珊，話到嘴邊又吞回去。跟誰說都沒用。這口氣，我自己吞。</div>
+    </div>
+    <div class="toolbar">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="#b08a2e" stroke-width="2"><rect x="4" y="4" width="18" height="18" rx="3"/><path d="M9 13h8M13 9v8"/></svg>
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="#b08a2e" stroke-width="2"><path d="M5 20l3-9 5 5 4-7 4 11z"/><circle cx="9" cy="7" r="2"/></svg>
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="#b08a2e" stroke-width="2"><path d="M18 4l4 4L9 21l-5 1 1-5z"/></svg>
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="#b08a2e" stroke-width="2"><rect x="4" y="5" width="18" height="16" rx="2"/><path d="M8 10h10M8 14h10M8 18h6"/></svg>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 28%,#46413a,#221f1b 82%);perspective:2200px;font-family:"Noto Sans CJK TC",sans-serif;}
+  .doc{position:relative;width:720px;min-height:900px;padding:44px 46px;background:#fbfbf8;color:#1a1a1a;transform:rotateX(3deg) rotateZ(-1deg) rotateY(1deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);}
+  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 26%,transparent 76%,rgba(60,55,45,.13));mix-blend-mode:soft-light;}
+  .conf{color:#a01414;font-weight:800;font-size:13px;letter-spacing:3px;border:2px solid #a01414;display:inline-block;padding:2px 10px;position:absolute;top:40px;right:44px;transform:rotate(6deg);}
+  .org{font-size:22px;font-weight:900;letter-spacing:2px;}
+  .doctype{font-size:16px;letter-spacing:5px;color:#555;margin:2px 0 12px;border-bottom:2px solid #17130d;padding-bottom:10px;}
+  .tl{margin-top:8px;position:relative;padding-left:24px;}
+  .tl::before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:#c8bfa8;}
+  .ev{position:relative;margin-bottom:15px;font-size:15.5px;line-height:1.55;}
+  .ev::before{content:"";position:absolute;left:-21px;top:5px;width:11px;height:11px;border-radius:50%;background:#7a6f52;border:2px solid #fff;box-shadow:0 0 0 1px #7a6f52;}
+  .ev.k::before{background:#c11414;box-shadow:0 0 0 1px #c11414;}
+  .ev .d{font-weight:800;}
+  .ev .t{color:#333;}
+  .ev.k .t{color:#a01414;font-weight:700;}
+  .concl{margin-top:12px;background:#f6f1ea;border-left:4px solid #a01414;padding:12px 16px;font-size:16px;line-height:1.85;}
+  .concl .em{color:#a01414;font-weight:800;}
+  .sign{margin-top:18px;text-align:right;font-size:14px;color:#333;}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="conf">機密 · 偵字卷</div>
+      <div class="org">城中地方檢察署</div>
+      <div class="doctype">案情時序彙整表　偵字第 114-412 號</div>
+      <div class="tl">
+        <div class="ev k"><span class="d">5/中</span>　<span class="t">方怡君發現丈夫楊士豪與同事林筱婷之曖昧（訊息、合照）。</span></div>
+        <div class="ev"><span class="d">5/下 – 6/初</span>　<span class="t">死者反覆頭暈、嘔吐，先後就醫（6/2、6/8）均查無病因——事後比對，<b>符合乙二醇慢性中毒</b>之表現。</span></div>
+        <div class="ev k"><span class="d">6/12 22:05</span>　<span class="t">死者撥打林筱婷（0912-337-084，通話 3分12秒）；該通聯事後<b>遭自死者手機刪除</b>（電信端仍有紀錄）。</span></div>
+        <div class="ev k"><span class="d">6/12 夜</span>　<span class="t">死者飲下當晚睡前藥酒後，於住處猝逝。</span></div>
+        <div class="ev k"><span class="d">6/13 – 6/15</span>　<span class="t">相驗毒化：<b>乙二醇及代謝物＋腎臟草酸鈣結晶</b>；藥酒瓶及杯內殘液檢出乙二醇；住處車庫查獲開封之車用防凍劑。</span></div>
+        <div class="ev"><span class="d">查證洗清</span>　<span class="t">周敬堯（命案夜在高雄、無接觸）、蔡明凱（職場往來、無接觸），均排除涉案。</span></div>
+      </div>
+      <div class="concl">綜合研判：死者係遭<span class="em">長期於每晚藥酒中摻入乙二醇致死之投毒他殺</span>；具接觸該藥酒機會者<span class="em">僅配偶方怡君一人</span>，其並具刪除死者手機通聯之接觸條件；動機為<span class="em">疑丈夫外遇之嫉妒</span>。</div>
+      <div class="sign">承辦檢察官　偵字第 114-412 號</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>
