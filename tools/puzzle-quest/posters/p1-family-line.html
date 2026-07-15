@@ -11,8 +11,13 @@
   .head .name{font-size:25px;font-weight:700;flex:1;}
   .head .name small{display:block;font-size:15px;font-weight:400;opacity:.85;}
   .head .ic{font-size:26px;opacity:.9;}
-  .msgs{flex:1;padding:22px 22px 30px;display:flex;flex-direction:column;gap:14px;overflow:hidden;}
+  .msgs{flex:1;padding:22px 22px 24px;display:flex;flex-direction:column;justify-content:flex-end;gap:14px;overflow:hidden;}
   .day{align-self:center;background:rgba(0,0,0,.26);color:#fff;font-size:16px;padding:5px 16px;border-radius:14px;margin:4px 0;}
+  .sticker{width:184px;height:184px;border-radius:16px;background:linear-gradient(160deg,#ffe1a8,#ffb877 58%,#ff9d6a);position:relative;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.15);}
+  .sticker .sun{position:absolute;left:24px;top:22px;width:52px;height:52px;border-radius:50%;background:#fff6cc;box-shadow:0 0 0 6px rgba(255,246,204,.45),0 0 22px rgba(255,232,150,.95);}
+  .sticker .fl{position:absolute;right:20px;top:26px;width:12px;height:12px;border-radius:50%;background:#ff7f7f;box-shadow:22px 8px #ffd166,-6px 26px #a7d489,16px 34px #ff7f7f;}
+  .sticker .st{position:absolute;left:0;right:0;bottom:24px;text-align:center;color:#7a3b12;font-weight:900;font-size:36px;text-shadow:0 1px 2px rgba(255,255,255,.55);}
+  .sticker .st small{display:block;font-size:19px;font-weight:700;margin-top:2px;}
   .row{display:flex;align-items:flex-start;gap:9px;max-width:82%;}
   .av2{width:46px;height:46px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:19px;color:#fff;}
   .a1{background:#a58bb8;}.a2{background:#7fae7f;}.a3{background:#c8a35a;}
@@ -32,6 +37,24 @@
       <div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" stroke="#fff" stroke-width="2.2" fill="none"><path d="M3 6h18M3 12h18M3 18h18"/></svg></div>
     </div>
     <div class="msgs">
+      <div class="day">6月8日 星期日</div>
+
+      <div class="row"><div class="av2 a1">姨</div><div class="col"><div class="who">秀蘭阿姨</div>
+        <div class="line"><div class="sticker"><div class="sun"></div><div class="fl"></div><div class="st">早安<small>平安順心</small></div></div><div class="time">08:12</div></div>
+      </div></div>
+
+      <div class="row"><div class="av2 a2">誠</div><div class="col"><div class="who">阿誠</div>
+        <div class="line"><div class="bubble">阿姨早～</div><div class="time">08:31</div></div>
+      </div></div>
+
+      <div class="row"><div class="av2 a1">姨</div><div class="col"><div class="who">秀蘭阿姨</div>
+        <div class="line"><div class="bubble">這週末士豪他們會回來吃飯嗎？我來煮幾道菜</div><div class="time">09:05</div></div>
+      </div></div>
+
+      <div class="row"><div class="av2 a3">賢</div><div class="col"><div class="who">阿賢</div>
+        <div class="line"><div class="bubble">應該會吧，我看阿蓉有提到</div><div class="time">09:20</div></div>
+      </div></div>
+
       <div class="day">6月13日 星期五</div>
 
       <div class="row"><div class="av2 a1">姨</div><div class="col"><div class="who">秀蘭阿姨</div>
