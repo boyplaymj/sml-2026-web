@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 28%,#46413a,#221f1b 82%);perspective:2200px;font-family:"Noto Serif CJK TC","Noto Sans CJK TC",serif;}
+  .doc{position:relative;width:668px;min-height:900px;padding:48px 52px;background:#fbfbf8;color:#1a1a1a;transform:rotateX(3deg) rotateZ(-1deg) rotateY(1deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);}
+  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 26%,transparent 76%,rgba(60,55,45,.13));mix-blend-mode:soft-light;}
+  .org{text-align:center;font-size:24px;font-weight:900;letter-spacing:3px;}
+  .doctype{text-align:center;font-size:18px;letter-spacing:8px;color:#555;margin:4px 0 12px;}
+  .conf{color:#a01414;font-weight:800;font-size:14px;letter-spacing:4px;border:2px solid #a01414;display:inline-block;padding:2px 12px;position:absolute;top:44px;right:48px;transform:rotate(6deg);}
+  .rows{font-size:15px;line-height:1.9;border-top:2px solid #17130d;border-bottom:1px solid #999;padding:10px 0;margin-top:6px;font-family:"Noto Sans CJK TC";}
+  .rows .r{display:flex;gap:8px;}.rows .k{font-weight:800;width:96px;}
+  .sec{margin-top:16px;font-size:15.5px;line-height:1.95;font-family:"Noto Sans CJK TC";}
+  .sec .h{font-weight:900;letter-spacing:1px;margin-bottom:4px;}
+  .sec ol{margin-left:24px;}
+  .sec li{margin-bottom:9px;}
+  .em{color:#a01414;font-weight:800;}
+  .big{background:#fff2b0;font-weight:900;padding:0 4px;}
+  .concl{margin-top:16px;background:#f6f1ea;border-left:4px solid #a01414;padding:12px 16px;font-size:16.5px;line-height:1.85;font-family:"Noto Sans CJK TC";}
+  .sign{margin-top:20px;text-align:right;font-size:15px;line-height:1.8;color:#333;font-family:"Noto Sans CJK TC";}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="conf">機密 · 偵字卷</div>
+      <div class="org">城中地方檢察署　法醫相驗</div>
+      <div class="doctype">相 驗 摘 要 報 告</div>
+      <div class="rows">
+        <div class="r"><span class="k">死者</span><span>許博鈞（男，34）</span></div>
+        <div class="r"><span class="k">案由</span><span>外環道自小客自撞、當場死亡</span></div>
+        <div class="r"><span class="k">相驗日</span><span>5/9 – 5/10</span></div>
+      </div>
+      <div class="sec">
+        <div class="h">相驗與檢驗發現：</div>
+        <ol>
+          <li>頸部見<span class="em">水平索狀勒痕，伴皮下出血</span>；舌骨<span class="em">骨折</span>；眼瞼結膜見<span class="em">多處點狀出血</span>——<b>均為生前頸部受壓（機械性窒息）之特徵</b>。</li>
+          <li>頭、胸部之撞擊挫傷及肋骨骨折斷端<span class="em">周邊組織不見出血、無腫脹反應（生活反應缺失）</span>，研判該等傷勢<span class="big">係死後造成</span>。</li>
+          <li>血液酒精濃度檢驗<span class="em">為 0.00 mg/L（陰性）</span>，與現場「疑似酒後駕駛」不符。</li>
+          <li>胸、肩部<span class="em">未見安全帶勒壓之條狀瘀傷</span>；比對車內安全帶為繫合狀態——<b>繫帶者若為生前受撞，應留有勒壓瘀痕，本案闕如</b>。</li>
+          <li>依屍溫、胃內容物及屍僵程度，推定<span class="big">死亡時間早於報案車禍時間約 2 小時</span>。</li>
+        </ol>
+      </div>
+      <div class="concl">綜合研判：死者<span class="em">係生前遭外力壓迫頸部致機械性窒息死亡</span>，撞擊傷勢為死後形成；死亡時間早於車禍。研判係<span class="em">死後移置駕駛座、佈置成自撞之偽裝</span>。死亡方式與「酒後／疲勞自撞意外」不符，<b>建議以他殺方向偵辦</b>。</div>
+      <div class="sign">相驗法醫　吳孟哲<br>檢察官　偵字第 114-338 號</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>

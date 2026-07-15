@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 28%,#46413a,#221f1b 82%);perspective:2200px;font-family:"Noto Serif CJK TC","Noto Sans CJK TC",serif;}
+  .doc{position:relative;width:700px;min-height:900px;padding:44px 46px;background:#fbfbf8;color:#1a1a1a;transform:rotateX(3deg) rotateZ(-1deg) rotateY(1deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);}
+  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 26%,transparent 76%,rgba(60,55,45,.13));mix-blend-mode:soft-light;}
+  .org{text-align:center;font-size:22px;font-weight:900;letter-spacing:2px;}
+  .org small{display:block;font-size:12px;letter-spacing:3px;color:#6a6155;font-weight:400;}
+  .doctype{text-align:center;font-size:18px;letter-spacing:5px;color:#555;margin:4px 0 10px;border-bottom:3px double #111;padding-bottom:10px;}
+  .no{text-align:right;font-size:13px;color:#555;margin:6px 0 10px;}
+  .diagram{display:flex;gap:18px;align-items:stretch;margin:8px 0 6px;}
+  .seat{position:relative;width:250px;height:210px;background:#20242b;border:2px solid #444;border-radius:14px 14px 8px 8px;flex:none;overflow:hidden;}
+  .seat .lbl{position:absolute;top:6px;left:8px;color:#9fb0c2;font-size:12px;font-family:"Noto Sans CJK TC";}
+  .drip{position:absolute;width:14px;height:16px;background:#7a1414;border-radius:50% 50% 55% 55%;box-shadow:0 0 0 2px rgba(200,60,60,.25);}
+  .belt{position:absolute;top:-6px;left:60px;width:26px;height:130%;background:#111;transform:rotate(24deg);transform-origin:top;opacity:.85;}
+  .cap{font-size:13.5px;line-height:1.7;color:#444;font-family:"Noto Sans CJK TC";flex:1;}
+  .cap b{color:#a01414;}
+  .sec{margin-top:12px;font-size:15px;line-height:1.9;font-family:"Noto Sans CJK TC";}
+  .sec .h{font-weight:900;margin-bottom:4px;}
+  .sec ol{margin-left:24px;}.sec li{margin-bottom:8px;}
+  .em{color:#a01414;font-weight:800;}
+  .concl{margin-top:14px;background:#f6f1ea;border-left:4px solid #a01414;padding:12px 16px;font-size:16px;line-height:1.85;font-family:"Noto Sans CJK TC";}
+  .sign{margin-top:16px;text-align:right;font-size:14px;color:#333;font-family:"Noto Sans CJK TC";}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="org">城中市政府警察局 刑事鑑識中心<small>血跡型態分析 BPA</small></div>
+      <div class="doctype">血 跡 型 態 鑑 定 報 告</div>
+      <div class="no">送驗編號：CC-114-BPA-0514　鑑定標的：事故車駕駛座</div>
+      <div class="diagram">
+        <div class="seat">
+          <div class="lbl">駕駛座（示意）</div>
+          <div class="belt"></div>
+          <div class="drip" style="left:120px;top:70px;"></div>
+          <div class="drip" style="left:140px;top:96px;"></div>
+          <div class="drip" style="left:128px;top:120px;"></div>
+          <div class="drip" style="left:158px;top:110px;"></div>
+        </div>
+        <div class="cap">圖示：駕駛座椅面血跡集中呈<b>圓形被動滴落痕</b>（○），邊緣規則、方向性一致向下；<b>未見高速撞擊應有之放射狀噴濺</b>。</div>
+      </div>
+      <div class="sec">
+        <div class="h">鑑定發現：</div>
+        <ol>
+          <li>駕駛座椅面血跡以<span class="em">被動滴落型態（passive drip）</span>為主，滴落方向朝下、分布集中，<span class="em">與當場高速撞擊之噴濺／拋甩型態不符</span>。</li>
+          <li>安全帶織帶經檢視<span class="em">未見荷重張力痕、摩擦熔痕</span>——與「乘員受撞時被安全帶拉扯約束」之情形不符。</li>
+          <li>綜合相驗（另卷）：屍體<span class="em">無安全帶勒壓瘀傷</span>，佐證繫帶時已無生活反應。</li>
+        </ol>
+      </div>
+      <div class="concl">研判：駕駛座之血跡係死者於<span class="em">近乎靜止／無生命跡象狀態下被動滴落所形成</span>，非高速撞擊當下所致；配合安全帶無受力，研判<span class="em">死者係死後被置入駕駛座並繫上安全帶</span>。</div>
+      <div class="sign">鑑定人　林筱盈（鑑識技正）</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>
