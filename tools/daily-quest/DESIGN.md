@@ -61,18 +61,64 @@
 
 ---
 
-## 4. P1 建議先追蹤的事件（決策 5：先列）
+## 4. 事件分類 taxonomy（＝後台管理頁分類正典）
 
-挑「高流量 + 單點好埋 + 防farm容易」的 4 個先做：
+每則任務 = **大分類（A~E）→ 事件 key → 參數（target 次數/數量 + meta 對象）**。
+後台建任務用三層下拉：選大分類 → 選事件 key → 填參數。
+可行性：🟢 現成/易埋　🟡 中等　🔴 較難（暫緩）。**P1** = 首發要埋的。
 
-| 事件字串 | 觸發點 | 埋點檔 | 防濫用 |
+### A. 遊戲行為類 🎮
+| 事件 key | 意思 | 參數 | 可行 | P1 |
+|---|---|---|---|---|
+| `game_play:any` | 玩任意小遊戲 N 次 | 次數 | 🟢 | ✅ |
+| `game_play:<遊戲>` | 玩指定遊戲 N 次 | 次數 | 🟢 | |
+| `game_win:any` | 贏任意遊戲 N 次 | 次數 | 🟢 | ✅ |
+| `game_win:<遊戲>` | 贏指定遊戲 N 次 | 次數 | 🟢 | |
+| `game_bet` | 遊戲下注累計 N 牙齒 | 牙齒量 | 🟢 | |
+| `game_achieve:<成就>` | 遊戲內特定成就（upw 開局猜中 / 過馬路走 X 距離…） | 依成就 | 🟡 | |
+
+**`<遊戲>` key**（現有 miniGame）：`upw`(達文西)、`sicbo`(骰寶)、`bjm`(21點)、`pokingfun`(戳戳樂)、`crossroad`(過馬路)、`abcode`(1A2B)、`inbetween`(隆巴)、`flowertime`(猜花)、`bingo`(賓果)、`rps`(剪刀石頭布)、`pkpenalty`(PK罰球)、`pusher`(推推樂)
+**防farm**：只認**有下注的正式局**，排除 auto-casino 自動局。
+
+### B. 社交互動類 💬
+| 事件 key | 意思 | 參數 | 可行 | P1 |
+|---|---|---|---|---|
+| `post_message` | 指定頻道發言 N 則 | 次數 | 🟢 | ✅ |
+| `mention_user` | @提及某人 N 次 | 次數 | 🟢 | |
+| `get_mentioned` | 被別人 @ N 次 | 次數 | 🟢 | |
+| `add_reaction` | 對訊息按表情 N 次 | 次數 | 🟢 | |
+| `button_click:<key>` | 觸發某互動按鈕 | 次數 | 🟢 | |
+| `reply_message` | 回覆別人訊息 | 次數 | 🟡 | |
+
+**技術前提已具備**：發言/@ 靠 `MessageContent` intent ✓、表情靠 `GuildMessageReactions` intent ✓、按鈕全走 `discord.js` 派發器 ✓ → B 類全部可埋，不需加新 intent。
+**防farm**：`post_message`/`add_reaction` **每日設計數上限** + 最短字數 + 頻道白名單，防洗頻。
+
+### C. 經濟類 💰
+| 事件 key | 意思 | 可行 | P1 |
 |---|---|---|---|
-| `checkin` | 每日簽到成功 | `DailyCheckIn.checkIn` | 天然 1/日 |
-| `game_play:any` | 玩完任一小遊戲（結算） | 各 miniGame 結束處 | 只認有下注的正式局，不認 auto-casino |
-| `game_win:any` | 贏一場小遊戲 | 各 miniGame 勝出處 | 同上 |
-| `post_message` | 在指定頻道發言 | 訊息事件 handler | **每日只計 1 次** + 最短字數 + 頻道白名單（防洗頻farm） |
+| `checkin` | 每日簽到 | 🟢 | ✅ |
+| `teeth_earned` / `teeth_spent` | 賺/花 N 牙齒 | 🟢 | |
+| `redpacket_grab` | 搶紅包 N 次 | 🟢 | |
+| `gift_send` | 送禮給別人 | 🟡 | |
+| `item_use` / `item_buy` | 用/買道具 | 🟡 | |
 
-後續階段再擴：`game_win:upw`/`teeth_spent`/`vote_join`/`casino_play`/`invite_friend` 等。
+### D. 養成/系統類 📈
+| 事件 key | 意思 | 可行 | P1 |
+|---|---|---|---|
+| `exp_gain` | 獲得 N 經驗 | 🟢 | |
+| `vote_join` | 參加競猜/投票 | 🟢 | |
+| `bind_youtube` | 綁定 YT（與 onboarding 共用） | 🟢 | |
+| `quest_complete` | 完成其他每日任務（meta 任務） | 🟢 | |
+
+### E. 直播連動類 📺（選配）
+| 事件 key | 意思 | 可行 | P1 |
+|---|---|---|---|
+| `yt_keyword` | 直播聊天觸發關鍵字（已有 `YtKeywordRewards`） | 🟡 | |
+| `stock_bet` | 賽況應援盤下注 | 🟢 | |
+
+### P1 首發（🟢 高流量、單點好埋、涵蓋日常主行為）
+`checkin` + `game_play:any` + `game_win:any` + `post_message`。
+B 類 `mention_user`/`button_click`/`add_reaction`（趣味任務）列 **P2 擴充**。
 
 ---
 
