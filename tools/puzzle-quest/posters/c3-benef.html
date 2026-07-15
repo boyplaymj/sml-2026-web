@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 40% 30%,#45403a,#221f1b 80%);perspective:2400px;font-family:"Noto Serif CJK TC","Noto Sans CJK TC",serif;}
+  .doc{position:relative;width:660px;min-height:900px;padding:48px 50px 44px;background:#fdfdfb;color:#1a1a1a;transform:rotateX(4deg) rotateZ(-1.1deg) rotateY(1.3deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 60px rgba(0,0,0,.6);}
+  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 25%,transparent 75%,rgba(60,55,45,.14));mix-blend-mode:soft-light;}
+  .co{text-align:center;font-size:25px;font-weight:900;letter-spacing:3px;color:#173a5a;}
+  .ttl{text-align:center;font-size:21px;letter-spacing:5px;margin:4px 0 6px;border-bottom:3px double #111;padding-bottom:10px;}
+  .no{text-align:right;font-size:13px;color:#555;margin:6px 0 12px;}
+  table{width:100%;border-collapse:collapse;font-size:16px;}
+  td{border:1px solid #9a9a9a;padding:10px 12px;}
+  td.k{background:#eef2f6;font-weight:800;width:38%;white-space:nowrap;}
+  .red{color:#b01818;font-weight:800;}
+  .note{font-size:13px;color:#666;margin-top:14px;line-height:1.7;}
+  .stamp{position:absolute;right:60px;bottom:118px;width:104px;height:104px;border:3px solid rgba(23,58,90,.45);border-radius:50%;color:rgba(23,58,90,.5);display:flex;align-items:center;justify-content:center;text-align:center;font-size:15px;font-weight:900;line-height:1.3;transform:rotate(-12deg);}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,rgba(10,8,4,.55));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="co">城 中 人 壽 保 險 股 份 有 限 公 司</div>
+      <div class="ttl">身 故 受 益 人 資 料 表</div>
+      <div class="no">保單號碼：CCL-8802-514　列印日：114/05/11</div>
+      <table>
+        <tr><td class="k">要保人／被保險人</td><td>許博鈞（男 · 34 歲）</td></tr>
+        <tr><td class="k">身故受益人</td><td class="red">潘映蓉</td></tr>
+        <tr><td class="k">與被保險人關係</td><td>配偶</td></tr>
+        <tr><td class="k">受益順位／比例</td><td class="red">第一順位　·　應得比例 100%</td></tr>
+        <tr><td class="k">指定日期</td><td>114 年 4 月 17 日（投保時指定）</td></tr>
+        <tr><td class="k">意外身故保險金額</td><td>新臺幣 2,000 萬元</td></tr>
+        <tr><td class="k">理賠給付方式</td><td>一次給付　·　匯入受益人指定帳戶</td></tr>
+      </table>
+      <div class="note">※ 受益人資料以本公司保全系統最新登錄為準。<br>※ 受益人申領身故保險金時，應依規定檢具死亡證明文件、除戶戶籍謄本等資料。</div>
+      <div class="stamp">城中人壽<br>保全部<br>登錄章</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>
