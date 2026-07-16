@@ -192,24 +192,52 @@
 
 ---
 
-## 9. 審判 / 逃漏稅（逐級鎖權，接 `!jail`）
+## 9. 審判 / 逃漏稅（逐級鎖權，接 `!jail`）— P5 實作規格
 
-**使用者定案：要有繳納期限、逾期「逐一鎖權限」。** → 兩級階梯，接現成三態閘門 `CommonUtil.passCriminalGate()`（allow / block / only 已實作，遊戲入口零改動）。
+**使用者定案：要有繳納期限、逾期「逐一鎖權限」。** 兩級階梯（欠稅戶→逃稅犯）。
 
-### 新增罪名（`const/crimes.js` 加 id:5）
+### 9.0 探勘結論與 3 決策定案（2026-07-16）
 
-| 階段 | 觸發 | 身分組 | 鎖什麼（criminalAccess） | 解除 |
+**關鍵發現**：現行 `CommonUtil.passCriminalGate()` 是**二元**判定——`isCriminalSilent()` 只看「有無任一罪名 role」，配指令的 `criminalAccess: block/allow/only`。因此「**欠稅戶只切高收益博弈、社交/簽到仍放行**」現行閘門做不到（欠稅戶若當罪名 role 會擋掉所有 block 指令）。→ 需為輕階加一層。重階逃稅犯剛好就是罪名 role 的既有行為。
+
+| # | 決策 | 定案（使用者採建議值） |
+|---|---|---|
+| 1 | 欠稅戶閘門實作 | **加薄層 `passTaxGate`**（讀欠稅戶 role + 指令 `taxBlock:true` 才擋），不把欠稅戶做成完整罪名 role |
+| 2 | 逃稅犯刑度 | **長刑期**（`config.evaderSentenceHours` 預設 720h=30天，自動釋放硬上限），真正出口靠**補繳 or 湊勞役假釋**，不靠時間到自動放 |
+| 3 | taxBlock 博弈清單 | 擋：賓果/骰寶/21點(BJ)/BJM/推筒子/射龍門/四連環/戳戳樂/抽籤/1A2B(猜數字)/競猜/賽況應援所股市；放行：簽到/積分/綁定/社交/PK守門/領獎（對齊 classifier contest 規則） |
+
+**已知限制（v1 接受並文件化）**：`viewer.sentence` 是**單一槽位**。逃稅犯 sentence 佔用它；若同時被判其他罪會互相覆蓋（既有 jail 機制限制）。同時逃稅+犯他罪很罕見，v1 不處理多重 sentence。
+
+### 9.1 兩級階梯
+
+| 階段 | 觸發 | 身分組 | 鎖什麼 | 解除 |
 |---|---|---|---|---|
-| **欠稅**（輕） | 6/1 未繳清 | 新 role `欠稅戶`（需新建） | `block` **高收益博弈類**（賓果/骰寶/BJ/推筒子/射龍門/競猜…切斷再撈牙齒的路，逼你繳）；社交/簽到/領每日仍 `allow` | 補繳全部欠稅即自動解除 |
-| **逃稅罪**（重） | 欠稅逾 30 天仍未繳（後台可調），或惡意零申報 | 新 role `逃稅犯`（需新建，接 jail sentence） | 幾乎全 `block`，只剩 `only` 的勞動贖罪類（比照洗牙罪的重刑閘門） | 補繳 **或** 勞動贖罪（湊滿勞動種類數，沿用 `jail.recordLabor` + 假釋機制） |
+| **欠稅戶**（輕） | 6/1 送審仍 `status≠paid && owed>0` | 新 role `欠稅戶`（非罪名，另建） | `passTaxGate` 擋 `taxBlock:true` 高收益博弈；社交/簽到/領獎放行 | 補繳到 `paid` 即自動解除 |
+| **逃稅犯**（重） | 欠稅逾 `config.evaderEscalationDays`(預設30) 仍未繳 | 新 role `逃稅犯`（`crimes.js` id:5 真罪名） | 現行 `passCriminalGate` 擋全部 `block`，只剩 `only` 勞役指令（比照洗牙罪重刑） | 補繳 **或** 湊滿勞役假釋 |
 
-- **接法**：逃稅罪走 `Jail` 現成 `sentence` 檔案（`sweetbot-viewer.sentence`）+ `limitedTimeRole.giveRole` + 假釋清檔。欠稅戶較輕，可只掛 role + 在 `passCriminalGate` 讀「欠稅」旗標，不必進完整刑案流程。
-- **前科**：逃稅比照 `crimeCounts` 累犯加重（連年逃稅 → 保釋/贖罪門檻加重，沿用 `BAIL_MULTIPLIER_LADDER`）。
-- **補稅即赦**：欠稅戶只要 `!報稅` 補繳到 `paid` → 即時解 role、恢復遊戲權限（比照假釋 `expiredNow`）。
-- **勞動贖罪**：真的繳不出（餘額不足又不肯玩）→ 走監獄現成「社會勞動」湊假釋，象徵「易服勞役」。
+### 9.2 接法（對齊真實 API）
 
-### 送審批次（6/1 timer）
-掃 `sweetbot-tax-filing` 該稅年 `status != paid && 應繳 > 0` → 掛「欠稅戶」role + 記 filing `status=overdue`。逾 30 天再掃一次升級「逃稅犯」。
+- **逃稅犯 = `crimes.js` id:5**：`canBail:false`、`bailPay:null`、`sentenceHour=config.evaderSentenceHours`、`PAROLE_NEEDED[5]=config.evaderParoleNeeded`(預設如 6)。掛此罪名 role 後，現行 `passCriminalGate` 自動擋所有 `block` 指令、放行 `only` 勞役——**閘門零改動**。
+- **程式化判刑（跳過法官）**：批次直接複刻 `sentencing()` 的定罪副作用——`ViewerDAO.incrementCrimeCount(id, 5)` + 寫 `viewer.sentence = {crimeId:5, caseId:<synthetic>, paroleNeeded, laborDone:[], startedAt, channelId}` + `limitedTimeRole.giveRole(client, config, id, 逃稅犯roleID, evaderSentenceHours*3600, memo)`。勞役假釋走**現成** `recordLabor`（湊滿 `paroleNeeded` 自動 `expiredNow`+清 sentence）。
+- **欠稅戶（輕）**：只掛 `欠稅戶` role + 寫 `viewer.taxStatus='overdue'`，不進 sentence/刑案流程。`passTaxGate` 讀 role 判定。
+- **補稅即赦**：`confirmPayment` 繳清（`finalStatus=paid`）→ `Tax.pardonTaxpayer(id)`：清 `viewer.taxStatus`、`expiredNow(欠稅戶或逃稅犯 role)`、若 crimeId=5 清 `sentence`（比照假釋）。
+- **前科加重**：連年逃稅用 `getPriorCrimeCount(id,5)` → 抬高 `paroleNeeded`（沿用 `BAIL_MULTIPLIER_LADDER` 概念，越多前科勞役門檻越高）。
+
+### 9.3 送審批次（兩次掃描）
+
+1. **overdue 掃描（6/1 timer，接在 P2d 自動核定之後）**：`TaxFilingDAO.scanOverdue(taxYear)` 掃 `status≠paid && owed>0` → `markOverdue`（`assessed/partial→overdue`+`overdueAt`）+ 掛欠稅戶 role + `viewer.taxStatus='overdue'`。
+2. **evader 升級掃描（daily timer）**：`scanEvaders(taxYear)` 掃 `status=overdue && now-overdueAt≥evaderEscalationDays` → `markEvader`（`overdue→evader`）+ 移欠稅戶 role + 程式化判刑逃稅犯 + `viewer.taxStatus='evader'`、`taxEvadeCounts++`。
+
+兩 timer 皆 `tz=Asia/Taipei` + Redis 當日冪等 + `config.autoAssessEnabled`/新增開關把關（防意外大規模鎖權）。
+
+### 9.4 實作微步清單（各一 commit，Codex 逐步驗）
+
+- **P5a 資料·常數層**：a-1 建 2 Discord role 拿 id｜a-2 `crimes.js` id:5+`PAROLE_NEEDED[5]`｜a-3 `defaults.js` 加 config(`evaderRoleId`/`overdueRoleId`/`evaderSentenceHours`/`evaderParoleNeeded`)+patch migration 進線上 tax-config
+- **P5b 送審批次**：b-1 `scanOverdue`+`markOverdue`(純DAO+單測)｜b-2 `scanEvaders`+`markEvader`(純DAO+單測)｜b-3 `runOverdueSweep`(orchestrate+stub)｜b-4 `runEvaderSweep`程式化判刑(orchestrate+stub)｜b-5 discord.js 兩 timer+接線
+- **P5c 分級閘門**：c-1 `CommonUtil.passTaxGate`(純判定+單測)｜c-2 標記博弈指令 `taxBlock:true`｜c-3 discord.js 三 gate 點接線
+- **P5d 補繳即赦**：d-1 `Tax.pardonTaxpayer`(orchestrate+stub)｜d-2 接 `confirmPayment` 繳清路徑｜d-3 連年逃稅加重 `paroleNeeded`(純函式+單測)
+
+關鍵路徑 a→b→(c、d 可並行)。純函式步(b-1/b-2/c-1/d-3)先行最穩；orchestrate 步用離線 stub 驗（同 P2b 金流做法）。`sweetbot-viewer` 加旗標 `taxStatus`(overdue/evader)、`taxEvadeCounts`（既有表加欄位，不算新成本）。
 
 ---
 
@@ -282,7 +310,7 @@
 - **P2**：`!報稅` 面板（唯讀試算 → 確認繳納，冪等）+ 逐項檢視鈕。
 - **P3**：扶養子模組（`!扶養` 雙方同意綁定 + VVIP 閘 + 上限 5 + 防濫用）。
 - **P4**：勳功轉接器（`sweetbot-achievement` + v1 認定清單 + 抵減）。
-- **P5**：審判（新 role + crimes.js id:5 + 6/1 送審批次 + 逐級鎖權 + 補繳即赦）。
+- **P5**：審判（新 role + crimes.js id:5 + 6/1 送審批次 + 逐級鎖權 + 補繳即赦）。**細拆 13 微步 + 3 決策定案見 §9.4**（P5a 資料層 / P5b 送審批次 / P5c 分級閘門 / P5d 補繳即赦）。
 - **P6**：後台四分頁（甜甜遊戲館）。
 - **P7**：認真里民接每日任務（待其上線，開旗標）；各遊戲逐步接 achievement 埋點。
 
