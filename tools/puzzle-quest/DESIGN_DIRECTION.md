@@ -92,6 +92,7 @@
 
 - [ ] **早階段測試**：只用 S1（＋S2）的資訊，能不能湊齊 solution.core？→ **必須「不能」**。
 - [ ] keystone 概念的所有同義詞，`grep` 過 S1–S2 全部文件文案／intro／poster／留言 → **零命中**。
+- [ ] **keystone vs 兇手名的分野（釐清，避免誤報）**：早階段要 grep 零命中的是 **method/motive keystone**（手法翻案＋深層動機的決定性詞，如 人為破壞/接地/贗品/洗錢/鈦白）。**兇手的姓名／稱謂本身可在早階段當公平伏筆出現**（他是既有角色、clue 或 NPC 可提其「反常」）——因為 win-gate＝三 core 全中、method+motive 只在 S4，只答兇手名僅 `corePartial` 不會 solved；`culprit.any` 的稱謂詞是正解必需詞、不可為了避早洩而移除。只有「**指認**＝把身分與手法/動機綁定」（如 M-001＝某人＋機會鎖）才鎖 S4。（CASE-13 定案、Codex f3f89e8 認可；hints/nudges 仍照下一條**連兇手名在內的所有 core 詞都不得出現**。）
 - [ ] S1–S2 存在一個「有信心的錯答」，且引擎對它回 partial 而非 win。
 - [ ] 每條 hint 文案**不含**任何 core 關鍵名詞（逐條 grep core.any）。
 - [ ] 每條 nudge 不明說「缺哪塊」。
