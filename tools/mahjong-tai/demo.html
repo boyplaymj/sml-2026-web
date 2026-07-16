@@ -35,6 +35,9 @@
   .chip .x { cursor:pointer; color:var(--dim); border:none; background:none; font-size:16px; line-height:1;
              padding:0 3px; }
   .chip .x:hover { color:var(--red); }
+  .chip .step { cursor:pointer; color:var(--txt); background:#39445c; border:none; border-radius:6px;
+                width:22px; height:22px; font-size:15px; font-weight:700; line-height:1; padding:0; }
+  .chip .step:hover { background:var(--blue); }
   .total { display:flex; justify-content:space-between; align-items:baseline;
            border-top:1px solid var(--line); padding-top:13px; }
   .total .n { font-size:34px; font-weight:800; color:var(--green); }
@@ -128,6 +131,9 @@ function analyze(rawText) {
     if (norm.normalizedText) { text = norm.normalizedText; corrected = norm; }
   }
   const res = MahjongTai.parse(text, TABLE);
+  // 判台工具只回報台數,不計每局底(結算時另加)→ 歸零底、total 只算純台數
+  res.base = 0;
+  res.total = res.hits.reduce((s, h) => s + h.tai, 0);
   currentHits = res.hits.slice();
   lastRaw = rawText;
   lastParsedIds = res.hits.map(h => h.id); // 系統原判(飛輪用來對照使用者的糾正)
@@ -150,14 +156,21 @@ function render(heardText, corrected, res) {
     html += `<div class="empty">沒有判讀到任何台種,請重講或改用打字。</div>`;
   } else {
     html += `<div class="chips">` + res.hits.map(h => {
+      const fan = TABLE.fans.find(f => f.id === h.id);
+      const perUnit = fan && fan.per_unit;
       const unit = h.units > 1 ? ` ×${h.units}` : '';
+      const stepper = perUnit
+        ? `<button class="step" data-act="dec" data-id="${h.id}" title="少一張／少一台">－</button>
+           <button class="step" data-act="inc" data-id="${h.id}" title="多一張／多一台">＋</button>`
+        : '';
       return `<span class="chip" data-id="${h.id}">${h.name}${unit}
                 <span class="tai">${h.tai}台</span>
+                ${stepper}
                 <button class="x" data-id="${h.id}" title="移除">×</button></span>`;
     }).join('') + `</div>`;
   }
 
-  html += `<div class="total"><span>合計(含底 ${res.base})</span><span class="n">${res.total} 台</span></div>`;
+  html += `<div class="total"><span>合計台數</span><span class="n">${res.total} 台</span></div>`;
 
   res.warnings.forEach(w => {
     html += `<div class="warn ${w.level}">⚠️ ${escapeHtml(w.message)}</div>`;
@@ -184,12 +197,27 @@ function render(heardText, corrected, res) {
     const total = currentHits.reduce((s,h)=>s+h.tai,0) + (res.base||0);
     render(heardText, corrected, { hits: currentHits, total, base: res.base, warnings: res.warnings, unmatched: res.unmatched });
   });
+  // 調整 per_unit 台種的張數(如花牌/正花)→ 重算 tai = 單張台 × 張數
+  card.querySelectorAll('.step').forEach(btn => btn.onclick = () => {
+    const h = currentHits.find(x => x.id === btn.dataset.id); if (!h) return;
+    const fan = TABLE.fans.find(f => f.id === h.id);
+    const unitTai = (fan && fan.tai) || h.unitTai || h.tai || 1;
+    const next = (h.units || 1) + (btn.dataset.act === 'inc' ? 1 : -1);
+    if (next <= 0) {
+      currentHits = currentHits.filter(x => x.id !== h.id);
+    } else {
+      h.units = next; h.unitTai = unitTai; h.tai = unitTai * next;
+    }
+    taughtThisRound = true;
+    const total = currentHits.reduce((s, x) => s + x.tai, 0) + (res.base || 0);
+    render(heardText, corrected, { hits: currentHits, total, base: res.base, warnings: res.warnings, unmatched: res.unmatched });
+  });
   // 補上漏掉的台 → 重算 + 標記本回合有教學
   const teachBtn = $('#teachBtn');
   if (teachBtn) teachBtn.onclick = () => {
     const id = $('#teachSel').value; if (!id) return;
     const f = TABLE.fans.find(x => x.id === id); if (!f) return;
-    currentHits.push({ id: f.id, name: f.name, tai: f.tai, units: 1 });
+    currentHits.push({ id: f.id, name: f.name, tai: f.tai, unitTai: f.tai, units: 1 });
     taughtThisRound = true;
     const total = currentHits.reduce((s,h)=>s+h.tai,0) + (res.base||0);
     render(heardText, corrected, { hits: currentHits, total, base: res.base, warnings: res.warnings, unmatched: res.unmatched });
