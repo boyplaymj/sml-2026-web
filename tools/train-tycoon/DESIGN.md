@@ -328,6 +328,8 @@
 
 → 連送 2 趟同一人 OK,第 3 趟起咬,隔 ~4 小時回滿。
 
+- **S5 實作記要(2026-07-16)**:pair fatigue 三純函式已進 `fatigue.js`(`decayPairFatigue` 依 `recoverPerHour` 恢復、`elapsed=max(0,now−updatedAt)` 不倒扣、防呆;`pairFatigueTier` 上界含邊界〔30→×1.0、31→×0.7…〕由前往後取第一段;`addPairFatigue` +perSend clamp 100)。語意順序 = decay→用送前疲勞取 tier→送後 add。config 走 `balance.antiAbuse.pairFatigue`(已在 seed/DDB)。單元測試 23 條(decay 時序/clamp/防呆、tier 七點邊界、三連送〔1,1,0.7〕),連 S3/S4 共 58 passed。**短程疲勞 shortTripFatigue = S6**,同檔待追加。
+
 **短程疲勞**(sender 全域):短程 = 距離後 25% 門檻;滾動 +1/趟、−1/30 分;同 window 前 3 趟全額,之後 ×0.6 → ×0.3;長途不受影響。
 
 全部進 config `balance.antiAbuse{}`,後台可調 + kill switch;NPC 城也吃這兩套。
