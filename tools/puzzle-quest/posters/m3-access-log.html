@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 26%,#46413a,#221f1b 82%);perspective:2200px;font-family:"Noto Sans CJK TC",sans-serif;}
+  .doc{position:relative;width:700px;min-height:940px;padding:44px 46px;background:#fcfbf7;color:#1a1a1a;transform:rotateX(2deg) rotateZ(-.6deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);}
+  .org{text-align:center;font-size:23px;font-weight:900;letter-spacing:3px;font-family:"Noto Serif CJK TC";}
+  .doctype{text-align:center;font-size:16px;letter-spacing:5px;color:#555;margin:4px 0 4px;}
+  .sub{text-align:center;font-size:14px;color:#666;margin-bottom:14px;letter-spacing:1px;}
+  .sys{position:absolute;top:44px;right:46px;font-size:12px;color:#888;letter-spacing:1px;}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;}
+  th,td{border:1px solid #cbcbcb;padding:8px 10px;text-align:left;}
+  th{background:#2c2822;color:#f3efe6;font-weight:700;letter-spacing:1px;font-size:14px;}
+  td.t{font-family:"Courier New",monospace;font-size:15px;}
+  tr.exit td{color:#333;}
+  tr.hl td{background:#fff2b0;font-weight:800;}
+  tr.mystery td{background:#eae4f2;font-weight:800;color:#3a2a55;}
+  .zone{font-size:12.5px;color:#8a1414;font-weight:700;}
+  .note{margin-top:16px;font-size:14px;line-height:1.9;color:#333;border-top:1px dashed #ccc;padding-top:12px;}
+  .note b{color:#8a1414;}
+  .legend{margin-top:8px;font-size:12.5px;color:#777;line-height:1.7;}
+  .sign{margin-top:16px;text-align:right;font-size:13.5px;color:#555;}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="sys">系統匯出 SEC-LOG</div>
+      <div class="org">明硯藝廊　門禁刷卡紀錄</div>
+      <div class="doctype">出　入　明　細</div>
+      <div class="sub">查詢日期：中華民國一一四年九月十七日（星期三）</div>
+      <table>
+        <tr><th>時間</th><th>持卡人／工號</th><th>權限</th><th>通行門</th><th>動作</th></tr>
+        <tr class="exit"><td class="t">17:32</td><td>林秀娟（人事室）</td><td>一般</td><td>大廳</td><td>離館</td></tr>
+        <tr class="exit"><td class="t">18:15</td><td>陳映雅（展務）</td><td>一般</td><td>大廳</td><td>離館</td></tr>
+        <tr class="hl"><td class="t">19:40</td><td>卓文瀚（鑑定部・助理）</td><td>一般</td><td>大廳</td><td>離館</td></tr>
+        <tr class="exit"><td class="t">20:03</td><td>吳婉如（典藏）</td><td>一般</td><td>大廳</td><td>離館</td></tr>
+        <tr><td class="t">21:08</td><td>沈維鈞（鑑定部）</td><td>主管級</td><td><span class="zone">修復室</span></td><td>進入</td></tr>
+        <tr class="mystery"><td class="t">22:51</td><td>工號 M-001</td><td>董事長級</td><td><span class="zone">修復室</span></td><td>進入</td></tr>
+        <tr><td class="t">—</td><td colspan="4" style="color:#8a1414;font-weight:700;">卓文瀚（19:40 離館後）：全日無再進場紀錄</td></tr>
+      </table>
+      <div class="note">說明：<b>修復室（含庫房、設備間）為限權區</b>，須<b>主管級以上</b>權限卡始得通行；一般／助理級卡片無法開啟。當日 20:03 後留館者僅上列主管級以上人員。</div>
+      <div class="legend">※ 權限別：一般＜主管級＜董事長級。工號 M-001 為系統保留之最高權限卡，持卡人姓名須向管理室調閱對照表。</div>
+      <div class="sign">承辦　管理室　　匯出時間　114/09/18 10:12</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>

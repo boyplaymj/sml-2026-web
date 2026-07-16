@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 26%,#46413a,#221f1b 82%);perspective:2200px;font-family:"Noto Sans CJK TC",sans-serif;}
+  .doc{position:relative;width:690px;min-height:930px;padding:44px 48px;background:#fdfcf8;color:#1a1a1a;transform:rotateX(2deg) rotateZ(.7deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);}
+  .org{text-align:center;font-size:22px;font-weight:900;letter-spacing:2px;font-family:"Noto Serif CJK TC";}
+  .doctype{text-align:center;font-size:16px;letter-spacing:5px;color:#555;margin:4px 0 14px;}
+  .rows{font-size:15px;line-height:2;border-top:2px solid #17130d;border-bottom:1px solid #999;padding:10px 0;}
+  .rows .r{display:flex;gap:8px;}.rows .k{font-weight:800;width:96px;}
+  .rows .em{color:#2a6b3a;font-weight:800;}
+  .photo{margin:18px 0 8px;width:100%;height:300px;position:relative;background:linear-gradient(180deg,#3a4048,#20242a);border:1px solid #b8ad97;overflow:hidden;filter:contrast(.98) saturate(.9);}
+  .photo .stagebg{position:absolute;left:0;right:0;top:0;height:60%;background:linear-gradient(#6b5a3e,#3c3222);opacity:.85;}
+  .photo .banner{position:absolute;left:8%;top:12%;right:8%;height:34px;background:#7a1f24;color:#f3d9a0;font-size:15px;letter-spacing:2px;display:flex;align-items:center;justify-content:center;font-family:"Noto Serif CJK TC";}
+  .photo .p{position:absolute;bottom:0;width:44px;height:96px;}
+  .photo .p::before{content:"";position:absolute;left:50%;top:0;width:24px;height:24px;border-radius:50%;background:#1a1712;transform:translateX(-50%);}
+  .photo .p::after{content:"";position:absolute;left:50%;top:22px;width:40px;height:74px;border-radius:10px 10px 0 0;background:#241f18;transform:translateX(-50%);}
+  .photo .p1{left:30%;} .photo .p2{left:46%;height:104px;} .photo .p3{left:60%;}
+  .photo .cap{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.66);color:#eee;font-size:12.5px;padding:6px 10px;letter-spacing:1px;z-index:3;}
+  .memo{margin-top:14px;font-size:14.5px;line-height:1.9;color:#333;border-top:1px dashed #ccc;padding-top:12px;}
+  .memo b{color:#2a6b3a;}
+  .sign{margin-top:18px;text-align:right;font-size:13.5px;color:#555;line-height:1.8;}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="org">南境國際藝術拍賣　台南</div>
+      <div class="doctype">秋 季 預 展 · 貴 賓 簽 到 紀 錄</div>
+      <div class="rows">
+        <div class="r"><span class="k">活動</span><span>南境國際・秋季拍賣預展 貴賓之夜</span></div>
+        <div class="r"><span class="k">地點</span><span>台南・南境藝術中心 一樓大廳</span></div>
+        <div class="r"><span class="k">日期</span><span>中華民國一一四年九月十七日（星期三）</span></div>
+        <div class="r"><span class="k">貴賓</span><span>郭崇德　先生</span></div>
+        <div class="r"><span class="k">簽到時間</span><span class="em">18:34（現場簽名・領取貴賓證 No.038）</span></div>
+      </div>
+      <div class="photo">
+        <div class="stagebg"></div>
+        <div class="banner">南境國際藝術拍賣　秋季預展 貴賓之夜</div>
+        <div class="p p1"></div><div class="p p2"></div><div class="p p3"></div>
+        <div class="cap">貴賓之夜現場合影，前排右二為郭崇德先生（台南，09/17 20:05）。</div>
+      </div>
+      <div class="memo">主辦單位備註：郭崇德先生全程出席本場預展貴賓之夜，<b>並於 20:00 上台致詞、21:40 主辦晚宴合影</b>，當晚下榻台南。相關簽到、影像、住宿紀錄可資查考。</div>
+      <div class="sign">南境國際藝術拍賣　公關部<br>紀錄日 114/09/18</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>
