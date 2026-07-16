@@ -68,8 +68,17 @@ def to_tiles(im, tiles):
     """去背+裁切後 → 高度正規化到 H,置中 letterbox 進 tiles*H 寬的畫布(硬邊 alpha)。"""
     im = bbox_trim(remove_bg(im))
     W = tiles * H
-    small = im.resize((W, H), Image.LANCZOS)  # 破壞比例、左右撐滿 tiles 格(不留白)
-    a = np.array(small); a[:, :, 3] = np.where(a[:, :, 3] > 128, 255, 0)  # 硬邊
+    # 車體塞進「底座上方」:上 H-BASE 給車身、下 BASE 留給全隊共用底座 → 車輪坐在軌道上
+    rail = int(os.environ.get("RAIL_PX", 2))     # 軌道厚(最底)
+    frame = int(os.environ.get("FRAME_PX", 3))   # 車架橫樑厚(其上)
+    base = rail + frame
+    body = im.resize((W, H - base), Image.LANCZOS)
+    a = np.zeros((H, W, 4), dtype="uint8")
+    a[0:H - base] = np.array(body)
+    a[:, :, 3] = np.where(a[:, :, 3] > 128, 255, 0)  # 車身硬邊
+    # 共用底座(全寬同色同高)→ 相鄰車拼起來軌道/車架連續、耦合無縫
+    a[H - base:H - rail, :, :] = (58, 60, 66, 255)   # 車架橫樑
+    a[H - rail:H, :, :] = (28, 28, 32, 255)          # 軌道
     return Image.fromarray(a)
 
 def main():
