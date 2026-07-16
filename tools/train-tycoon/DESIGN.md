@@ -392,13 +392,15 @@
        × 對方tier倍率 tierRecipientMult ( 再 × 人氣微調 popularityEffect )
        × 路線疲勞倍率 × 短程疲勞倍率
 淨利 = 運費 − 燃料( loco.fuelPerTrip × 距離係數 × fuelUnitPrice × (1 − 加油站省油%) )
-travelDuration = 距離 × distanceToMinutes × (1 + 編組總重 × weightSlowPerUnit) ÷ (loco.speed 正規化) × 疲勞時間倍率 × (1 − 機廠加速%)
+travelDuration = 距離 × distanceToMinutes × (1 + 編組總重 × weightSlowPerUnit) × (speedRefUnit ÷ loco.speed) × 疲勞時間倍率 × (1 − 機廠加速%)  ［下限 1 分鐘;找不到車頭回 0］
 ```
 - Phase 0 成本**先只扣燃料**(薪資/維護 Phase 2 再加)。
 - **編組取捨(「加一層」)**:掛越多/越高價 = 運費越高,但越重→在途越慢+油耗略增;掛更多需更強車頭(牽引力 tier 解鎖);節數 ≤ 牽引力 ≤ 月台。→「大編組肥趟 vs 輕快多趟」= 玩家節奏選擇,呼應「抓準次數/時間=最大獲利」。
 - **貨種 B 正向特化**(全上緣、零懲罰):チ 泛用×1.0 / ワム 雜貨×1.15 / タキ 油品×1.4 / レム 生鮮×1.6 **+ 準時被取貨 +25%**(原腐壞懲罰改成上緣獎勵)/ コキ 最大載量。
-- 常數入 config `balance.freight{baseUnitPrice, distanceRefUnit, weightSlowPerUnit}`;車廂 `valueMult` + `special` 入 `catalogs.cars`。
+- 常數入 config `balance.freight{baseUnitPrice, distanceRefUnit, weightSlowPerUnit, speedRefUnit}` + `balance.distanceToMinutes`;車廂 `valueMult` + `weight` + `special` 入 `catalogs.cars`;`loco.speed` 入 `catalogs.locomotives`。`speedRefUnit`(基準 90)= 車頭速度正規化基準:speed=90 的車頭 speedFactor=1、更快→在途更短。
 - 範例(baseUnitPrice 2.5,2026-07-16 校準後):EF210 + 3×コキ(102 載量)送 90 距離的 Tier3 好友 = 102×2.5×(90/30)×1.6 = **1224🦷** − 燃料(200×3)600 = **淨利 624🦷/趟**。
+- **travelDuration 示例(speedRefUnit 90,2026-07-16 S4)**:EF210(speed 95)+ 6×コキ(總重 30)送 90 距離 = 90×1.2×(1+30×0.03)×(90÷95) = 108×1.9×0.947 ≈ **194 分/趟**;換 L0(speed 500)同編組 ≈ **37 分**(車頭快→短);疲勞 ×1.4 → 272 分;有機廠 −12% → 171 分。「大編組肥趟慢 vs 輕快多趟」的時間軸由此成立。
+- **S4 實作記要(2026-07-16)**:`travelDuration` + helper `consistWeight`(Σ count×car.weight)已進 `profit.js`(純函式無副作用)。`fatigueTimeMult` 傳 0 當 0(只有 undefined/NaN 回預設 1);`depotSpeedPct` clamp [0, 0.95] 避免時間歸零/變負;`loco.speed ≤ 0` 防呆視為 speedRefUnit。單元測試 10 條(含越重越慢/車頭越快越短/疲勞/機廠/下限/找不到車頭回 0),連同 S3 共 35 passed。
 - **平衡校準記要(2026-07-16)**:S3 實作後發現原 `baseUnitPrice 1.5` 使低 tier/大車頭半載必虧(運費與燃料同乘距離係數→距離約掉、利潤率只看貨值×單價 vs 燃料)。改 `baseUnitPrice 2.5` → 最差實戰組合(ef210 半載 tier1)仍 ~22% 毛利、配對正確 50–75%,無虧損陷阱。燃料值不動(大車頭吃更多油、efficiency 靠 per-車 體現)。距離對「毛利率」無關是刻意的——「送遠更划算」由短程疲勞機制推動,不靠公式。其餘數字仍待 Phase 0 試玩微調。
 
 ### 15.10 隨機獎勵池（定案 2026-07-15，全上緣、後台全可調）
