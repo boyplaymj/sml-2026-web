@@ -10,9 +10,9 @@ from collections import deque
 
 OUT = os.environ.get("OUT", "/tmp/train-emoji")
 os.makedirs(OUT, exist_ok=True)
-H = int(os.environ.get("TILE_H", 26))     # 每個 emoji tile 的低解析度邊長(8-bit 粗像素)
-NCOL = int(os.environ.get("NCOL", 16))    # 共用調色盤色數(8-bit)
-DISP = int(os.environ.get("DISP", 12))    # 預覽放大倍率(nearest)
+H = int(os.environ.get("TILE_H", 16))     # 每個 emoji tile 的低解析度邊長(越小越 8-bit 粗)
+NCOL = int(os.environ.get("NCOL", 12))    # 共用調色盤色數(越少越 8-bit)
+DISP = int(os.environ.get("DISP", 20))    # 預覽放大倍率(nearest)
 
 STYLE = ("flat side view pixel art, 8-bit NES retro style, strict side elevation, camera exactly level facing "
          "the side, chunky blocky pixels, very limited flat palette, hard flat cel shading, no gradients, "
@@ -22,7 +22,7 @@ STYLE = ("flat side view pixel art, 8-bit NES retro style, strict side elevation
 
 # (id, 中文, tile 數, subject)  —— 車頭給 3 tile(較長)、車廂 2 tile
 VEHICLES = [
-    ("d51",  "D51車頭",  3, "a black Japanese JR D51 steam locomotive with a tall smokestack, round boiler, driver cab and large black driving wheels, a small white puff of steam above the smokestack"),
+    ("d51",  "D51車頭",  2, "a black Japanese JR D51 steam locomotive with a tall smokestack, round boiler, driver cab and large black driving wheels, a small white puff of steam above the smokestack"),
     ("koki", "コキ貨櫃", 2, "a JR koki flat container wagon carrying one bright red shipping container box with panel lines"),
     ("taki", "タキ罐車", 2, "a JR taki tank wagon, one horizontal silver cylindrical tank mounted on a flat wagon frame with two bogies"),
 ]
@@ -68,12 +68,8 @@ def to_tiles(im, tiles):
     """去背+裁切後 → 高度正規化到 H,置中 letterbox 進 tiles*H 寬的畫布(硬邊 alpha)。"""
     im = bbox_trim(remove_bg(im))
     W = tiles * H
-    scale = H / im.height
-    nw = max(1, min(W, round(im.width * scale)))
-    small = im.resize((nw, H), Image.LANCZOS)
-    canvas = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    canvas.paste(small, ((W - nw) // 2, 0))
-    a = np.array(canvas); a[:, :, 3] = np.where(a[:, :, 3] > 128, 255, 0)  # 硬邊
+    small = im.resize((W, H), Image.LANCZOS)  # 破壞比例、左右撐滿 tiles 格(不留白)
+    a = np.array(small); a[:, :, 3] = np.where(a[:, :, 3] > 128, 255, 0)  # 硬邊
     return Image.fromarray(a)
 
 def main():
@@ -107,8 +103,12 @@ def main():
     checker = (245, 245, 245); dividerc = (255, 120, 120)
     # A 區:每車型 tile 拆解(顯示 2/3 顆 emoji 的切法,tile 間畫紅虛線)
     rowsA = []
-    try: font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 22)
-    except Exception: font = ImageFont.load_default()
+    font = ImageFont.load_default()
+    for fp in ("/usr/share/fonts/google-noto-cjk/NotoSansCJK-DemiLight.ttc",
+               "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"):
+        if os.path.exists(fp):
+            try: font = ImageFont.truetype(fp, 22); break
+            except Exception: pass
     for vid, cn, _t, _s in VEHICLES:
         ts = [up(t) for t in tiles_of[vid]]
         w = sum(t.width for t in ts) + gap_tile * (len(ts) - 1)
