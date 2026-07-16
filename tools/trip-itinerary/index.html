@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b7285">
+<meta name="referrer" content="no-referrer">
+<title>🗺️ 旅遊行程誌</title>
+<style>
+  :root{
+    --bg:#eef6f7;
+    --surface:#ffffff;
+    --surface-2:#f3f9fa;
+    --ink:#132a2e;
+    --ink-soft:#3f5a5f;
+    --muted:#6b8388;
+    --line:#d7e6e8;
+    --brand:#0b7285;
+    --brand-deep:#095a69;
+    --accent:#ff8f3c;
+    --accent-soft:#fff1e4;
+    --shadow:0 1px 2px rgba(19,42,46,.06),0 8px 24px rgba(19,42,46,.07);
+    --r:18px;
+    --safe-t:env(safe-area-inset-top,0px);
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Segoe UI",Roboto,"Hiragino Sans",sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  header{
+    background:linear-gradient(160deg,var(--brand) 0%,var(--brand-deep) 100%);
+    color:#fff;
+    padding:calc(var(--safe-t) + 30px) 20px 26px;
+    box-shadow:0 6px 18px rgba(9,90,105,.22);
+  }
+  .h-inner{max-width:960px;margin:0 auto}
+  .h-title{font-size:1.55rem;font-weight:800;letter-spacing:-.01em;margin:0;text-wrap:balance}
+  .h-sub{font-size:.88rem;opacity:.9;margin:6px 0 0;font-weight:500}
+
+  main{max-width:960px;margin:0 auto;padding:20px 14px calc(40px + var(--safe-b))}
+
+  .grid{
+    display:grid;gap:16px;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  }
+
+  /* ---------- trip card ---------- */
+  .tcard{
+    display:flex;flex-direction:column;
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+    box-shadow:var(--shadow);overflow:hidden;text-decoration:none;color:inherit;
+    transition:transform .18s ease,box-shadow .18s ease;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .tcard:active{transform:scale(.98)}
+  @media (hover:hover){
+    .tcard:hover{transform:translateY(-3px);box-shadow:0 4px 8px rgba(19,42,46,.08),0 14px 34px rgba(19,42,46,.12)}
+  }
+  .cover{
+    position:relative;aspect-ratio:16/9;background:var(--brand);overflow:hidden;
+  }
+  .cover img{width:100%;height:100%;object-fit:cover;display:block}
+  /* 封面 fallback:純色底 + 標題 */
+  .cover .fallback{
+    position:absolute;inset:0;display:none;flex-direction:column;justify-content:flex-end;
+    background:linear-gradient(160deg,var(--brand) 0%,var(--brand-deep) 100%);
+    color:#fff;padding:14px 16px;
+  }
+  .cover.noimg img{display:none}
+  .cover.noimg .fallback{display:flex}
+  .cover .fallback .fb-emoji{font-size:1.8rem;line-height:1;margin-bottom:auto;padding-top:8px;opacity:.9}
+  .cover .fallback .fb-title{font-size:1.02rem;font-weight:800;line-height:1.35;text-wrap:balance}
+  .days-pill{
+    position:absolute;top:10px;right:10px;
+    background:var(--accent);color:#fff;font-size:.76rem;font-weight:800;
+    border-radius:99px;padding:3px 11px;box-shadow:0 2px 8px rgba(19,42,46,.25);
+    font-variant-numeric:tabular-nums;
+  }
+
+  .tbody{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
+  .t-region{font-size:.78rem;font-weight:800;color:var(--brand-deep);margin:0}
+  .t-title{font-size:1.08rem;font-weight:800;color:var(--ink);margin:0;letter-spacing:-.01em;line-height:1.4;text-wrap:balance}
+  .t-sub{font-size:.85rem;color:var(--ink-soft);margin:0}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:10px}
+  .chip{
+    font-size:.74rem;font-weight:700;color:var(--ink-soft);
+    background:var(--surface-2);border:1px solid var(--line);
+    border-radius:99px;padding:2px 10px;white-space:nowrap;
+  }
+
+  /* ---------- loading / empty / error ---------- */
+  .state{padding:70px 24px;text-align:center;color:var(--ink-soft)}
+  .state .big{font-size:2.6rem;margin:0 0 10px;line-height:1}
+  .state h2{font-size:1.1rem;font-weight:800;color:var(--ink);margin:0 0 6px}
+  .state p{font-size:.9rem;margin:0}
+  .state button{
+    margin-top:18px;border:none;border-radius:99px;font-size:.9rem;font-weight:800;
+    padding:11px 22px;cursor:pointer;background:var(--brand);color:#fff;box-shadow:var(--shadow);
+  }
+  .spinner{
+    width:38px;height:38px;margin:0 auto 14px;border-radius:50%;
+    border:4px solid var(--line);border-top-color:var(--brand);
+    animation:spin .8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  footer{
+    text-align:center;color:var(--muted);font-size:.78rem;
+    padding:6px 16px calc(20px + var(--safe-b));
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none!important;animation:none!important}
+    .spinner{display:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-inner">
+    <h1 class="h-title">🗺️ 旅遊行程誌</h1>
+    <p class="h-sub">一步一腳印的行程備忘,點進去看每天玩什麼</p>
+  </div>
+</header>
+
+<main>
+  <div id="content">
+    <div class="state">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>行程載入中…</p>
+    </div>
+  </div>
+</main>
+
+<footer>旅遊行程誌</footer>
+
+<script>
+const API_BASE = "https://f9ayvn4doc.execute-api.ap-southeast-1.amazonaws.com";
+const content = document.getElementById("content");
+
+function esc(s){
+  return String(s==null?"":s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+
+function showState(emoji,title,msg,retry){
+  content.innerHTML = `
+    <div class="state">
+      <p class="big">${emoji}</p>
+      <h2>${esc(title)}</h2>
+      <p>${esc(msg)}</p>
+      ${retry?'<button id="retryBtn">再試一次</button>':""}
+    </div>`;
+  if(retry) document.getElementById("retryBtn").addEventListener("click",load);
+}
+
+function cardHTML(t){
+  const tags = (t.tags||[]).map(x=>`<span class="chip">${esc(x)}</span>`).join("");
+  return `
+  <a class="tcard" href="t.html?id=${encodeURIComponent(t.id)}">
+    <div class="cover">
+      <img src="${esc(t.cover||"")}" alt="" loading="lazy">
+      <div class="fallback">
+        <span class="fb-emoji">🗺️</span>
+        <span class="fb-title">${esc(t.title)}</span>
+      </div>
+      ${t.days?`<span class="days-pill">${esc(t.days)} 天</span>`:""}
+    </div>
+    <div class="tbody">
+      ${t.region?`<p class="t-region">📍 ${esc(t.region)}</p>`:""}
+      <h2 class="t-title">${esc(t.title)}</h2>
+      ${t.subtitle?`<p class="t-sub">${esc(t.subtitle)}</p>`:""}
+      ${tags?`<div class="chips">${tags}</div>`:""}
+    </div>
+  </a>`;
+}
+
+async function load(){
+  content.innerHTML = `
+    <div class="state">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>行程載入中…</p>
+    </div>`;
+  let res, data;
+  try{
+    res = await fetch(API_BASE + "/trips");
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    data = await res.json();
+  }catch(e){
+    showState("📡","載入失敗","網路不穩或伺服器暫時無回應。",true);
+    return;
+  }
+  const trips = (data && Array.isArray(data.trips)) ? data.trips : [];
+  if(trips.length===0){
+    showState("🧳","還沒有公開的行程","下一趟旅程正在籌備中,晚點再來逛逛!",false);
+    return;
+  }
+  const grid=document.createElement("div");
+  grid.className="grid";
+  grid.innerHTML = trips.map(cardHTML).join("");
+  content.innerHTML="";
+  content.appendChild(grid);
+
+  // 封面圖載入失敗 → 純色底 + 標題 fallback
+  content.querySelectorAll(".cover img").forEach(img=>{
+    if(!img.getAttribute("src")){ img.closest(".cover").classList.add("noimg"); return; }
+    img.addEventListener("error",()=>img.closest(".cover").classList.add("noimg"));
+    if(img.complete && img.naturalWidth===0) img.closest(".cover").classList.add("noimg");
+  });
+}
+
+load();
+</script>
+</body>
+</html>

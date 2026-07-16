@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b7285">
+<title>東北自駕大滿貫・8/26–8/30</title>
+<style>
+  :root{
+    --bg:#eef6f7;
+    --surface:#ffffff;
+    --surface-2:#f3f9fa;
+    --ink:#132a2e;
+    --ink-soft:#3f5a5f;
+    --muted:#6b8388;
+    --line:#d7e6e8;
+    --brand:#0b7285;      /* 拉普拉斯 teal */
+    --brand-deep:#095a69;
+    --accent:#ff8f3c;     /* 溫暖橘,對比 teal */
+    --accent-soft:#fff1e4;
+    --done:#8aa2a6;
+    --warn:#c2410c;
+    --warn-bg:#fff3e9;
+    --ring:rgba(11,114,133,.28);
+    --shadow:0 1px 2px rgba(19,42,46,.06),0 8px 24px rgba(19,42,46,.07);
+    --r:18px;
+    --safe-t:env(safe-area-inset-top,0px);
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Segoe UI",Roboto,"Hiragino Sans",sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  a{color:var(--brand-deep)}
+
+  /* ---------- sticky header ---------- */
+  header{
+    position:sticky;top:0;z-index:40;
+    background:linear-gradient(160deg,var(--brand) 0%,var(--brand-deep) 100%);
+    color:#fff;
+    padding:calc(var(--safe-t) + 16px) 18px 14px;
+    box-shadow:0 6px 18px rgba(9,90,105,.22);
+  }
+  .h-title{font-size:1.22rem;font-weight:800;letter-spacing:-.01em;margin:0;text-wrap:balance}
+  .h-sub{font-size:.82rem;opacity:.9;margin:3px 0 0;font-weight:500}
+  .prog-wrap{margin-top:12px;display:flex;align-items:center;gap:10px}
+  .prog-track{flex:1;height:9px;border-radius:99px;background:rgba(255,255,255,.24);overflow:hidden}
+  .prog-fill{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#ffd9a8,var(--accent));
+    transition:width .6s cubic-bezier(.22,1,.36,1)}
+  .prog-num{font-size:.82rem;font-weight:700;font-variant-numeric:tabular-nums;min-width:66px;text-align:right}
+
+  /* ---------- day nav ---------- */
+  nav{
+    position:sticky;top:0;z-index:30;
+    background:rgba(238,246,247,.92);
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+    padding:9px 12px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;
+  }
+  nav::-webkit-scrollbar{display:none}
+  .chip{
+    flex:0 0 auto;border:1px solid var(--line);background:var(--surface);
+    color:var(--ink-soft);border-radius:99px;padding:6px 13px;font-size:.82rem;font-weight:700;
+    cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px;
+    transition:transform .15s ease,background .2s,color .2s,border-color .2s;
+  }
+  .chip:active{transform:scale(.94)}
+  .chip .cnt{font-size:.72rem;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
+  .chip.today{border-color:var(--accent);background:var(--accent-soft);color:var(--warn)}
+  .chip.complete{background:var(--brand);border-color:var(--brand);color:#fff}
+  .chip.complete .cnt{color:rgba(255,255,255,.85)}
+
+  main{max-width:640px;margin:0 auto;padding:14px 12px calc(120px + var(--safe-b))}
+
+  /* ---------- day block ---------- */
+  .day{margin:0 0 22px;scroll-margin-top:64px}
+  .day-head{
+    display:flex;align-items:center;gap:12px;padding:4px 4px 12px;
+  }
+  .day-badge{
+    flex:0 0 auto;width:52px;height:52px;border-radius:15px;
+    background:var(--brand);color:#fff;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;line-height:1;box-shadow:var(--shadow);
+  }
+  .day-badge .d1{font-size:.6rem;font-weight:700;opacity:.85;letter-spacing:.04em}
+  .day-badge .d2{font-size:1.4rem;font-weight:800;margin-top:2px}
+  .day-meta .dt{font-size:.78rem;color:var(--muted);font-weight:700;margin:0}
+  .day-meta .th{font-size:1.04rem;font-weight:800;color:var(--ink);margin:2px 0 0;letter-spacing:-.01em;text-wrap:balance}
+  .day-badge.today{background:var(--accent)}
+
+  .card{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+    box-shadow:var(--shadow);overflow:hidden;
+  }
+
+  /* ---------- item ---------- */
+  .item{
+    display:flex;gap:12px;padding:13px 15px;cursor:pointer;position:relative;
+    border-top:1px solid var(--line);
+    -webkit-tap-highlight-color:transparent;user-select:none;
+    transition:background .18s;
+  }
+  .item:first-child{border-top:none}
+  .item:active{background:var(--surface-2)}
+  .box{
+    flex:0 0 auto;width:24px;height:24px;border-radius:8px;margin-top:2px;
+    border:2px solid var(--line);background:var(--surface);
+    display:flex;align-items:center;justify-content:center;
+    transition:background .2s,border-color .2s,transform .2s cubic-bezier(.34,1.56,.64,1);
+  }
+  .box svg{width:15px;height:15px;stroke:#fff;stroke-width:3.4;fill:none;
+    stroke-dasharray:20;stroke-dashoffset:20;transition:stroke-dashoffset .25s ease .05s}
+  .body{flex:1;min-width:0}
+  .top-line{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .time{
+    font-size:.72rem;font-weight:800;color:var(--brand-deep);
+    background:var(--surface-2);border:1px solid var(--line);border-radius:6px;
+    padding:1px 7px;font-variant-numeric:tabular-nums;white-space:nowrap;
+  }
+  .ttl{font-size:.97rem;font-weight:700;color:var(--ink);letter-spacing:-.005em}
+  .desc{font-size:.85rem;color:var(--ink-soft);margin:3px 0 0}
+  .desc a{word-break:break-all}
+  .tag{margin-left:6px}
+
+  .note{
+    margin:8px 0 0;font-size:.8rem;color:var(--warn);background:var(--warn-bg);
+    border-radius:10px;padding:7px 10px;display:flex;gap:6px;line-height:1.45;
+  }
+  .note b{font-weight:800}
+
+  /* done state */
+  .item.done .box{background:var(--brand);border-color:var(--brand)}
+  .item.done .box svg{stroke-dashoffset:0}
+  .item.done .ttl,.item.done .desc{color:var(--done);text-decoration:line-through;text-decoration-color:rgba(138,162,166,.7)}
+  .item.done .time{opacity:.5}
+  .item.done{background:linear-gradient(0deg,var(--surface-2),var(--surface))}
+
+  /* ---------- footer bar ---------- */
+  .fab{
+    position:fixed;left:0;right:0;bottom:0;z-index:35;
+    padding:10px 14px calc(10px + var(--safe-b));
+    background:linear-gradient(0deg,var(--bg) 62%,rgba(238,246,247,0));
+    display:flex;gap:10px;justify-content:center;pointer-events:none;
+  }
+  .fab button{
+    pointer-events:auto;border:none;border-radius:99px;font-size:.9rem;font-weight:800;
+    padding:12px 18px;cursor:pointer;box-shadow:var(--shadow);
+    transition:transform .15s ease,filter .2s;display:flex;align-items:center;gap:7px;
+  }
+  .fab button:active{transform:scale(.95)}
+  .btn-today{background:var(--accent);color:#fff}
+  .btn-reset{background:var(--surface);color:var(--ink-soft);border:1px solid var(--line)}
+
+  .done-all{text-align:center;padding:22px 16px 6px;color:var(--muted);font-size:.85rem}
+  .done-all b{color:var(--brand-deep)}
+
+  /* celebration */
+  .cheer{
+    position:fixed;inset:0;z-index:50;pointer-events:none;display:none;
+    align-items:center;justify-content:center;
+  }
+  .cheer.show{display:flex}
+  .cheer .msg{
+    background:var(--brand);color:#fff;padding:16px 26px;border-radius:99px;
+    font-weight:800;font-size:1.05rem;box-shadow:0 12px 40px rgba(9,90,105,.4);
+    animation:pop .5s cubic-bezier(.34,1.56,.64,1)
+  }
+  @keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none!important;animation:none!important}
+    .box svg{stroke-dashoffset:0!important;transition:none}
+    .item:not(.done) .box svg{stroke-dashoffset:20!important}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1 class="h-title" id="tTitle"></h1>
+  <p class="h-sub" id="tSub"></p>
+  <div class="prog-wrap">
+    <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+    <div class="prog-num" id="progNum">0 / 0</div>
+  </div>
+</header>
+
+<nav id="dayNav"></nav>
+<main id="app"></main>
+
+<div class="fab">
+  <button class="btn-today" id="jumpToday">📍 跳到今天</button>
+  <button class="btn-reset" id="resetBtn">↺ 重設</button>
+</div>
+
+<div class="cheer" id="cheer"><div class="msg">🎉 全部完成!平安返台 ✈️</div></div>
+
+<script>
+/* ===== 行程資料(改這一段就能換行程) ===== */
+const TRIP = {
+  id: "tohoku-2026-0826",
+  title: "東北自駕・寶可夢×吉伊卡哇×ROUND1 大滿貫",
+  subtitle: "8/26–8/30・一家四口・自駕五日",
+  days: [
+    { no:1, date:"8/26", wd:"三", theme:"宮城上陸!拉普拉斯之夜 & 裝備採買", items:[
+      {time:"14:35", ttl:"抵達仙台機場・接駁取車", desc:"搭接駁車至 TIMES 門市取車出發", tag:"✈️"},
+      {time:"17:00", ttl:"飯店 Check-in・拉普拉斯主題房", desc:"開箱夢幻主題房、領取專屬周邊", tag:"🛏️",
+        note:"Day1 飯店名稱未定 — 建議先確認訂房與『拉普拉斯主題房』是否真有此房型"},
+      {time:"晚餐", ttl:"仙台名物・烤牛舌", desc:"", tag:"🐮"},
+      {time:"採買", ttl:"東北寶可夢中心", desc:"仙台車站旁 PARCO 8F 買裝備", tag:"⚡"},
+      {time:"晚上", ttl:"吉伊卡哇・宮城限定鐵牌", desc:"車站內 KIOSK 掃貨", tag:"🩷"},
+      {time:"~21:00", ttl:"寶可夢機台", desc:"步行至 Yodobashi 仙台店 5F Molly Fantasy 打到 9 點", tag:"🎮"},
+    ]},
+    { no:2, date:"8/27", wd:"四", theme:"拉普拉斯公園 → 神社祈福 → 咖哩大作戰", items:[
+      {time:"上午", ttl:"拉普拉斯公園 in せんだい", desc:"2026 全新開幕、挑戰巨大溜滑梯", tag:"🛝",
+        note:"這天排程偏滿:公園與神社都掛『上午』,實際只能擇一先跑,另一個往後挪"},
+      {time:"上午", ttl:"鹽竈神社祈福", desc:"求全家交通安全御守", tag:"⛩️"},
+      {time:"午餐", ttl:"CoCo 壱番屋・島嶼咖哩", desc:"點 4 份抽吉伊卡哇周邊(往松島途中)", tag:"🍛"},
+      {time:"下午", ttl:"松島海岸", desc:"吃烤牡蠣、捕捉『拉普拉斯人孔蓋』", tag:"🦪"},
+      {time:"國道", ttl:"長者原 SA(下行)集章", desc:"上高速往北、收集寶可夢印章", tag:"🚗"},
+      {time:"晚上", ttl:"入住 Comfort Inn 一之關 IC", desc:"", tag:"🛏️"},
+      {time:"~21:00", ttl:"GiGO 一之關店機台", desc:"晚餐後開車 4 分鐘、打到 9 點", tag:"🎮"},
+    ]},
+    { no:3, date:"8/28", wd:"五", theme:"岩手鐵牌 → 小拳石公園 → 極致和牛溫泉", items:[
+      {time:"上午", ttl:"平泉・小拳石人孔蓋", desc:"平泉車站捕捉", tag:"🪨"},
+      {time:"上午", ttl:"中尊寺・岩手限定吉伊卡哇鐵牌", desc:"中尊寺旁掃貨", tag:"🩷"},
+      {time:"國道", ttl:"前澤 SA(下行)集章", desc:"高速往北、收集印章", tag:"🚗"},
+      {time:"下午", ttl:"小拳石公園 in きたかみ", desc:"北上市展勝地全新公園朝聖", tag:"🛝"},
+      {time:"16:00", ttl:"入住花卷溫泉・愛隣館", desc:"結びの宿・小拳石主題房、前澤牛大餐+溫泉,今晚提早休息", tag:"♨️"},
+    ]},
+    { no:4, date:"8/29", wd:"六", theme:"盛岡八幡宮 → 幻之寶可夢隱藏關 → 光之美少女之夜", items:[
+      {time:"上午", ttl:"盛岡八幡宮參拜", desc:"退房後前往岩手最強總鎮守", tag:"⛩️"},
+      {time:"上午", ttl:"小岩井農場", desc:"吃霜淇淋、看羊群", tag:"🍦"},
+      {time:"國道", ttl:"前澤 SA(上行)集章", desc:"一路南下開回仙台", tag:"🚗"},
+      {time:"國道", ttl:"長者原 SA(上行)集章", desc:"", tag:"🚗"},
+      {time:"彩蛋", ttl:"菅生 PA(上行)・瑪納霏金印章", desc:"頑皮熊貓+30 週年集章破關", tag:"✨",
+        note:"菅生 PA 在仙台『以南』:南下回仙台市區會先過交流道下高速,收這個彩蛋要開過頭再折返。建議改天/改順序,別擠在最累的返程日"},
+      {time:"傍晚", ttl:"入住 Comfort Hotel 仙台東口", desc:"雙床、小學生免費", tag:"🛏️"},
+      {time:"~21:00", ttl:"ROUND1 機台最終戰", desc:"視體力選『苦竹店(輕鬆)』或『泉店 Spo-cha(放電)』,抽名偵探光之美少女杯墊", tag:"🎮"},
+    ]},
+    { no:5, date:"8/30", wd:"日", theme:"吉伊卡哇見面會 → 滿載而歸", items:[
+      {time:"上午", ttl:"AEON MALL 新利府", desc:"吃完飯店早餐直奔、吉伊卡哇電影版快閃店+三隻人偶見面會", tag:"🩷",
+        note:"見面會多半需現場抽選/預約,出發前先查當天場次與整理券規則"},
+      {time:"16:00", ttl:"出發前往仙台機場", desc:"走高速直奔", tag:"🚗"},
+      {time:"16:30", ttl:"TIMES 仙台機場門市還車", desc:"16:30–16:50 完成", tag:"🔑"},
+      {time:"19:00", ttl:"虎航 IT255 返台", desc:"帶著戰利品與回憶平安返台", tag:"✈️"},
+    ]},
+  ]
+};
+/* ===== 以下為引擎,通常不用改 ===== */
+const KEY = "trip:"+TRIP.id;
+let state = {};
+try{ state = JSON.parse(localStorage.getItem(KEY)||"{}") }catch(e){ state={} }
+
+const app = document.getElementById("app");
+const nav = document.getElementById("dayNav");
+document.getElementById("tTitle").textContent = TRIP.title;
+document.getElementById("tSub").textContent = TRIP.subtitle;
+
+// 今天是第幾天(對比 M/D,年份用 2026)
+function todayIdx(){
+  const now = new Date();
+  const md = (now.getMonth()+1)+"/"+now.getDate();
+  return TRIP.days.findIndex(d=>d.date===md);
+}
+const TODAY = todayIdx();
+
+let totalItems=0;
+TRIP.days.forEach((d,di)=>{
+  const day=document.createElement("section");
+  day.className="day"; day.id="day"+di;
+  const isToday = di===TODAY;
+
+  const head=document.createElement("div");
+  head.className="day-head";
+  head.innerHTML=`
+    <div class="day-badge${isToday?' today':''}">
+      <span class="d1">DAY</span><span class="d2">${d.no}</span>
+    </div>
+    <div class="day-meta">
+      <p class="dt">${d.date}(${d.wd})${isToday?' ・ 今天':''}</p>
+      <p class="th">${d.theme}</p>
+    </div>`;
+  day.appendChild(head);
+
+  const card=document.createElement("div");
+  card.className="card";
+  d.items.forEach((it,ii)=>{
+    totalItems++;
+    const id=di+"-"+ii;
+    const done=!!state[id];
+    const row=document.createElement("div");
+    row.className="item"+(done?" done":"");
+    row.dataset.id=id;
+    row.innerHTML=`
+      <div class="box"><svg viewBox="0 0 20 20"><polyline points="4,11 8,15 16,5"/></svg></div>
+      <div class="body">
+        <div class="top-line">
+          ${it.time?`<span class="time">${it.time}</span>`:""}
+          <span class="ttl">${it.ttl}${it.tag?`<span class="tag">${it.tag}</span>`:""}</span>
+        </div>
+        ${it.desc?`<p class="desc">${it.desc}</p>`:""}
+        ${it.note?`<div class="note">⚠️<div><b>提醒:</b>${it.note}</div></div>`:""}
+      </div>`;
+    row.addEventListener("click",e=>{
+      if(e.target.tagName==="A") return;
+      toggle(id,row);
+    });
+    card.appendChild(row);
+  });
+  day.appendChild(card);
+  app.appendChild(day);
+
+  // nav chip
+  const chip=document.createElement("button");
+  chip.className="chip"+(isToday?" today":"");
+  chip.dataset.di=di;
+  chip.innerHTML=`Day ${d.no}<span class="cnt"></span>`;
+  chip.addEventListener("click",()=>{
+    document.getElementById("day"+di).scrollIntoView({behavior:"smooth",block:"start"});
+  });
+  nav.appendChild(chip);
+});
+
+function toggle(id,row){
+  if(state[id]){ delete state[id]; row.classList.remove("done"); }
+  else{ state[id]=1; row.classList.add("done"); }
+  localStorage.setItem(KEY,JSON.stringify(state));
+  render();
+}
+
+function render(){
+  let done=0;
+  const perDay=TRIP.days.map(()=>({d:0,t:0}));
+  TRIP.days.forEach((d,di)=>{
+    d.items.forEach((_,ii)=>{
+      perDay[di].t++;
+      if(state[di+"-"+ii]){ done++; perDay[di].d++; }
+    });
+  });
+  const pct=totalItems?Math.round(done/totalItems*100):0;
+  document.getElementById("progFill").style.width=pct+"%";
+  document.getElementById("progNum").textContent=`${done} / ${totalItems} ・ ${pct}%`;
+
+  document.querySelectorAll("#dayNav .chip").forEach(chip=>{
+    const di=+chip.dataset.di, p=perDay[di];
+    chip.querySelector(".cnt").textContent=`${p.d}/${p.t}`;
+    chip.classList.toggle("complete", p.d===p.t && p.t>0);
+    chip.classList.toggle("today", di===TODAY && !(p.d===p.t&&p.t>0));
+  });
+
+  if(done===totalItems && totalItems>0) celebrate();
+}
+
+let cheered=false;
+function celebrate(){
+  if(cheered) return; cheered=true;
+  const c=document.getElementById("cheer"); c.classList.add("show");
+  setTimeout(()=>c.classList.remove("show"),2200);
+}
+
+document.getElementById("jumpToday").addEventListener("click",()=>{
+  const i = TODAY>=0?TODAY:0;
+  document.getElementById("day"+i).scrollIntoView({behavior:"smooth",block:"start"});
+});
+document.getElementById("resetBtn").addEventListener("click",()=>{
+  if(confirm("確定要清空所有打勾嗎?")){
+    state={}; localStorage.removeItem(KEY); cheered=false;
+    document.querySelectorAll(".item").forEach(r=>r.classList.remove("done"));
+    render();
+  }
+});
+
+render();
+// 開場自動捲到今天
+if(TODAY>0) setTimeout(()=>document.getElementById("day"+TODAY).scrollIntoView({block:"start"}),300);
+</script>
+</body>
+</html>
