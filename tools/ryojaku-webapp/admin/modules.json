@@ -16,6 +16,7 @@
       "id": "new",
       "title": "新專區",
       "modules": [
+        { "id": "ledger",     "title": "記帳(hook)", "doc": "../modules/ledger.md",     "status": "design", "icon": "📒" },
         { "id": "ladder",     "title": "賽事天梯",   "doc": "../modules/ladder.md",     "status": "design", "icon": "🏆" },
         { "id": "reputation", "title": "信譽評價",   "doc": "../modules/reputation.md", "status": "design", "icon": "⭐" },
         { "id": "ingame",   "title": "APP 內遊戲", "doc": "../modules/ingame.md",   "status": "design", "icon": "🎮" },
