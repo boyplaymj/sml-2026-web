@@ -1,0 +1,110 @@
+{
+  "_note": "甜甜火車大亨 config seed — 對應 DESIGN.md §9/§13。每個 section 灌成 train-tycoon-config 的 published item。數值為 Phase 0 起手值,全部可在後台調(admin 改 draft→publish 覆蓋)。",
+  "sections": {
+    "catalogs": {
+      "locomotives": [
+        { "id": "d51",    "emoji": "🚂", "name": "D51",    "alias": "デゴイチ",       "kind": "freight",   "traction": 2, "speed": 45,  "fuelEff": 0.45, "priceTeeth": 1200,  "fuelPerTrip": 120, "unlockTier": 1, "note": "起手蒸汽貨運機,便宜吃煤" },
+        { "id": "kiha40", "emoji": "🚉", "name": "キハ40",  "alias": "柴聯車",         "kind": "both",      "traction": 3, "speed": 60,  "fuelEff": 0.60, "priceTeeth": 2200,  "fuelPerTrip": 100, "unlockTier": 1, "note": "鄉間柴油泛用,親民" },
+        { "id": "dd51",   "emoji": "🚆", "name": "DD51",   "alias": "柴電機關車",     "kind": "freight",   "traction": 4, "speed": 75,  "fuelEff": 0.65, "priceTeeth": 5200,  "fuelPerTrip": 160, "unlockTier": 2, "note": "主力柴油機車" },
+        { "id": "ef210",  "emoji": "🚃", "name": "EF210",  "alias": "桃太郎",         "kind": "freight",   "traction": 6, "speed": 95,  "fuelEff": 0.80, "priceTeeth": 12000, "fuelPerTrip": 200, "unlockTier": 3, "note": "電力貨運主力" },
+        { "id": "eh500",  "emoji": "🚋", "name": "EH500",  "alias": "金太郎",         "kind": "freight",   "traction": 8, "speed": 85,  "fuelEff": 0.62, "priceTeeth": 18000, "fuelPerTrip": 300, "unlockTier": 3, "note": "重載貨運怪力,長編組" },
+        { "id": "n700s",  "emoji": "🚄", "name": "N700S",  "alias": "東海道新幹線",   "kind": "passenger", "traction": 8, "speed": 285, "fuelEff": 0.82, "priceTeeth": 42000, "fuelPerTrip": 380, "unlockTier": 4, "note": "高階客運主力(抽象為動力車+客車廂)" },
+        { "id": "e5",     "emoji": "🚅", "name": "E5系",   "alias": "はやぶさ",       "kind": "passenger", "traction": 10,"speed": 320, "fuelEff": 0.84, "priceTeeth": 78000, "fuelPerTrip": 420, "unlockTier": 5, "note": "最速新幹線" },
+        { "id": "l0",     "emoji": "🚝", "name": "L0系",   "alias": "中央新幹線磁浮", "kind": "passenger", "traction": 12,"speed": 500, "fuelEff": 0.70, "priceTeeth": 200000,"fuelPerTrip": 700, "unlockTier": 6, "note": "終極解鎖,身分象徵" }
+      ],
+      "cars": [
+        { "id": "chi",   "kigo": "チ",   "name": "平板車",   "kind": "freight",   "capacity": 20, "weight": 3, "priceTeeth": 400,  "valueMult": 1.0,  "special": null,                                                  "note": "泛用便宜,一般/長大貨" },
+        { "id": "wamu",  "kigo": "ワム", "name": "篷車",     "kind": "freight",   "capacity": 18, "weight": 3, "priceTeeth": 700,  "valueMult": 1.15, "special": null,                                                  "note": "雜貨,單價略高" },
+        { "id": "taki",  "kigo": "タキ", "name": "罐車",     "kind": "freight",   "capacity": 24, "weight": 4, "priceTeeth": 1100, "valueMult": 1.4,  "special": { "goods": "liquid" },                                 "note": "油品/液體,高價高利" },
+        { "id": "remu",  "kigo": "レム", "name": "冷藏車",   "kind": "freight",   "capacity": 16, "weight": 4, "priceTeeth": 1500, "valueMult": 1.6,  "special": { "onTimeCollectBonusPct": 0.25, "onTimeWindowMin": 90 }, "note": "生鮮高價;準時被取貨給額外加成(正向,不腐壞)" },
+        { "id": "koki",  "kigo": "コキ", "name": "貨櫃車",   "kind": "freight",   "capacity": 34, "weight": 5, "priceTeeth": 1300, "valueMult": 1.0,  "special": { "goods": "container" },                              "note": "大宗貨櫃,單節載量最大" },
+        { "id": "px_normal", "kigo": "", "name": "普通車",   "kind": "passenger", "capacity": 60, "weight": 3, "priceTeeth": 900,  "special": null,                                    "note": "標準客車廂" },
+        { "id": "px_green",  "kigo": "", "name": "グリーン車","kind": "passenger", "capacity": 32, "weight": 3, "priceTeeth": 2400, "special": { "fareMult": 1.8 },                     "note": "商務綠色車廂,客單價高" },
+        { "id": "px_tour",   "kigo": "", "name": "観光列車", "kind": "passenger", "capacity": 40, "weight": 3, "priceTeeth": 3200, "special": { "sceneryBonus": 1.5 },                 "note": "景觀車廂,觀光/景點線需求加成" }
+      ],
+      "equipment": [
+        { "id": "signal",       "emoji": "🚦", "name": "號誌系統",   "priceTeeth": 6000,  "upkeepPerTick": 20, "effect": { "transitCapPlus": 1, "onTimePlus": 0.08 }, "note": "同時在途上限+準點" },
+        { "id": "depot",        "emoji": "🏭", "name": "機廠/維修庫", "priceTeeth": 9000,  "upkeepPerTick": 30, "effect": { "breakdownMult": 0.6, "repairSpeed": 1.5 }, "note": "降故障率、修復快" },
+        { "id": "crane",        "emoji": "🏗️", "name": "裝卸吊車",   "priceTeeth": 7000,  "upkeepPerTick": 15, "effect": { "loadSpeedMult": 1.6 }, "note": "縮短站停裝卸時間" },
+        { "id": "fuel_station", "emoji": "⛽", "name": "加油/加煤站", "priceTeeth": 8000,  "upkeepPerTick": 25, "effect": { "fuelEffPlus": 0.12 }, "note": "每趟省油" },
+        { "id": "ticket_hall",  "emoji": "🎫", "name": "售票機/候車廳", "priceTeeth": 5000,"upkeepPerTick": 18, "effect": { "passengerCatchPlus": 0.15 }, "note": "乘客攬收率↑" }
+      ],
+      "staff": [
+        { "id": "dispatcher", "emoji": "🧑‍✈️", "name": "調度員", "wagePerTick": 40, "effect": { "maxLinesPlus": 1 }, "note": "可同時管理路線數↑" },
+        { "id": "station",    "emoji": "🧑‍💼", "name": "站務",   "wagePerTick": 25, "effect": { "throughputPlus": 0.15 }, "note": "吞吐↑" },
+        { "id": "mechanic",   "emoji": "🧑‍🔧", "name": "維修工", "wagePerTick": 30, "effect": { "breakdownMult": 0.75 }, "note": "故障率↓" },
+        { "id": "clerk",      "emoji": "🧑‍💻", "name": "售票員", "wagePerTick": 22, "effect": { "passengerCatchPlus": 0.10 }, "note": "客運攬收↑" }
+      ],
+      "facilities": [
+        { "id": "platform",  "emoji": "🚉", "name": "月台",     "kind": "func",    "stackable": true,  "priceTeeth": 4000,  "effect": { "sendSlotPlus": 1 },        "note": "+1 同時送車 slot(受 tier 上限)" },
+        { "id": "yard",      "emoji": "📦", "name": "貨櫃區",   "kind": "func",    "stackable": true,  "priceTeeth": 3500,  "effect": { "recvCapPlus": 3 },         "note": "+受貨區容量(能收更多別人的貨)" },
+        { "id": "fuel",      "emoji": "⛽", "name": "加油站",   "kind": "func",    "stackable": false, "priceTeeth": 8000,  "effect": { "fuelSavePct": 0.15 },      "note": "每趟省油→淨利↑" },
+        { "id": "depot",     "emoji": "🏭", "name": "機廠",     "kind": "func",    "stackable": false, "priceTeeth": 9000,  "effect": { "transitSpeedPct": 0.12 },  "note": "縮短在途時間,車回更快" },
+        { "id": "signal",    "emoji": "🚦", "name": "號誌樓",   "kind": "func",    "stackable": false, "priceTeeth": 7000,  "effect": { "bonusRatePlus": 0.10 },    "note": "隨機獎勵觸發率↑" },
+        { "id": "toilet",    "emoji": "🚻", "name": "廁所",     "kind": "amenity", "stackable": false, "priceTeeth": 1500,  "effect": { "popularity": 4 },          "note": "+人氣" },
+        { "id": "lounge",    "emoji": "☕", "name": "候車廳",   "kind": "amenity", "stackable": false, "priceTeeth": 5000,  "effect": { "popularity": 8, "passiveTeethPerTick": 12 }, "note": "被動小額牙齒+人氣" },
+        { "id": "shop",      "emoji": "🏪", "name": "賣店",     "kind": "amenity", "stackable": false, "priceTeeth": 4500,  "effect": { "popularity": 6, "passiveTeethPerTick": 10 }, "note": "被動小額牙齒+人氣" },
+        { "id": "garden",    "emoji": "🌷", "name": "花圃",     "kind": "decor",   "stackable": true,  "priceTeeth": 800,   "effect": { "popularity": 2 },          "note": "炫耀為主,微幅人氣" },
+        { "id": "clock",     "emoji": "🕐", "name": "時鐘塔",   "kind": "decor",   "stackable": false, "priceTeeth": 1200,  "effect": { "popularity": 3 },          "note": "炫耀為主,微幅人氣" },
+        { "id": "fountain",  "emoji": "⛲", "name": "噴水池",   "kind": "decor",   "stackable": false, "priceTeeth": 2000,  "effect": { "popularity": 5 },          "note": "炫耀為主,微幅人氣" }
+      ],
+      "randomEventPool": [
+        { "id": "tip",       "emoji": "💰", "name": "沿線打賞",     "rarity": "common",   "weight": 30, "reward": { "type": "teeth", "min": 30,  "max": 70 },  "note": "鐵道邊粉絲丟賞" },
+        { "id": "ekiben",    "emoji": "🍱", "name": "便當叫賣",     "rarity": "common",   "weight": 25, "reward": { "type": "teeth", "min": 40,  "max": 90 },  "note": "車上賣駅弁" },
+        { "id": "passengers","emoji": "🧑‍🤝‍🧑", "name": "順道載客", "rarity": "common",   "weight": 20, "reward": { "type": "teeth", "min": 50,  "max": 110 }, "note": "沿途多載幾位乘客" },
+        { "id": "lostcargo", "emoji": "📦", "name": "撿到遺失貨",   "rarity": "uncommon", "weight": 12, "reward": { "type": "teeth", "min": 100, "max": 200 }, "note": "撿到無主貨物" },
+        { "id": "railfan",   "emoji": "📸", "name": "鐵道迷應援",   "rarity": "uncommon", "weight": 8,  "reward": { "type": "teeth", "min": 120, "max": 260, "scaleWithLocoTier": true }, "note": "迷們拍你的稀有車,車越稀有越多" },
+        { "id": "surge",     "emoji": "🎆", "name": "旺季爆量",     "rarity": "uncommon", "weight": 5,  "reward": { "type": "pctFreight", "min": 0.15, "max": 0.30 }, "note": "本趟運費加成" },
+        { "id": "celebrity", "emoji": "⭐", "name": "名人搭乘",     "rarity": "rare",     "weight": 3,  "reward": { "type": "teeth", "min": 300, "max": 600, "popularity": 5 }, "note": "SML 選手彩蛋" },
+        { "id": "livery",    "emoji": "🎨", "name": "限定塗裝訂單", "rarity": "rare",     "weight": 2,  "reward": { "type": "teeth", "min": 400, "max": 800 }, "note": "企業限定塗裝大單" }
+      ]
+    },
+    "destinations": [
+      { "id": "npc_minato",  "name": "みなと港町",   "emoji": "⚓", "kind": "npc", "distance": 30,  "unlockTier": 1, "freightDemand": { "container": { "qty": 40, "priceRange": [80, 130] }, "liquid": { "qty": 20, "priceRange": [120, 200] } }, "passengerDemand": 60,  "heat": 1.0, "note": "近港,起手貨運目的地" },
+      { "id": "npc_yamabe",  "name": "山辺村",       "emoji": "⛰️", "kind": "npc", "distance": 55,  "unlockTier": 1, "freightDemand": { "general": { "qty": 30, "priceRange": [90, 150] }, "perish": { "qty": 18, "priceRange": [160, 260] } }, "passengerDemand": 35,  "heat": 1.0, "note": "山區,生鮮需求" },
+      { "id": "npc_hoshino",  "name": "星野市",       "emoji": "🌆", "kind": "npc", "distance": 90,  "unlockTier": 2, "freightDemand": { "container": { "qty": 55, "priceRange": [110, 180] }, "general": { "qty": 40, "priceRange": [100, 170] } }, "passengerDemand": 120, "heat": 1.0, "note": "地方大城,量大" },
+      { "id": "npc_tokai",   "name": "東海メガロ",   "emoji": "🗼", "kind": "npc", "distance": 160, "unlockTier": 4, "freightDemand": { "container": { "qty": 90, "priceRange": [140, 240] }, "liquid": { "qty": 45, "priceRange": [180, 320] } }, "passengerDemand": 260, "heat": 1.0, "note": "遠程巨型都市,後期解鎖高利" }
+    ],
+    "balance": {
+      "openCostTeeth": 500,
+      "reviveCostTeeth": 300,
+      "worldTickMinutes": 10,
+      "fuelUnitPrice": 1.0,
+      "freight": { "baseUnitPrice": 1.5, "distanceRefUnit": 30, "weightSlowPerUnit": 0.03 },
+      "randomEvents": { "ratePerHour": 1.0, "maxPerTrip": 3, "minGapMin": 20, "claimWindowSec": 120, "signalRateBonus": 0.10 },
+      "fareBase": 12,
+      "fareElasticity": 0.9,
+      "distanceToMinutes": 1.2,
+      "onTimeBonus": 0.15,
+      "latePenalty": 0.25,
+      "eventProb": { "delay": 0.10, "breakdown": 0.06, "weather": 0.05, "surge": 0.08, "vip": 0.03 },
+      "tierUpgradeCostTeeth": [0, 3000, 12000, 40000, 120000, 350000],
+      "tierPlatformCap": [1, 2, 3, 5, 7, 10],
+      "tierDepotCap": [3, 5, 8, 12, 18, 30],
+      "tierBuildSlots": [4, 10, 20, 40, 80, 150],
+      "decorUncapped": true,
+      "stationLayout": "fixed-slot",
+      "tierUpgradeTripGate": [0, 15, 50, 150, 400, 1000],
+      "tierRecipientMult": [1.0, 1.3, 1.6, 2.0, 2.5, 3.0],
+      "recipientCollectReward": { "pctOfFreight": 0.2, "minTeeth": 20 },
+      "popularityEffect": { "recipientMultPer100": 0.15, "bonusRatePer100": 0.05 },
+      "worldMap": { "spawn": "random", "relocateCostTeeth": 50000, "distanceMinutesPerUnit": 1.2 },
+      "antiAbuse": {
+        "pairFatigue": {
+          "perSend": 25, "recoverPerHour": 10,
+          "tiers": [
+            { "upTo": 30,  "rewardMult": 1.0,  "timeMult": 1.0, "lossChance": 0.0 },
+            { "upTo": 60,  "rewardMult": 0.7,  "timeMult": 1.2, "lossChance": 0.05 },
+            { "upTo": 85,  "rewardMult": 0.45, "timeMult": 1.4, "lossChance": 0.20 },
+            { "upTo": 100, "rewardMult": 0.25, "timeMult": 1.6, "lossChance": 0.35 }
+          ]
+        },
+        "shortTripFatigue": {
+          "shortDistPercentile": 0.25, "perTrip": 1, "recoverPerMin": 0.0333,
+          "freeCount": 3, "decayMults": [0.6, 0.3]
+        }
+      },
+      "bankruptcy": { "deficitTicksToClose": 8, "minReserve": 0 }
+    }
+  }
+}
