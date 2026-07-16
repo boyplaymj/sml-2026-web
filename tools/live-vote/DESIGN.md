@@ -93,6 +93,8 @@
 | `stake` | N | 單票注額🦷（預設 50，後台可調） |
 | `multiplier` | N | **固定賠率倍數**（預設 2.0，每題後台可設，範圍 1.1〜3.0）；押中每票回 `stake × multiplier` |
 | `status` | S | `open` / `closed` / `revealed` / `voided` |
+| `resolverType` | S | **開獎解析器**（前瞻欄位）：MVP 一律 `manual`（人工選正解）；Phase 2 才實作自動範本（如 `daily_top_score` / `hand_winner`）。MVP 只認 `manual`，其餘值視為未實作、退回人工。 |
+| `resolverParams` | M | 自動範本的綁定參數（前瞻欄位，MVP 留空 `{}`）：日後存 `{ matchSetId, round, kyoku, field, optionMap:{optKey→playerId} }` 之類。**MVP 不讀不驗**。 |
 | `pool` | M | `{ <optKey>: 票數 }` 原子累加；`total` 總票數（**僅供顯示/熱度，不參與賠付計算**） |
 | `answer` | S | 開獎正解 optKey（`revealed` 後） |
 | `revealAt` | N | 開獎時戳（epoch ms），領獎窗基準 |
@@ -146,7 +148,11 @@ for 每位下注者:
 ## 7. 分期
 
 - **MVP（Phase 1）**：手動開題/截止/開獎、模型 B（固定賠率）、60s 限時領獎、多題並行、後台頁。Overlay 無。
-- **Phase 2**：自動抓答案（賽果/比分/牌型來源）＋自動截止時間；玩家統計榜；Overlay 即時票數/賠率。
+- **Phase 2**：**自動開獎（resolver 範本庫）** ＋自動截止時間；玩家統計榜；Overlay 即時票數/賠率。
+  - 方向（框架細節待 Phase 2 設計）：做一套「解析器範本」，**每種題型一支個別撰寫的解析邏輯**，讀計分後台賽果自動判定正解 → 自動 `reveal`+發獎。後台建題時選範本、綁參數（哪場/哪局/選項對應哪位玩家）；沒對應範本的題維持人工開獎。
+  - 首批建議範本：`daily_top_score`（當日淨分最高，**按玩家聚合**、避開 [[project_avg_rank_seat_bug]] 半莊換座位雷）、`hand_winner`（指定「第N雀 X風X局」胡牌者/莊家）。
+  - **三個前置依賴**（Phase 2 要拉的線）：①**完賽訊號**（計分後台需能判定「該題綁的場次已打完」，如結束狀態或場次數達標）；②**跨系統唯讀資料橋**（甜甜 sweetbot-next 讀 score-repo/broadcast 的 `sml_matches`：給甜甜 role 加唯讀權，或 broadcast 出唯讀 API）；③**身分對應**（選項 optKey → 分數表玩家；接現有 discord_id）。
+  - 前瞻相容：`resolverType`/`resolverParams` 欄位 MVP 已預留（見 §4.1），Phase 2 接自動化**免改表/免 migration**。
 - **Phase 3**：跨題連押成就、應援排行、與股市盤/賓果盤聯動。
 
 ---
