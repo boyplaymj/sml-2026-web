@@ -192,9 +192,17 @@ balance.weather = {
            leak:{severityGate:5, durationDays:[2,4]} },
   cwaSeverityMap: { typhoonLand:9, typhoonSea:6, superHeavyRain:8, heavyRain:6, heatAdvisory:5, lowTemp:5 },
   nationwideCountyThreshold: 5, holidaySeverityGate: 8, holidaySource: "map",
-  realStaleMinutes: 180, forecastHorizonDays: 3
+  realStaleMinutes: 180, forecastHorizonDays: 3,
+  copy: {                                    // 🗞️ 天氣文案庫(CONTENT §R2 已灌初值,後台可編)
+    broadcast: { clear:"…", cloudy:"…", lightRain:"…", heavyRain:"…", plumRain:"…", coldWave:"…", heatWave:"…", typhoon:"…" },
+    forecast: { near:"…", far:"…", typhoonAlert:"…" },
+    event: { flood:{enter:"…",during:"…",clear:"…"}, signfall:{...}, blackout:{...}, leak:{...} },
+    jackpot: { boom:"…", disaster:"…", noHolidaySevere:"…" },
+    prepCall: "…"
+  }
 }
 ```
+- **`copy` 文案**:新聞面板/橫幅顯示用,初值見 `CONTENT.md §R2`(甜甜/麻將館口吻),Codex 灌入、後台「天候」分頁可改。純字串、無邏輯。
 
 ### 10.2 config `districts[].location.terrain`(新,§2.1.1 正典值)
 ```jsonc
