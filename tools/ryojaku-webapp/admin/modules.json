@@ -28,6 +28,7 @@
       "id": "governance",
       "title": "治理",
       "modules": [
+        { "id": "trust-safety", "title": "信任與安全(反托)", "doc": "../modules/trust-safety.md", "status": "design", "icon": "🛡️" },
         { "id": "business", "title": "商業模式", "doc": "../modules/business.md", "status": "design", "icon": "💼" },
         { "id": "cost", "title": "成本控管", "type": "page", "url": "./cost.html", "doc": "../modules/cost.md", "status": "live", "icon": "💰" }
       ]
