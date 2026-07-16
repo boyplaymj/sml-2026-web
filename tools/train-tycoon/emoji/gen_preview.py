@@ -72,7 +72,12 @@ def to_tiles(im, tiles):
     rail = int(os.environ.get("RAIL_PX", 2))     # 軌道厚(最底)
     frame = int(os.environ.get("FRAME_PX", 3))   # 車架橫樑厚(其上)
     base = rail + frame
-    body = im.resize((W, H - base), Image.LANCZOS)
+    # 橫向 overscan:車體拉寬超出 tile 一點再裁掉兩端留白 → 實體車身頂到左右邊,相鄰車貼死
+    over = float(os.environ.get("OVERSCAN", 1.18))
+    bw = max(W, round(W * over))
+    body = im.resize((bw, H - base), Image.LANCZOS)
+    left = (bw - W) // 2
+    body = body.crop((left, 0, left + W, H - base))
     a = np.zeros((H, W, 4), dtype="uint8")
     a[0:H - base] = np.array(body)
     a[:, :, 3] = np.where(a[:, :, 3] > 128, 255, 0)  # 車身硬邊
