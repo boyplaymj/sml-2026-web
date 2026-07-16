@@ -64,3 +64,16 @@ func TestBlockMessageNonNetwork(t *testing.T) {
 		t.Errorf("empty kind should give empty message, got %q", m)
 	}
 }
+
+func TestUnknownErrorFallbackNoHijack(t *testing.T) {
+	// 有具體訊息(非 unknown error / 非空白)→ 回空字串,不劫持真正的錯誤、不打網路。
+	for _, s := range []string{
+		"TypeError: cannot read property x of undefined",
+		"file not found: foo.go",
+		"⚠️ 執行出錯：syntax error",
+	} {
+		if m := unknownErrorFallback(s); m != "" {
+			t.Errorf("unknownErrorFallback(%q) should be empty (no hijack), got %q", s, m)
+		}
+	}
+}

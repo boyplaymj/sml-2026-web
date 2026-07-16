@@ -216,6 +216,11 @@ func claudeArgs(sid, prompt string) []string {
 	if sid != "" {
 		args = append(args, "--resume", sid)
 	}
+	// Notion MCP 預設不載(省記憶體/加速);站主用 `!notion on` 開啟後,才對每個新對話按需載入。
+	// 鐵律同上:--mcp-config 屬 option,必須落在 `--` 之前。
+	if notionMCPEnabled() {
+		args = append(args, "--mcp-config", notionMCPConfigPath())
+	}
 	return append(args, "-p", "--", prompt)
 }
 
@@ -283,6 +288,10 @@ func runClaude(ctx context.Context, channelID, prompt string) string {
 		if wasKilled(runErr) && strings.TrimSpace(stderr) == "" {
 			return "⚠️ 處理被系統中止(通常是同時任務太多、記憶體不足),已自動重試仍失敗。請稍等一下、或避免同時在多個頻道操作,再重試。"
 		}
+		// 不透明的失敗(如 "Unknown error"/空白)→ 主動查用量,撞頂就講清楚,否則給可行動訊息。
+		if msg := unknownErrorFallback(stderr + "\n" + out.String()); msg != "" {
+			return msg
+		}
 		return "⚠️ 執行出錯：" + firstLine(stderr)
 	}
 	var res claudeResult
@@ -293,6 +302,10 @@ func runClaude(ctx context.Context, channelID, prompt string) string {
 	// 有時仍 exit 0 只把原因塞進 result)→ 翻成清楚原因。
 	if res.IsError {
 		if msg := blockMessage(classifyBlock(res.Result), res.Result); msg != "" {
+			return msg
+		}
+		// is_error 但 result 不透明(如 "Unknown error"/空白)→ 同樣主動查用量再決定訊息。
+		if msg := unknownErrorFallback(res.Result); msg != "" {
 			return msg
 		}
 	}
@@ -1099,6 +1112,8 @@ func main() {
 				handleAccountCommand(s, m, action, slot)
 			} else if action, ok := parseB2BCommand(stripped); ok {
 				handleB2BCommand(s, m, action)
+			} else if action, ok := parseNotionCommand(stripped); ok {
+				handleNotionCommand(s, m, action)
 			} else {
 				tryBridgeCommand(s, m, stripped)
 			}

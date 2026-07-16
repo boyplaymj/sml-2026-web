@@ -88,6 +88,23 @@ func usageLimitDetail(resetHint int64) (window string, reset int64) {
 	return window, reset
 }
 
+// unknownErrorFallback 處理「不透明」失敗:claude 撞到帳號額度/認證臨界時,-p 有時只回一句
+// 沒有 pattern 可辨識的 "Unknown error"(或空白),classifyBlock 抓不到 → 原本會把 "Unknown error"
+// 原樣丟給使用者。這裡在那種情況下「主動查一次即時用量」(GET /api/oauth/usage,不燒 LLM token):
+// 若確實撞頂 → 顯示用量說明;否則回一句可行動的通用訊息,而不是讓使用者盯著 "Unknown error"。
+// raw 有具體訊息(非 unknown error、非空白)時回空字串,交回原本錯誤處理(不劫持真正的錯誤)。
+func unknownErrorFallback(raw string) string {
+	lt := strings.ToLower(strings.TrimSpace(raw))
+	if lt != "" && !strings.Contains(lt, "unknown error") {
+		return ""
+	}
+	if snap, ok := fetchUsageFromOAuth(claudeUsageToken()); ok &&
+		(snap.weekAll.pct >= 95 || snap.session.pct >= 95) {
+		return blockMessage("usage", raw)
+	}
+	return "⚠️ Claude 回傳「Unknown error」(不明錯誤)。這常見於帳號**額度/認證臨界**,或 Claude 端暫時異常。\n可先用 `!用量` 查額度、`!切帳號` 換帳號,或稍等約 30 秒重試同一句。"
+}
+
 // blockMessage 依阻擋種類產生給使用者看的中文說明。kind 空字串回空字串。
 func blockMessage(kind, raw string) string {
 	switch kind {
