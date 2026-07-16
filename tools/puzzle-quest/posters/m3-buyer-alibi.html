@@ -3,65 +3,59 @@
 <style>
   *{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Serif CJK TC","Noto Sans CJK TC",serif;}
   html,body{background:#141210;}
-  .stage{width:820px;height:1060px;position:relative;display:flex;align-items:center;justify-content:center;
-    background:
-      radial-gradient(ellipse at 50% 34%,rgba(120,90,50,.22),transparent 60%),
-      linear-gradient(135deg,#3a2c1e,#241a12 60%,#160f0a);}
-  .wood{position:absolute;inset:0;background:repeating-linear-gradient(92deg,rgba(0,0,0,.16) 0,rgba(0,0,0,.16) 3px,transparent 3px,transparent 34px);opacity:.5;}
-  .book{position:relative;width:700px;height:900px;transform:rotate(-1.1deg);display:flex;flex-direction:column;
-    background:#efe7d2;
-    box-shadow:0 8px 20px rgba(0,0,0,.55),0 40px 70px rgba(0,0,0,.6);}
-  .book::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:46px;transform:translateX(-50%);
-    background:linear-gradient(90deg,transparent,rgba(90,70,40,.28) 42%,rgba(70,52,30,.4) 50%,rgba(90,70,40,.28) 58%,transparent);pointer-events:none;z-index:5;}
-  .paper{position:absolute;inset:0;background:
-      radial-gradient(circle at 30% 20%,rgba(255,252,240,.7),transparent 60%),
-      linear-gradient(160deg,#f3ecd8,#e7dcc0 70%,#dccdac);}
-  .paper::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(120,90,50,.05) 0,rgba(120,90,50,.05) 1px,transparent 1px,transparent 40px);opacity:.5;}
-  .band{position:relative;z-index:3;margin:26px 34px 6px;border:2px solid #8a2b26;color:#7a201c;text-align:center;padding:12px 6px 10px;background:rgba(255,255,255,.25);}
-  .band .t{font-size:26px;font-weight:900;letter-spacing:8px;}
-  .band .s{font-size:15px;letter-spacing:3px;margin-top:6px;color:#5a4a3a;}
-  .cols{position:relative;z-index:3;flex:1;display:flex;flex-direction:row-reverse;padding:8px 30px 20px;gap:0;}
-  .col{flex:1;writing-mode:vertical-rl;text-orientation:upright;border-left:1.5px solid rgba(150,40,34,.5);
-    display:flex;flex-direction:column;align-items:center;padding:10px 0;position:relative;}
-  .col:last-child{border-left:none;}
-  .name{font-size:30px;letter-spacing:6px;color:#241f1a;font-weight:700;}
-  .col.ink2 .name{color:#20303f;}
-  .col.ink3 .name{color:#2a2320;}
-  .r1 .name{transform:rotate(.6deg);} .r2 .name{transform:rotate(-.8deg);} .r3 .name{transform:rotate(.4deg);}
-  .time{writing-mode:horizontal-tb;font-size:15px;color:#6a5a48;margin-top:14px;letter-spacing:1px;font-family:"Noto Sans CJK TC";}
-  .vip{font-size:14px;color:#8a2b26;writing-mode:horizontal-tb;margin-top:6px;font-family:"Noto Sans CJK TC";letter-spacing:1px;}
-  .col.hl{background:linear-gradient(90deg,transparent,rgba(255,238,170,.4),transparent);}
-  .seal{position:absolute;right:52px;bottom:44px;z-index:4;width:88px;height:88px;border:3px solid #b23a2f;color:#b23a2f;
-    display:flex;align-items:center;justify-content:center;text-align:center;font-size:19px;font-weight:900;line-height:1.15;letter-spacing:2px;
-    transform:rotate(-9deg);opacity:.82;writing-mode:vertical-rl;}
-  .pen{position:absolute;z-index:6;left:120px;bottom:-14px;width:300px;height:15px;border-radius:8px;
-    background:linear-gradient(90deg,#20242a 0 62%,#c8a24a 62% 76%,#8a8f96 76% 100%);transform:rotate(6deg);box-shadow:0 6px 10px rgba(0,0,0,.5);}
-  .pen::after{content:"";position:absolute;right:-14px;top:2px;border-left:16px solid #8a8f96;border-top:5px solid transparent;border-bottom:5px solid transparent;}
-  .cap{position:absolute;left:0;right:0;bottom:14px;text-align:center;color:#cbb892;font-size:14px;letter-spacing:1px;font-family:"Noto Sans CJK TC";z-index:8;}
-  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 52%,rgba(8,5,2,.62));z-index:9;}
+  .stage{width:820px;height:1020px;position:relative;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(ellipse at 50% 32%,rgba(120,90,50,.20),transparent 62%),linear-gradient(135deg,#3a2c1e,#241a12 60%,#160f0a);}
+  .wood{position:absolute;inset:0;background:repeating-linear-gradient(91deg,rgba(0,0,0,.15) 0,rgba(0,0,0,.15) 3px,transparent 3px,transparent 36px);opacity:.5;}
+  .book{position:relative;width:660px;min-height:830px;transform:rotate(-1deg);
+    background:#f1ead6;padding:0 0 40px;box-shadow:0 8px 20px rgba(0,0,0,.5),0 40px 72px rgba(0,0,0,.6);}
+  .paper{position:absolute;inset:0;background:radial-gradient(circle at 28% 16%,rgba(255,253,244,.75),transparent 58%),linear-gradient(158deg,#f5eeda,#e9dfc2 72%,#ddcdac);}
+  .spine{position:absolute;left:0;top:0;bottom:0;width:26px;background:linear-gradient(90deg,rgba(70,52,30,.5),rgba(120,95,55,.12));border-right:1px solid rgba(120,90,50,.3);}
+  .rivet{position:absolute;left:11px;width:9px;height:9px;border-radius:50%;background:#8a7448;box-shadow:inset 0 1px 1px rgba(255,255,255,.4);}
+  .band{position:relative;z-index:3;margin:26px 40px 4px 44px;border:2px solid #8a2b26;color:#7a201c;text-align:center;padding:12px 8px 10px;background:rgba(255,255,255,.22);}
+  .band .t{font-size:27px;font-weight:900;letter-spacing:10px;}
+  .band .s{font-size:14.5px;letter-spacing:2px;margin-top:7px;color:#5a4a3a;}
+  .band .s b{color:#7a201c;}
+  table{position:relative;z-index:3;width:calc(100% - 84px);margin:16px 40px 0 44px;border-collapse:collapse;background:rgba(255,255,255,.12);}
+  th,td{border:1px solid rgba(150,40,34,.45);padding:13px 14px;font-size:20px;color:#241f1a;}
+  th{background:rgba(150,40,34,.12);font-size:16px;letter-spacing:2px;color:#7a201c;font-weight:800;}
+  .nm{font-weight:700;letter-spacing:2px;width:38%;}
+  .tm{font-family:"Noto Sans CJK TC";width:34%;text-align:center;}
+  .vp{font-family:"Noto Sans CJK TC";text-align:center;color:#4a4038;}
+  tr.hl td{background:rgba(255,238,170,.5);}
+  tr.hl .nm{color:#20303f;}
+  .seal{position:absolute;right:54px;bottom:70px;z-index:6;width:92px;height:92px;border:3px solid #b23a2f;color:#b23a2f;
+    display:flex;align-items:center;justify-content:center;text-align:center;font-size:20px;font-weight:900;line-height:1.15;letter-spacing:2px;
+    transform:rotate(-8deg);opacity:.8;writing-mode:vertical-rl;}
+  .pen{position:absolute;z-index:7;left:150px;bottom:-12px;width:290px;height:14px;border-radius:7px;
+    background:linear-gradient(90deg,#20242a 0 60%,#c8a24a 60% 74%,#9aa0a7 74% 100%);transform:rotate(5deg);box-shadow:0 6px 10px rgba(0,0,0,.5);}
+  .foot{position:relative;z-index:3;margin:16px 44px 0;font-size:13px;color:#8a7a60;font-family:"Noto Sans CJK TC";letter-spacing:1px;}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 54%,rgba(8,5,2,.6));z-index:9;}
 </style></head>
 <body>
   <div class="stage">
     <div class="wood"></div>
     <div class="book">
       <div class="paper"></div>
+      <div class="spine"></div>
+      <div class="rivet" style="top:60px;"></div><div class="rivet" style="top:50%;"></div><div class="rivet" style="bottom:60px;"></div>
       <div class="band">
         <div class="t">貴　賓　簽　到　簿</div>
-        <div class="s">南境國際藝術拍賣・秋季預展 貴賓之夜　中華民國一一四年九月十七日（台南）</div>
+        <div class="s">南境國際藝術拍賣・秋季預展 貴賓之夜　<b>台南</b>　中華民國一一四年九月十七日</div>
       </div>
-      <div class="cols">
-        <div class="col ink3 r1"><span class="name">何昭儀</span><span class="time">17:52</span></div>
-        <div class="col r2"><span class="name">林之棠</span><span class="time">18:10</span></div>
-        <div class="col ink2 r3 hl"><span class="name">郭崇德</span><span class="time">18:34</span><span class="vip">貴賓證 038</span></div>
-        <div class="col r1"><span class="name">蔡維中</span><span class="time">18:41</span></div>
-        <div class="col ink3 r2"><span class="name">董雅琴</span><span class="time">18:55</span></div>
-        <div class="col r3"><span class="name">羅偉成</span><span class="time">19:03</span></div>
-        <div class="col ink2 r1"><span class="name">高子涵</span><span class="time">19:12</span></div>
-      </div>
+      <table>
+        <tr><th>貴賓姓名</th><th>到場時刻</th><th>貴賓證</th></tr>
+        <tr><td class="nm">何昭儀</td><td class="tm">17:52</td><td class="vp">034</td></tr>
+        <tr><td class="nm">林之棠</td><td class="tm">18:10</td><td class="vp">036</td></tr>
+        <tr class="hl"><td class="nm">郭崇德</td><td class="tm">18:34</td><td class="vp">038</td></tr>
+        <tr><td class="nm">蔡維中</td><td class="tm">18:41</td><td class="vp">041</td></tr>
+        <tr><td class="nm">董雅琴</td><td class="tm">18:55</td><td class="vp">045</td></tr>
+        <tr><td class="nm">羅偉成</td><td class="tm">19:03</td><td class="vp">048</td></tr>
+        <tr><td class="nm">高子涵</td><td class="tm">19:12</td><td class="vp">052</td></tr>
+      </table>
+      <div class="foot">承辦　南境國際藝術拍賣　公關部</div>
       <div class="seal">南境<br>簽到處</div>
       <div class="pen"></div>
     </div>
-    <div class="cap">南境國際藝術拍賣 現場簽到簿（台南）｜郭崇德先生 18:34 到場、貴賓證 038；另 20:00 上台致詞、21:40 晚宴合影，當晚下榻台南。</div>
     <div class="vig"></div>
   </div>
 </body>
