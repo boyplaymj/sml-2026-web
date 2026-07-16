@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Claude 用量</title>
+<style>
+  :root{
+    --bg0:#070b14; --bg1:#0d1526; --card:#0f1a2e; --line:rgba(120,160,220,.14);
+    --ink:#e8f0ff; --dim:#8fa4c8; --faint:#5c7096;
+    --good1:#25d3a6; --good2:#0fb488;
+    --warn1:#ffcf5c; --warn2:#f7a83b;
+    --crit1:#ff7a8a; --crit2:#e84860;
+    --dead:#3a465e;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",system-ui,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 600px at 20% -10%, #17233d 0%, transparent 60%),
+      radial-gradient(900px 500px at 110% 120%, #10203a 0%, transparent 55%),
+      linear-gradient(160deg,var(--bg1),var(--bg0));
+    min-height:100%;
+    display:flex; flex-direction:column;
+    padding:14px 14px 10px; gap:12px;
+    -webkit-user-select:none; user-select:none;
+    overflow:hidden;
+  }
+  header{display:flex;align-items:center;gap:10px}
+  header .logo{
+    width:26px;height:26px;border-radius:8px;flex:0 0 auto;
+    background:linear-gradient(135deg,#d97757,#c25d3f);
+    box-shadow:0 4px 14px rgba(217,119,87,.35), inset 0 1px 0 rgba(255,255,255,.25);
+    display:grid;place-items:center;font-weight:800;font-size:14px;color:#1a0f0a;
+  }
+  header h1{font-size:15px;letter-spacing:.3px;margin:0;font-weight:700;flex:1}
+  .freshness{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--dim)}
+  .pulse{width:8px;height:8px;border-radius:50%;background:var(--good1);
+    box-shadow:0 0 0 0 rgba(37,211,166,.6);animation:ping 2.4s ease-out infinite}
+  .pulse.stale{background:var(--warn1);animation:none;box-shadow:none}
+  @keyframes ping{0%{box-shadow:0 0 0 0 rgba(37,211,166,.5)}70%{box-shadow:0 0 0 7px rgba(37,211,166,0)}100%{box-shadow:0 0 0 0 rgba(37,211,166,0)}}
+
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:1;min-height:0}
+  @media (max-width:520px){.cards{grid-template-columns:1fr}}
+
+  .card{
+    position:relative;border-radius:16px;padding:12px 12px 10px;
+    background:linear-gradient(180deg,rgba(24,36,60,.7),rgba(14,24,42,.75));
+    border:1px solid var(--line);
+    box-shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+    display:flex;flex-direction:column;gap:10px;overflow:hidden;
+  }
+  .card .title{display:flex;align-items:center;gap:8px}
+  .card .dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+  .card .name{font-weight:700;font-size:14px;letter-spacing:.3px}
+  .card .badge{margin-left:auto;font-size:10px;color:var(--dim);
+    border:1px solid var(--line);padding:2px 7px;border-radius:999px}
+
+  .tanks{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;flex:1;min-height:0}
+  .tank{display:flex;flex-direction:column;align-items:center;gap:6px;min-height:0}
+  .tank .cap{font-size:10.5px;color:var(--dim);letter-spacing:.4px;font-weight:600}
+  .glass{
+    position:relative;width:100%;flex:1;min-height:96px;border-radius:12px;
+    background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.01));
+    border:1px solid rgba(150,185,235,.16);
+    box-shadow:inset 0 2px 10px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.02);
+    overflow:hidden;
+  }
+  .glass canvas{position:absolute;inset:0;width:100%;height:100%}
+  /* 玻璃反光 */
+  .glass::after{content:"";position:absolute;left:8%;top:4%;width:18%;height:82%;
+    border-radius:40%;background:linear-gradient(180deg,rgba(255,255,255,.14),transparent);
+    filter:blur(1px);pointer-events:none}
+  .pct{position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;pointer-events:none}
+  .pct b{font-size:22px;font-weight:800;line-height:1;
+    text-shadow:0 1px 6px rgba(0,0,0,.55), 0 0 14px rgba(0,0,0,.4)}
+  .pct small{font-size:10px;font-weight:600;opacity:.85;margin-top:2px}
+  .reset{font-size:10px;color:var(--faint);text-align:center;min-height:13px;letter-spacing:.2px}
+
+  /* 死帳號/錯誤:霧面遮罩 */
+  .card.dead::before{content:"";position:absolute;inset:0;z-index:5;
+    background:rgba(9,14,24,.55);backdrop-filter:blur(2px)}
+  .deadmsg{position:absolute;inset:0;z-index:6;display:none;
+    flex-direction:column;align-items:center;justify-content:center;gap:6px;
+    text-align:center;padding:14px}
+  .card.dead .deadmsg{display:flex}
+  .deadmsg .ic{font-size:26px}
+  .deadmsg .t{font-weight:700;font-size:13px;color:#cdd8ee}
+  .deadmsg .s{font-size:11px;color:var(--dim);line-height:1.5}
+
+  footer{display:flex;justify-content:center;font-size:10px;color:var(--faint);letter-spacing:.3px}
+</style>
+</head>
+<body>
+  <header>
+    <div class="logo">✳</div>
+    <h1>Claude 用量</h1>
+    <div class="freshness"><span id="pulse" class="pulse"></span><span id="ago">—</span></div>
+  </header>
+
+  <div class="cards" id="cards"></div>
+
+  <footer id="foot">液面 = 已用額度 · 每 30 秒更新</footer>
+
+<script>
+// ---- 設定 ----------------------------------------------------------------
+const SRC = new URLSearchParams(location.search).get('src') || './usage.json';
+const POLL_MS = 30000;
+const METRICS = [
+  {key:'session', cap:'5 小時'},
+  {key:'weekly',  cap:'每週'},
+  {key:'fable',   cap:'Fable'},
+];
+// 本機預覽用的示範資料(fetch 失敗時採用,讓開檔就有動畫)
+const DEMO = {updated:Math.floor(Date.now()/1000), demo:true, accounts:[
+  {slot:'main',label:'Main',ok:true,
+   session:{pct:32,resets_at:Math.floor(Date.now()/1000)+3600},
+   weekly:{pct:19,resets_at:Math.floor(Date.now()/1000)+5*86400},
+   fable:{pct:5,resets_at:Math.floor(Date.now()/1000)+5*86400}},
+  {slot:'backup1',label:'Backup1',ok:false,dead:true,error:'需重新登入'},
+]};
+
+// ---- 顏色分級 ------------------------------------------------------------
+function grade(pct){
+  if(pct>=85) return {a:'#ff7a8a',b:'#e84860',glow:'rgba(232,72,96,.55)',ink:'#ffd7dd'};
+  if(pct>=60) return {a:'#ffcf5c',b:'#f7a83b',glow:'rgba(247,168,59,.5)', ink:'#fff0cf'};
+  return       {a:'#2fe0b0',b:'#0fb488',glow:'rgba(37,211,166,.45)',ink:'#d6fff2'};
+}
+
+// ---- 液體槽(canvas 波浪) -----------------------------------------------
+class Tank{
+  constructor(canvas){
+    this.c=canvas; this.ctx=canvas.getContext('2d');
+    this.cur=0; this.target=0; this.pct=0; this.phase=Math.random()*7;
+    this.bubbles=[];
+  }
+  set(pct){ this.pct=pct; this.target=Math.max(0,Math.min(100,pct))/100; }
+  resize(){
+    const r=this.c.getBoundingClientRect(), d=window.devicePixelRatio||1;
+    this.c.width=Math.max(1,r.width*d); this.c.height=Math.max(1,r.height*d);
+    this.w=r.width; this.h=r.height; this.ctx.setTransform(d,0,0,d,0,0);
+  }
+  step(dt){
+    // 液面平滑逼近目標
+    this.cur += (this.target-this.cur)*Math.min(1,dt*3.2);
+    this.phase += dt*1.1;
+    const g=grade(this.pct);
+    const {ctx,w,h}=this; if(!w) return;
+    ctx.clearRect(0,0,w,h);
+    const level = h*(1-this.cur);            // 液面 y
+    const amp = Math.min(6, 2+ this.cur*4);  // 越滿波越明顯
+
+    // 液體主體漸層
+    const grd=ctx.createLinearGradient(0,level-amp,0,h);
+    grd.addColorStop(0,g.a); grd.addColorStop(1,g.b);
+    ctx.fillStyle=grd;
+    ctx.beginPath();
+    ctx.moveTo(0,h);
+    ctx.lineTo(0,level);
+    const step=6;
+    for(let x=0;x<=w;x+=step){
+      const y=level + Math.sin(x/38 + this.phase)*amp + Math.sin(x/17 - this.phase*1.6)*amp*0.4;
+      ctx.lineTo(x,y);
+    }
+    ctx.lineTo(w,h); ctx.closePath(); ctx.fill();
+
+    // 表層高光波
+    ctx.strokeStyle='rgba(255,255,255,.5)'; ctx.lineWidth=1.4;
+    ctx.beginPath();
+    for(let x=0;x<=w;x+=step){
+      const y=level + Math.sin(x/38 + this.phase)*amp + Math.sin(x/17 - this.phase*1.6)*amp*0.4;
+      x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+
+    // 頂部輝光
+    ctx.save(); ctx.globalAlpha=.5; ctx.shadowColor=g.glow; ctx.shadowBlur=16;
+    ctx.strokeStyle=g.a; ctx.lineWidth=2; ctx.beginPath();
+    ctx.moveTo(0,level); ctx.lineTo(w,level); ctx.stroke(); ctx.restore();
+
+    // 氣泡
+    if(this.cur>0.06 && Math.random()<dt*3){
+      this.bubbles.push({x:Math.random()*w, y:h-2, r:1+Math.random()*2.2, v:14+Math.random()*22});
+    }
+    ctx.fillStyle='rgba(255,255,255,.35)';
+    this.bubbles=this.bubbles.filter(b=>{
+      b.y-=b.v*dt;
+      const surf=level + Math.sin(b.x/38+this.phase)*amp;
+      if(b.y<surf+1) return false;
+      ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,7); ctx.fill();
+      return true;
+    });
+  }
+}
+
+// ---- 版面建構 ------------------------------------------------------------
+const tanks=[]; // {tank, pctEl, resetEl, metricKey, accIdx}
+let cardEls=[];
+function buildCards(accounts){
+  const root=document.getElementById('cards'); root.innerHTML=''; tanks.length=0; cardEls=[];
+  accounts.forEach((acc,ai)=>{
+    const card=document.createElement('div'); card.className='card'; cardEls.push(card);
+    const okColor = acc.dead? '#ff7a8a' : (acc.ok? '#2fe0b0' : '#f7a83b');
+    card.innerHTML=`
+      <div class="title">
+        <span class="dot" style="background:${okColor};box-shadow:0 0 8px ${okColor}"></span>
+        <span class="name">${acc.label||acc.slot}</span>
+        <span class="badge">${acc.slot}</span>
+      </div>
+      <div class="tanks"></div>
+      <div class="deadmsg">
+        <div class="ic">🔌</div>
+        <div class="t">${acc.error||'無法讀取'}</div>
+        <div class="s">此帳號登入已失效<br>切一次帳號重新登入即可恢復</div>
+      </div>`;
+    const tanksEl=card.querySelector('.tanks');
+    METRICS.forEach(m=>{
+      const t=document.createElement('div'); t.className='tank';
+      t.innerHTML=`
+        <div class="cap">${m.cap}</div>
+        <div class="glass"><canvas></canvas>
+          <div class="pct"><b>—</b><small>%</small></div></div>
+        <div class="reset"></div>`;
+      tanksEl.appendChild(t);
+      const tank=new Tank(t.querySelector('canvas'));
+      tanks.push({tank, pctEl:t.querySelector('.pct b'), inkEl:t.querySelector('.pct'),
+                  resetEl:t.querySelector('.reset'), key:m.key, ai});
+    });
+    if(acc.dead) card.classList.add('dead');
+    root.appendChild(card);
+  });
+  requestAnimationFrame(()=>tanks.forEach(o=>o.tank.resize()));
+}
+
+// ---- 資料綁定 ------------------------------------------------------------
+let lastUpdated=0, resets={};
+function apply(data){
+  const accs=data.accounts||[];
+  // 只在「憑證失效狀態」改變時重建卡片(暫時性 429/網路 起伏不重建、不閃爍)
+  const sig=accs.map(a=>a.slot+':'+(a.dead?'D':'L')).join(',');
+  if(sig!==apply._sig){ buildCards(accs); apply._sig=sig; }
+  tanks.forEach(o=>{
+    const acc=accs[o.ai]; const m=acc&&acc[o.key];
+    if(acc&&acc.ok&&m){                       // 有新資料 → 更新
+      const pct=Math.round(m.pct);
+      o.tank.set(pct);
+      o.pctEl.textContent=pct;
+      o.inkEl.style.color=grade(pct).ink;
+      resets[o.ai+o.key]=m.resets_at||0;
+    }else if(acc&&acc.dead){                  // 憑證失效 → 清空(卡片已霧面)
+      o.tank.set(0); o.pctEl.textContent='—';
+    }
+    // 暫時性錯誤(!ok 且 !dead)→ 保留上一筆數值,什麼都不動
+  });
+  lastUpdated=data.updated||Math.floor(Date.now()/1000);
+  document.getElementById('foot').textContent =
+    (data.demo?'⚠ 示範資料(未連到採集器) · ':'') + '液面 = 已用額度 · 每 30 秒更新';
+}
+
+function fmtLeft(sec){
+  if(sec<=0) return '';
+  const d=Math.floor(sec/86400), h=Math.floor(sec%86400/3600), m=Math.floor(sec%3600/60);
+  if(d>0) return `${d}天${h}時後重置`;
+  if(h>0) return `${h}時${m}分後重置`;
+  return `${m}分後重置`;
+}
+function tickLabels(){
+  const now=Math.floor(Date.now()/1000);
+  tanks.forEach(o=>{ const r=resets[o.ai+o.key];
+    o.resetEl.textContent = r? fmtLeft(r-now):''; });
+  const age=now-lastUpdated;
+  const ago=document.getElementById('ago'), pulse=document.getElementById('pulse');
+  ago.textContent = lastUpdated? (age<60?`${age} 秒前更新`:`${Math.floor(age/60)} 分前更新`):'連線中…';
+  pulse.classList.toggle('stale', age>120);
+}
+
+// ---- 迴圈 ----------------------------------------------------------------
+async function poll(){
+  try{
+    const r=await fetch(SRC+(SRC.includes('?')?'&':'?')+'t='+Date.now(),{cache:'no-store'});
+    if(!r.ok) throw 0;
+    apply(await r.json());
+  }catch(e){ if(!apply._sig) apply(DEMO); }
+}
+let last=performance.now();
+function frame(t){
+  const dt=Math.min(.05,(t-last)/1000); last=t;
+  tanks.forEach(o=>o.tank.step(dt));
+  requestAnimationFrame(frame);
+}
+window.addEventListener('resize',()=>tanks.forEach(o=>o.tank.resize()));
+apply(DEMO);                 // 先畫示範,避免白屏
+poll();                      // 立刻抓真資料
+setInterval(poll, POLL_MS);
+setInterval(tickLabels, 1000);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "claude-usage-widget",
+  "productName": "Claude用量",
+  "version": "1.0.0",
+  "description": "Claude 用量液體槽桌面掛件(透明無邊框、永遠最上層)",
+  "main": "main.js",
+  "author": "SML",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron ."
+  }
+}
