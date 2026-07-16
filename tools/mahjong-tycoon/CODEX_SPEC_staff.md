@@ -40,6 +40,11 @@
 | `security` | 🛡️鎮場保全 | 處理鬧事/衝突(**壓衰神帶進來的滋事**,接 §16.5) |
 | `watch` | 👁️顧場防弊 | 防逃單/防詐賭/監看(接翹課學生 payRisk、游擊中年人) |
 
+### 天候 / 防災(接 DESIGN §17,§13 詳述)
+| taskId | 名稱 | 作用 |
+|---|---|---|
+| `disasterprep` | 🌦️防災準備 | 颱風/豪雨來前收招牌/堆沙包/清水溝/固定設備 → 事前降天候事件機率、事中降損失/縮短天數(§13);**取代天災險**(使用者定調:不買保險躺平,而是排得出人手) |
+
 ### 管理(店長類,設資格門檻 `requiresLevel`)
 | taskId | 名稱 | 作用 |
 |---|---|---|
@@ -48,7 +53,7 @@
 | `branchmgmt` | 🏢代管分店 | 委派引擎(連鎖 M2) |
 | `training` | 🎓帶新人 | 提升同班員工能力/揭露速度 |
 
-> **MVP 子集**=前場6項 + 後場3項 + `security`(運氣系統要它);`watch`/管理類第二階。
+> **MVP 子集**=前場6項 + 後場3項 + `security`(運氣系統要它)+ `disasterprep`(天候系統 Phase 1 要它,§13;事件源 Phase 3 才接上,在此之前 demand 恆 0 不擋 Phase 1);`watch`/管理類第二階。
 
 ---
 
@@ -57,7 +62,8 @@
 ```jsonc
 employee.skills = { clean:70, reception:40, matchmaking:85, serving:55,
                     opentable:60, sitin:60, cooking:15, repair:20,
-                    errand:55, security:30, watch:35 }   // 各任務真值 0–100
+                    errand:55, security:30, watch:35,
+                    disasterprep:50 }   // 各任務真值 0–100(含 §13 防災,共 12 任務)
 ```
 - **專精 vs 全才**分布 → 招募策略(找咖神85但廚藝15;或均衡無亮點)。
 - **面試只給模糊區間**(如「找咖:高」),真值錄用後**逐次揭露**(沿用 tells,§7);`training` 加速揭露。
@@ -180,6 +186,7 @@ serviceLevel[b][t] = clamp( capacity[b][t] / effectiveDemand[b][t] , 0, 1 )
 - `catalogs.staff`:可招募員工模板池(依地點品質丟面試者,沿用便利商店供給;每模板 skills 真值 + traits + 模糊區間定義 + 期望薪資)。
 - `catalogs.automation`(§8)。
 - `balance.staff`:concurrency 懲罰曲線、timeBands、各任務 demand driver 係數、tells 雜訊/揭露速度、士氣係數、性別安全係數、營業硬條件關鍵任務清單。
+- `balance.staff.disaster`(§13):`prewarnLeadDays`(預警提前天數 2-3)、`preMitigationWeight`/`midMitigationWeight`(事前 vs 事中派工的降損權重,事前>事中)、`attendanceDropByEvent`(各天候事件的到班機率降幅)、颱風津貼倍率。
 
 ### 9.2 parlors 新增
 ```jsonc
@@ -189,7 +196,7 @@ serviceLevel[b][t] = clamp( capacity[b][t] / effectiveDemand[b][t] , 0, 1 )
       "traits":["diligent"], "traitsRevealed":1, "morale":70, "gender":"F",
       "wage":300, "luckTrait":null }        // luckTrait 預留(§7)
   ],
-  "schedule": { "morning":{ "e_...":["clean","reception"] }, "afternoon":{...}, "evening":{...}, "latenight":{...} },  // 班別→員工→assignedTasks(A)
+  "schedule": { "morning":{ "e_...":["clean","reception"] }, "afternoon":{...}, "evening":{...}, "latenight":{...} },  // 班別→員工→assignedTasks(A);天候預警窗可把 "disasterprep" 排進某員工的 assignedTasks(§13)
   "automation": ["self_table"]              // 已購自動化設備
 }
 ```
@@ -202,18 +209,19 @@ serviceLevel[b][t] = clamp( capacity[b][t] / effectiveDemand[b][t] , 0, 1 )
 - 面板分頁:**人事**(招募/面試看模糊能力+tells、解僱)、**排班**(四班×員工→拖任務範圍 assignedTasks)、**自動化**(採購/顯示三重代價)。
 - customId 前綴 `mjt:staff:`;綁 ownerId;重讀 DDB 不信畫面。
 - 尖峰供需可視化:顯示各時段各任務 serviceLevel(紅=人力不足),幫玩家診斷該加人/加自動化。
+- **天候預警**:排班分頁顯示 `disasterprep` 任務;有天候預警窗時橫幅提示「該排防災班」(§13);玩家獲知預警的來源=天候系統的**📰新聞面板**(要主動翻,DESIGN §17.5),staff 端不重做預報只消費其旗標。
 
 ---
 
 ## 11. Phase 歸屬
-- **Phase 1**:任務分類 + 能力矩陣 + 面試招募(tells)+ 排班(A+B 派工)+ **注意力/並發模型** + 服務不及後果 + 貼咖 + 營業硬條件。(員工是經營深度核心)
+- **Phase 1**:任務分類 + 能力矩陣 + 面試招募(tells)+ 排班(A+B 派工)+ **注意力/並發模型** + 服務不及後果 + 貼咖 + 營業硬條件 + **防災準備任務 `disasterprep` + 颱風出勤風險(§13,接 DESIGN §17.7「員工防災任務接 staff Phase 1」;demand hook 先埋,事件源 Phase 3 接上前恆 0)**。(員工是經營深度核心)
 - **Phase 3**:`watch` 防弊深化、管理類(排班委派/議價/帶新人)、員工隱藏 luck(§7,隨 §16 運氣系統)。
 - **Phase 5+**:自動化層(§8,進階省力,綁 M1 解鎖)、代管分店(M2)。
 
 ---
 
 ## 12. 驗收點(給 Codex)
-1. config `catalogs.staff`/`balance.staff` 可存/發佈/型錄編輯;能力矩陣 11 任務齊。
+1. config `catalogs.staff`/`balance.staff` 可存/發佈/型錄編輯;能力矩陣 **12** 任務齊(含 `disasterprep`)。
 2. 面試只給模糊區間、錄用後真值逐次揭露(帶雜訊)、`training` 加速揭露。
 3. 每時段每任務 demand 由既有 driver 派生;serviceLevel = capacity/effectiveDemand。
 4. **並發懲罰**:同一員工排多任務,尖峰多 demand 同時→有效產出按 concurrencyPenalty(N) 下降(可驗:同員工同能力,單任務 vs 三任務同時,產出明顯低)。
@@ -224,3 +232,47 @@ serviceLevel[b][t] = clamp( capacity[b][t] / effectiveDemand[b][t] , 0, 1 )
 9. 士氣/隱藏特質/性別安全軸修正生效;薪資只算排到的班。
 10. 自動化:降 targetTask demand + 三重代價(添購 cost/水電 utilityUpkeep 每tick sink/moodMod 客訴/detectionLoss);unlockLevel 綁老闆等級;砍薪資後通膨 sink 重校準。
 11. 寫入走 UpdateCommand;parlors staff/schedule/automation 並發安全、預留 parlorId 分拆與 luckTrait 欄位。
+12. **防災準備(§13)**:`disasterprep` demand 只在天候預警/事件窗產生(平時 0);派防災班進 §17.4 event `mitigations[]`(事前降機率、事中降損/縮短天數),照 concurrencyPenalty 與 skills 縮放。
+13. **天候搶手**:天候窗內 `disasterprep` 與尖峰接客(matchmaking/serving/reception)搶同一注意力預算(可驗:颱風窗同員工加排防災 → 接客 serviceLevel 下降)。
+14. **颱風出勤風險**:天候事件期間員工到班機率下降,traits(抗壓/勤奮/愛遲到)與地勢/交通修正;防災津貼補償(接 §5 薪資)。
+15. **設備×人力互補**:防災設備(常駐被動降損)與防災班(事件時主動降損)`mitigations[]` 疊加;全程**無天災險**。
+
+---
+
+## 13. 🌦️ 天候防災準備(接 DESIGN §17.5;使用者定調「不做保險、改員工準備」)
+
+> **一句話**:天候把「排班命門」再放大一層 —— 天氣壞的那幾天,**防災準備跟尖峰接客搶同一批人手**。事前有查新聞才排得出防災班;沒排/沒到,天候事件(§17.4 淹水/招牌掉/停電/漏水)就照打。**不是花錢買保險躺平,是排得出人手。**
+
+### 13.1 `disasterprep` 的 demand(只在天候窗產生)
+- **平時 demand = 0**(不佔尖峰、不虛耗)。只有進入**天候「預警窗」或事件「進行中」**才拉起 demand:
+  - 預警窗:未來 `prewarnLeadDays`(2-3 天)有颱風/豪雨(真實層 CWA 警報 或 模擬層預報,§17.1) → demand 提前拉起,催玩家排防災班。
+  - 事件中:天候 event 已觸發仍可派(事中降損),但**事前效益 > 事中**(`preMitigationWeight` > `midMitigationWeight`)。
+- demand 大小接該區 `terrain`(§2.1.1)與事件 severity:溪畔高 `floodRisk`、海線高 `windExposure` → 防災 demand 更重。
+
+### 13.2 效果:進 event 的 mitigations[](接 §17.4)
+- 派 `disasterprep` 的**有效產出**(照 §3.4 並發懲罰 × `skills[disasterprep]` × 注意力分攤)累加進 §17.4 event 的 `mitigations[]`,與**已裝防災設備**(§13.6)疊加:
+  - 事前(預警窗排到)→ 降 event **發生機率** + 降 severity。
+  - 事中(已觸發才排)→ 降**損失**、縮短 `durationDays`。
+- 收招牌/堆沙包/清水溝/固定設備 = 敘事包裝,結算走同一條 mitigation 路徑,不為每個動作做獨立子系統。
+
+### 13.3 搶手人手(核心張力)
+- 天候窗那幾個時段,`disasterprep` 與尖峰接客(`matchmaking`/`serving`/`reception`)**拉扯同一員工的 1.0 注意力預算** → 排防災班 = 那時段少接客(接客 serviceLevel 掉),不排 = 賭事件不來或裝設備擋得住。
+- → 玩家 trade-off:**防災投入 vs 當班營收**。`抗壓` trait(§5,減免並發懲罰)在天候窗更值錢;混編/多請人是解。
+- ⚠️ 呼應 §17.2 颱風假樂透:**放假+溫和=爆滿樂透**那天,防災 demand 低、人手要全壓接客;**放假+猛烈=災難**那天,人手被防災吃走又客稀 → 天候直接放大排班決策的兩極。
+
+### 13.4 事前預判 = 主動看新聞(接 DESIGN §17.5 新聞面板)
+- 防災 demand 在**預警窗**就拉起,但玩家要**主動翻天候系統的📰新聞面板**才知道要排 → **勤查新聞 = 提前排到防災班 = 事前 mitigation(效益最高)**;沒查 = 事到臨頭才排 = 只能事中降損。
+- 技巧軸 = 主動性 + 調度(非資訊付費差);staff 端只**消費**天候系統提供的預警旗標,不重做預報。
+
+### 13.5 颱風出勤風險(排了也可能人沒到)
+- 天候事件期間員工**到班機率下降**(接既有空班/遲到機制):由 `attendanceDropByEvent` × traits(`勤奮`↑可靠 / `愛遲到`↑缺席)× 地勢/交通修正決定。
+- → 排了防災班或尖峰班,員工可能來不了 → serviceLevel 崩;故要**備援 + 混編**,`抗壓`/`勤奮` 員工在天候窗更可靠。
+- 深夜班/颱風津貼(§5 薪資,`balance.staff.disaster` 津貼倍率)補償願意出勤者。
+
+### 13.6 與防災設備互補(接 DESIGN §17.5 equipment)
+- **防災設備**(抽水機/發電機/防風鐵捲門/防水招牌,常駐)= 被動降損,不吃注意力;**防災準備班** = 事件觸發時的主動人力降損。兩者 `mitigations[]` **疊加**。
+- 設備多 → 需要的防災人手少(類 §8 自動化砍人力,但**無客訴代價**,只是設備成本 + 水電)。低價店可靠人手省設備、高端店堆設備省尖峰人手 → 又一條選址/資本 trade-off。
+
+### 13.7 Phase 歸屬(呼應 §11)
+- **Phase 1**:`disasterprep` 任務 + 能力值 + 排班可派 + 並發懲罰參與 + 颱風出勤風險 + `balance.staff.disaster` 參數。**demand hook 先埋但事件源(§17 天候)Phase 3 才接上** → Phase 1 期間 `disasterprep` demand 恆 0,不影響既有結算。
+- **Phase 3**:天候系統上線後,預警窗/事件 mitigations[] 真正驅動 demand 與降損;新聞面板本體由天候系統提供。
