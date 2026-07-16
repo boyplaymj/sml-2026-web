@@ -794,23 +794,55 @@ func claudeUsageToken() string {
 	if t := os.Getenv("CLAUDE_CODE_OAUTH_TOKEN"); t != "" {
 		return t
 	}
-	home, err := os.UserHomeDir()
+	credPath := claudeHomePath(".claude", ".credentials.json")
+	data, err := os.ReadFile(credPath)
 	if err != nil {
 		return ""
 	}
-	data, err := os.ReadFile(filepath.Join(home, ".claude", ".credentials.json"))
-	if err != nil {
-		return ""
-	}
+	// access token 是短命的:帳號閒置到過期(尤其 backup 帳號平常不跑 session)時,
+	// !用量/!帳號 會拿到已過期的 token → API 回 401 → 版面空白。讀出來用之前先確保新鮮,
+	// 過期就用 refreshToken 換新、寫回磁碟(claude session 之外也能自我刷新)。
+	credJSON := refreshLocalCredentialsIfStale(credPath, string(data))
 	var c struct {
 		ClaudeAiOauth struct {
 			AccessToken string `json:"accessToken"`
 		} `json:"claudeAiOauth"`
 	}
-	if json.Unmarshal(data, &c) != nil {
+	if json.Unmarshal([]byte(credJSON), &c) != nil {
 		return ""
 	}
 	return c.ClaudeAiOauth.AccessToken
+}
+
+// refreshLocalCredentialsIfStale 若本機 access token 已過期(或即將到期),用 refreshToken 換新、
+// 寫回 .credentials.json,並 best-effort 回寫 active slot 的 SSM(自癒:下次切回來不會又拿到過期值)。
+// 任一步失敗都回傳原本的 credJSON——行為不會比現況差(頂多還是拿到舊 token)。
+func refreshLocalCredentialsIfStale(credPath, credJSON string) string {
+	now := time.Now()
+	if exp, ok := credentialExpiry(credJSON); ok && exp.After(now.Add(expirySkewSeconds*time.Second)) {
+		return credJSON // access token 仍有效,免刷新
+	}
+	access, newRT, expiresIn, _, err := oauthRefresh(credentialRefreshToken(credJSON), oauthHTTPClient())
+	if err != nil {
+		log.Printf("[usage] 本機 token 過期且刷新失敗(維持舊 token): %v", err)
+		return credJSON
+	}
+	merged, err := mergeRefreshedCredentials(credJSON, access, newRT, expiresIn, now)
+	if err != nil {
+		log.Printf("[usage] 合併刷新憑證失敗(維持舊 token): %v", err)
+		return credJSON
+	}
+	if err := writePrivateJSON(credPath, merged); err != nil {
+		log.Printf("[usage] 寫回刷新後憑證失敗(維持舊 token): %v", err)
+		return credJSON
+	}
+	if slot := readActiveAccount(); slot != "" {
+		if err := persistCredsToSSM(slot, merged); err != nil {
+			log.Printf("[usage] 刷新後回寫 SSM slot %q 失敗(不影響本次查詢): %v", slot, err)
+		}
+	}
+	log.Printf("[usage] 本機 access token 已過期→已用 refreshToken 刷新並寫回")
+	return merged
 }
 
 // claudeAccount 是 ~/.claude.json 的 oauthAccount(帳號/方案/計費資訊,供成本管控用)。
