@@ -70,7 +70,7 @@
       "reviveCostTeeth": 300,
       "worldTickMinutes": 10,
       "fuelUnitPrice": 1.0,
-      "freight": { "baseUnitPrice": 1.5, "distanceRefUnit": 30, "weightSlowPerUnit": 0.03 },
+      "freight": { "baseUnitPrice": 2.5, "distanceRefUnit": 30, "weightSlowPerUnit": 0.03 },
       "randomEvents": { "ratePerHour": 1.0, "maxPerTrip": 3, "minGapMin": 20, "claimWindowSec": 120, "signalRateBonus": 0.10 },
       "fareBase": 12,
       "fareElasticity": 0.9,
