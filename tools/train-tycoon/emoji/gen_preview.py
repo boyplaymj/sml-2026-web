@@ -39,7 +39,7 @@ def bedrock(prompt, out, aspect="16:9"):
     open(out, "wb").write(base64.b64decode(b64))
     print("  gen ok", out)
 
-def remove_bg(im, tol=32):
+def remove_bg(im, tol=int(os.environ.get("BG_TOL", 32))):
     a = np.array(im.convert("RGBA")); h, w = a.shape[:2]; rgb = a[:, :, :3].astype(int)
     border = np.concatenate([rgb[0, :], rgb[-1, :], rgb[:, 0], rgb[:, -1]])
     bg = np.median(border, axis=0); near = np.sqrt(((rgb - bg) ** 2).sum(2)) < tol
@@ -72,12 +72,8 @@ def to_tiles(im, tiles):
     rail = int(os.environ.get("RAIL_PX", 2))     # 軌道厚(最底)
     frame = int(os.environ.get("FRAME_PX", 3))   # 車架橫樑厚(其上)
     base = rail + frame
-    # 橫向 overscan:車體拉寬超出 tile 一點再裁掉兩端留白 → 實體車身頂到左右邊,相鄰車貼死
-    over = float(os.environ.get("OVERSCAN", 1.18))
-    bw = max(W, round(W * over))
-    body = im.resize((bw, H - base), Image.LANCZOS)
-    left = (bw - W) // 2
-    body = body.crop((left, 0, left + W, H - base))
+    # 破壞比例、硬拉滿:車身直接 resize 到整個 2 格寬(左右撐滿、不留白、不 overscan)
+    body = im.resize((W, H - base), Image.LANCZOS)
     a = np.zeros((H, W, 4), dtype="uint8")
     a[0:H - base] = np.array(body)
     a[:, :, 3] = np.where(a[:, :, 3] > 128, 255, 0)  # 車身硬邊
