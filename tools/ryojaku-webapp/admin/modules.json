@@ -27,6 +27,7 @@
       "id": "governance",
       "title": "治理",
       "modules": [
+        { "id": "business", "title": "商業模式", "doc": "../modules/business.md", "status": "design", "icon": "💼" },
         { "id": "cost", "title": "成本控管", "type": "page", "url": "./cost.html", "doc": "../modules/cost.md", "status": "live", "icon": "💰" }
       ]
     }
