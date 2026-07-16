@@ -1,6 +1,6 @@
 # 甜甜直播應援投票（Live Vote）— 設計冊 v0.1
 
-> 狀態：**玩法主決策已定案，架構草案 + 1 個關鍵待拍板（賠付模型）**。
+> 狀態：**玩法主決策已定案（含賠付模型＝固定賠率 B），架構草案，剩數值/護欄小項待確認**。
 > 定位：配合 **Daily 直播**的即時應援／預測小遊戲，用**花牙🦷下注**，主播/後台當場**截止＋開獎**。
 > 與既有系統的關係：
 > - 不是 `VotePool`（[[project_sweetbot_vote_pool]]，`!競猜開局`）：那是「一人一票、平分池、不抽成、賽前開一局」。
@@ -26,24 +26,26 @@
 
 ## 2. 待拍板（交 Codex 前需使用者確認）
 
-**🔴 D1：賠付模型（唯一關鍵未定案）** — 下注後「贏了拿多少」？三個候選：
+**✅ D1：賠付模型 → 已定案採 B「固定賠率」（使用者 2026-07-16 拍板）**
 
-- **A. 同注彩池（parimutuel，推薦）**：每票固定注額 `STAKE`🦷。開獎後，**該題總池**（＝所有票 × STAKE）**扣掉抽成**後，**按押中選項的票數比例**分給押中者。
-  - 押中每票回報 ＝ `總池 ÷ 押中總票數`（自然形成賠率；冷門押中賺多）。
-  - 全部人都押中 → 幾乎原注退回；沒人押中 → 見 D2。
-  - 對齊「可分散押」：分散＝降低變異，符合「應援」而非「梭哈」。
-- **B. 固定賠率**：押中每票固定拿 `STAKE × 倍數`（如 ×2）。單純好懂，但**要金庫貼錢**、無法反映熱度、易被套利 → 不推薦。
-- **C. 平分制（同 VotePool）**：押中者平分總池、與票數無關 → 但這樣「5 票 vs 1 票」意義弱、和既有 VotePool 高度重疊 → 不推薦。
+- **B. 固定賠率（跟莊家對賭）**：押中每票固定拿回 `STAKE × 倍數`；押錯的票 `STAKE` 沒收進金庫。
+  - **無彩池、無抽成、無比例分配**：每一票都是「玩家 vs 金庫」的獨立賭注。
+  - 金庫淨損益 ＝ 押錯總注 − 押中總賠付；**可能為負（金庫貼牙齒）** → 見 D-新1 通膨護欄。
+  - 倍數建議**每題後台可設**（好猜的題設低倍、難猜設高倍），預設 **×2**。
+- 落選未採：A 同注彩池（比例分池）、C 平分制（與 VotePool 重疊）。若日後想換，只需替換 §5 結算函式。
 
-> 建議採 **A**。以下架構以 A 為準，B/C 只差結算函式。
+**🟡 D-新1：金庫通膨護欄（B 模型新增，需確認）** — 固定賠率會讓金庫貼牙齒、是**印鈔源**（對照 [[reference_teeth_economy_baseline]] 每日已印~164k🦷）。建議二選一或並用：
+  - ①**倍數上限**：後台倍數最高 ×N（建議 ×3），避免手滑設超高。
+  - ②**單題賠付封頂**：每題總賠付超過 `MAX_PAYOUT`🦷 時，超出部分按比例縮水或停收（建議先不做、靠主播設合理倍數 + 事後 economy 後台盯）。
+  - MVP 建議只做 ①，②列 Phase 2。
 
-**🔴 D2：無人押中時的池子** → 選一：①全額退回（安全，推薦 MVP）／②滾入下一題／③沒收進金庫。建議 **①退回**。
+**🟡 D-新2：倍數預設值** → 建議 **×2**，每題後台可調（範圍 1.1〜3.0）。
 
-**🔴 D3：抽成 rake** → `RAKE%`（建議 **0%** MVP，與 VotePool 一致「不抽成」；日後要沉牙齒再開，後台可調）。
+**🟡 D2：無人押中** → B 模型下＝所有押注者都押錯，全數沒收進金庫、無需退款（沒有池子要處理）。**例外**：後台「作廢」整題才退款（見 D5）。
 
-**🟡 D4：單票注額 `STAKE`** → 建議 **50🦷/票**（5 票＝最多 250🦷，比 VotePool 的 200 略高上限但可分批）。後台可調。
+**🟡 D4：單票注額 `STAKE`** → 建議 **50🦷/票**（5 票＝最多 250🦷）。後台可調。
 
-**🟡 D5：開獎後可否退款某題**（誤開/取消題）→ 建議保留後台「作廢退款」動作（全額退，仿 VotePool 取消退款）。
+**🟡 D5：開獎後可否退款某題**（誤開/取消題）→ 保留後台「作廢退款」動作（全額退 `spentTeeth`，仿 VotePool 取消退款）。
 
 ---
 
@@ -90,13 +92,13 @@
 | `title` | S | 題幹 |
 | `options` | L | `[{key, label}]`（key 例 `yes`/`no`/`a`/`b`…；互動 ID＝`vote_pick_<key>`） |
 | `stake` | N | 單票注額🦷（預設 50，後台可調） |
+| `multiplier` | N | **固定賠率倍數**（預設 2.0，每題後台可設，範圍 1.1〜3.0）；押中每票回 `stake × multiplier` |
 | `status` | S | `open` / `closed` / `revealed` / `voided` |
-| `pool` | M | `{ <optKey>: 票數 }` 原子累加；`total` 總票數 |
+| `pool` | M | `{ <optKey>: 票數 }` 原子累加；`total` 總票數（**僅供顯示/熱度，不參與賠付計算**） |
 | `answer` | S | 開獎正解 optKey（`revealed` 後） |
 | `revealAt` | N | 開獎時戳（epoch ms），領獎窗基準 |
-| `rakePct` | N | 抽成（預設 0） |
 | `createdAt` / `closedAt` | N | 時戳 |
-| `payoutPerWinVote` | N | 開獎時算好快照（總池扣成 ÷ 押中票數），領獎直接乘票數 |
+| `payoutPerWinVote` | N | 開獎快照 ＝ `floor(stake × multiplier)`；領獎直接乘押中票數 |
 
 ### 4.2 `sweetbot-livevote-bet`（每人每題下注）
 | 欄位 | 型別 | 說明 |
@@ -113,24 +115,23 @@
 
 ---
 
-## 5. 結算（模型 A：同注彩池）
+## 5. 結算（模型 B：固定賠率）
 
-開獎 `reveal(answer)` 時：
+開獎 `reveal(answer)` 時（**無彩池、無比例、無退款；押錯即沒收**）：
 ```
-winVotes = pool[answer]                 # 押中總票數
-if winVotes == 0:                       # D2 無人押中
-    → 全額退回（每人退 spentTeeth），status=voided-refunded
-else:
-    grossPool = pool.total * stake
-    net       = grossPool * (1 - rakePct)
-    payoutPerWinVote = floor(net / winVotes)     # 整數🦷，餘數沉金庫或不計
-    → 每人 claimAmount = picks[answer] * payoutPerWinVote
+payoutPerWinVote = floor(stake * multiplier)     # 開獎快照，之後不變
+for 每位下注者:
+    claimAmount = picks[answer] * payoutPerWinVote   # 沒押中 answer → 0
+    # 押錯的票不動作：下注時已扣的 stake 直接留在金庫（不退）
 開 60s 領獎窗（revealAt = now）
 ```
-領獎 `claim`：守 `claimed==false` 且 `now-revealAt<=60000` → `givePoint(discordId, claimAmount)`；set `claimed=true`。逾時：面板顯「已蒸發」，不發。
+- **注意**：注額在**下注當下就扣**（§3 扣🦷記票）。開獎只決定「押中的票能領回 `stake×multiplier`」；押錯的票＝已扣的牙齒直接沉金庫。
+- **金庫淨損益** ＝ Σ(押錯票 × stake) − Σ(押中票 × stake×(multiplier−1))。倍數>2 且多數押中時金庫會貼牙齒 → D-新1 護欄。
 
-> B（固定賠率）：`claimAmount = picks[answer] * stake * 倍數`（金庫貼）。
-> C（平分）：`claimAmount = winner 均分 net`，與票數無關。
+領獎 `claim`：守 `claimed==false` 且 `now-revealAt<=60000` → `givePoint(discordId, claimAmount)`；set `claimed=true`。逾時：面板顯「已蒸發」，不發（已蒸發的是「本可領回的賠付」，玩家淨損＝原扣注額）。
+
+> 作廢 `void`：全額退每人 `spentTeeth`（不論押中與否），status=voided。
+> 若日後改回 A（彩池）/C（平分），只需替換本節函式與 `pool`/`multiplier` 欄位語義。
 
 ---
 
@@ -138,7 +139,7 @@ else:
 
 - `!投票`：開玩家面板 → 列出**本頻道所有 `open` 題**（多題並行）→ 選一題 → 顯選項按鈕（`vote_pick_<key>`）＋剩餘票數 → 按下即扣🦷記票、面板原地更新「你已押 A×3 B×2，剩 0 票」。
 - 開獎後面板：`revealed` 題顯「正解＝X／你押中 N 票／可領 M🦷 [領獎]（倒數 60s）」。
-- **後台（甜甜遊戲館新頁 `livevote_admin.html`）**：開題（題幹+選項+STAKE+發布頻道選單，仿 VotePool「建局完選公開頻道發布」）、即時票數卡、**截止**鈕、**開獎選正解**鈕、**作廢退款**鈕。認證照 `sml-vote`／`gameAdmins` 白名單（[[project_sweetbot_vote_pool]]）。
+- **後台（甜甜遊戲館新頁 `livevote_admin.html`）**：開題（題幹+選項+STAKE+**倍數**+發布頻道選單，仿 VotePool「建局完選公開頻道發布」）、即時票數卡、**截止**鈕、**開獎選正解**鈕、**作廢退款**鈕。認證照 `sml-vote`／`gameAdmins` 白名單（[[project_sweetbot_vote_pool]]）。
 - Lambda `sml-livevote` + APIGW：actions＝`open` / `list` / `close` / `reveal` / `void` / `status`（直連 DDB，驗 Firebase token，同步 `gameAdmins`）。
 
 ---
