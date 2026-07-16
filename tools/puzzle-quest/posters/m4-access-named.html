@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 26%,#46413a,#221f1b 82%);perspective:2200px;font-family:"Noto Sans CJK TC",sans-serif;}
+  .doc{position:relative;width:700px;min-height:960px;padding:44px 46px;background:#fcfbf7;color:#1a1a1a;transform:rotateX(2deg) rotateZ(-.6deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);}
+  .conf{color:#a01414;font-weight:800;font-size:12px;letter-spacing:2px;border:2px solid #a01414;display:inline-block;padding:2px 9px;position:absolute;top:38px;right:46px;transform:rotate(5deg);}
+  .org{text-align:center;font-size:23px;font-weight:900;letter-spacing:3px;font-family:"Noto Serif CJK TC";}
+  .doctype{text-align:center;font-size:16px;letter-spacing:5px;color:#555;margin:4px 0 4px;}
+  .sub{text-align:center;font-size:13.5px;color:#666;margin-bottom:14px;letter-spacing:1px;}
+  .lead{font-size:14px;line-height:1.85;color:#333;margin-bottom:12px;}
+  .lead b{color:#8a1414;}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;}
+  th,td{border:1px solid #cbcbcb;padding:8px 10px;text-align:left;}
+  th{background:#2c2822;color:#f3efe6;font-weight:700;letter-spacing:1px;font-size:14px;}
+  td.t{font-family:"Courier New",monospace;font-size:15px;}
+  tr.named td{background:#ffd9d0;font-weight:800;color:#5a1010;}
+  tr.exit td{color:#444;}
+  .zone{font-size:12.5px;color:#8a1414;font-weight:700;}
+  .match{margin-top:16px;background:#fff2b0;border:1px solid #d8c98a;padding:12px 15px;font-size:14px;line-height:1.9;}
+  .match .h{font-weight:900;letter-spacing:1px;margin-bottom:4px;}
+  .match b{color:#8a1414;}
+  .access{margin-top:14px;font-size:13.5px;line-height:1.85;color:#333;border-top:1px dashed #ccc;padding-top:12px;}
+  .access b{color:#8a1414;}
+  .sign{margin-top:16px;text-align:right;font-size:13.5px;color:#555;}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="conf">機密 · 偵字卷</div>
+      <div class="org">明硯藝廊　門禁權限卡　持卡對照</div>
+      <div class="doctype">最高權限卡指認</div>
+      <div class="sub">應偵查隊調閱　管理室調卷回覆　114/09/20</div>
+      <div class="lead">前於九月十七日案發夜出入明細中，<b>22:51 以「工號 M-001・董事長級」進入修復室</b>之未具名紀錄，經調閱本館權限卡發卡對照表確認持卡人如下：</div>
+      <table>
+        <tr><th>工號</th><th>權限別</th><th>持卡人</th><th>職稱</th></tr>
+        <tr class="named"><td class="t">M-001</td><td>董事長級（最高）</td><td>高博彥</td><td>藝廊負責人・董事長</td></tr>
+        <tr><td class="t">M-014</td><td>主管級</td><td>沈維鈞（歿）</td><td>鑑定部・主管</td></tr>
+        <tr class="exit"><td class="t">M-033</td><td>一般</td><td>卓文瀚</td><td>鑑定部・助理</td></tr>
+      </table>
+      <div class="match">
+        <div class="h">◎ 指認結果</div>
+        案發夜 22:51 進入修復室者＝<b>高博彥</b>（工號 M-001）。時間落在助理<b>卓文瀚 19:40 離館</b>之後、法醫推定死亡時段之內；此後至翌晨無第三人以限權卡進入修復室紀錄。
+      </div>
+      <div class="access">
+        接觸機會分析：修復室設備間、燈具線路維護，須<b>董事長級或指定資深人員</b>始得進出；館內保全解除代碼亦僅負責人層掌握。綜之，<b>當夜有能力接觸該盞檢視燈線路、並在場者，指向高博彥</b>。助理卓文瀚無限權門禁且早退，予以排除。
+      </div>
+      <div class="sign">承辦　管理室　覆核　偵查隊　114/09/20</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>

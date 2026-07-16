@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 28%,#46413a,#221f1b 82%);perspective:2200px;font-family:"Noto Sans CJK TC",sans-serif;}
+  .doc{position:relative;width:686px;min-height:1020px;padding:42px 46px;background:#fdfdfb;color:#1a1a1a;transform:rotateX(2deg) rotateZ(.7deg) rotateY(-1deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);}
+  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 26%,transparent 76%,rgba(60,55,45,.13));mix-blend-mode:soft-light;}
+  .hdr{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px double #17130d;padding-bottom:9px;}
+  .co{font-size:20px;font-weight:900;letter-spacing:1px;}
+  .co small{display:block;font-size:12px;font-weight:400;color:#6a6155;letter-spacing:1px;margin-top:2px;}
+  .ttl{font-size:18px;font-weight:800;letter-spacing:3px;}
+  .meta{display:flex;justify-content:space-between;font-size:13px;color:#555;margin-top:8px;}
+  .top{display:flex;gap:20px;margin-top:14px;}
+  .plate{flex:none;width:190px;height:270px;background:#eceadf url('m3-painting.png') center/cover;border:1px solid #c9bfa6;box-shadow:0 2px 6px rgba(0,0,0,.25);}
+  .cap{font-size:11.5px;color:#7a7266;text-align:center;margin-top:4px;line-height:1.5;}
+  .rows{flex:1;font-size:14px;line-height:1.95;}
+  .rows .r{display:flex;gap:8px;border-bottom:1px dotted #cabf a6;padding:2px 0;}
+  .rows .k{font-weight:800;width:80px;color:#4a463c;}
+  table{width:100%;border-collapse:collapse;margin-top:14px;font-size:14.5px;}
+  th,td{border:1px solid #b8b0a0;padding:8px 10px;text-align:left;vertical-align:top;}
+  th{background:#efeadd;font-weight:800;}
+  .bad{color:#a01414;font-weight:800;}
+  .key{background:#fff2b0;}
+  .note{margin-top:14px;font-size:14px;line-height:1.9;background:#f6f3ea;border-left:4px solid #a01414;padding:11px 15px;}
+  .note b{color:#a01414;}
+  .draft{margin-top:14px;background:#fffdf4;border:1px dashed #b0a88f;padding:12px 15px;}
+  .draft .h{font-weight:900;font-size:13.5px;margin-bottom:5px;color:#4a463c;}
+  .draft .hw{font-family:"Noto Serif CJK TC";font-size:16px;line-height:1.9;color:#2a2a2a;}
+  .draft .hw b{color:#8a1414;}
+  .draft .unsign{margin-top:6px;font-size:12.5px;color:#a01414;font-weight:700;}
+  .judge{margin-top:14px;font-size:18px;font-weight:900;}
+  .judge .bad{font-size:21px;}
+  .sign{margin-top:16px;text-align:right;font-size:13.5px;line-height:1.8;color:#333;}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="hdr">
+        <div class="co">京華文物科學檢測中心<small>SCIENTIFIC ANALYSIS OF CULTURAL RELICS</small></div>
+        <div class="ttl">顏 料 分 析 報 告</div>
+      </div>
+      <div class="meta"><span>報告編號：SC-114-0913　委託：明硯藝廊 鑑定部</span><span>檢測日：114/09/13</span></div>
+      <div class="top">
+        <div>
+          <div class="plate"></div>
+          <div class="cap">送檢標的<br>谿山行旅圖（局部取樣）</div>
+        </div>
+        <div class="rows">
+          <div class="r"><span class="k">品名</span><span>谿山行旅圖　設色紙本・立軸</span></div>
+          <div class="r"><span class="k">款識繫年</span><span>傳　柯懷山（1849–1917）</span></div>
+          <div class="r"><span class="k">宣稱年代</span><span>作者卒於 1917，本幅應早於 1917</span></div>
+          <div class="r"><span class="k">取樣</span><span>白色顏料層微量取樣 3 點</span></div>
+          <div class="r"><span class="k">方法</span><span>XRF ／ 拉曼光譜 ／ 顯微截面</span></div>
+        </div>
+      </div>
+      <table>
+        <tr><th>檢測點</th><th>主要成分</th><th>研判</th></tr>
+        <tr class="key"><td>白色顏料（雲、水口高光）</td><td class="bad">二氧化鈦 TiO₂（鈦白・銳鈦礦型）</td><td class="bad">時代不符 ✕</td></tr>
+        <tr><td>青綠設色</td><td>石青、石綠（礦物色，相容）</td><td>—</td></tr>
+        <tr><td>紙基</td><td>竹紙，纖維老化程度偏輕</td><td class="bad">偏新</td></tr>
+      </table>
+      <div class="note">關鍵：<b>鈦白（銳鈦礦型二氧化鈦）約於 1920 年代方商業化量產並用於繪畫顏料</b>；本幅款識繫於 1849–1917 名家，畫面卻檢出鈦白，<b>顏料晚於畫作宣稱年代</b>，兩者無法並存。判定<b>非該時期真跡</b>。</div>
+      <div class="draft">
+        <div class="h">◎ 併附：沈維鈞 鑑定意見書草稿（未簽發）</div>
+        <div class="hw">「白料成分與所繫年代扞格，<b>此非柯氏真跡</b>。意見書於疑點釐清前暫不簽發——茲事體大，須另行報備館方。」</div>
+        <div class="unsign">＊草稿末頁鑑定人欄空白、未用印（沈遲未簽發之真正原因）。</div>
+      </div>
+      <div class="judge">結論：<span class="bad">谿山行旅圖為贗品（託名之作）。</span></div>
+      <div class="sign">檢測　研究員　簡文瀚<br>覆核　中心主任　─</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>

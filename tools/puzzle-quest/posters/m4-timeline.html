@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 28%,#46413a,#221f1b 82%);perspective:2200px;font-family:"Noto Sans CJK TC",sans-serif;}
+  .doc{position:relative;width:724px;min-height:980px;padding:44px 46px;background:#fbfbf8;color:#1a1a1a;transform:rotateX(2deg) rotateZ(-.8deg) rotateY(1deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);}
+  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 26%,transparent 76%,rgba(60,55,45,.13));mix-blend-mode:soft-light;}
+  .conf{color:#a01414;font-weight:800;font-size:13px;letter-spacing:3px;border:2px solid #a01414;display:inline-block;padding:2px 10px;position:absolute;top:40px;right:44px;transform:rotate(6deg);}
+  .org{font-size:22px;font-weight:900;letter-spacing:2px;}
+  .doctype{font-size:16px;letter-spacing:4px;color:#555;margin:2px 0 12px;border-bottom:2px solid #17130d;padding-bottom:10px;}
+  .tl{margin-top:8px;position:relative;padding-left:24px;}
+  .tl::before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:#c8bfa8;}
+  .ev{position:relative;margin-bottom:13px;font-size:15px;line-height:1.5;}
+  .ev::before{content:"";position:absolute;left:-21px;top:5px;width:11px;height:11px;border-radius:50%;background:#7a6f52;border:2px solid #fff;box-shadow:0 0 0 1px #7a6f52;}
+  .ev.k::before{background:#c11414;box-shadow:0 0 0 1px #c11414;}
+  .ev .d{font-weight:800;}
+  .ev .t{color:#333;}
+  .ev.k .t{color:#a01414;font-weight:700;}
+  .ev .t b{color:#8a1414;}
+  .clear{margin-top:12px;background:#eef3ec;border:1px solid #b9c7b4;padding:10px 14px;font-size:13.5px;line-height:1.8;}
+  .clear .h{font-weight:900;color:#2a6b3a;margin-bottom:3px;letter-spacing:1px;}
+  .concl{margin-top:12px;background:#f6f1ea;border-left:4px solid #a01414;padding:12px 16px;font-size:15.5px;line-height:1.85;}
+  .concl .em{color:#a01414;font-weight:800;}
+  .sign{margin-top:16px;text-align:right;font-size:14px;color:#333;}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="conf">機密 · 偵字卷</div>
+      <div class="org">城中地方檢察署</div>
+      <div class="doctype">案情時序彙整表　偵字第 114-311 號（沈維鈞死亡案）</div>
+      <div class="tl">
+        <div class="ev"><span class="d">114/08/14</span>　<span class="t">明硯藝廊收件「谿山行旅圖」（Lot 077），沈維鈞主責、擬出具秋拍鑑定意見書。</span></div>
+        <div class="ev k"><span class="d">114/08/20</span>　<span class="t">藝廊例行電氣安全檢查：修復室檢視燈接地／絕緣<b>正常・合格</b>。（作案窗之時間支點）</span></div>
+        <div class="ev k"><span class="d">114/09/13</span>　<span class="t">外部檢測回報：白料檢出<b>鈦白</b>、與 1917 前繫年扞格＝<b>贗品</b>；沈草擬「非真跡」、暫不簽發。</span></div>
+        <div class="ev k"><span class="d">114/09/16</span>　<span class="t">高博彥私下施壓沈「報告先別出、數字我補你、來路別問」；沈察覺不對、<b>偷錄存證</b>。</span></div>
+        <div class="ev"><span class="d">09/17 19:40</span>　<span class="t">助理卓文瀚刷卡離館（此後全日無再進場）。</span></div>
+        <div class="ev"><span class="d">09/17 21:08</span>　<span class="t">沈維鈞以主管級卡進入修復室，獨自加班。</span></div>
+        <div class="ev k"><span class="d">09/17 22:51</span>　<span class="t">高博彥以 M-001 董事長級卡進入修復室——<b>剪斷檢視燈接地、將火線接於金屬外殼</b>使外殼帶電，並使檯面積水。</span></div>
+        <div class="ev k"><span class="d">09/17 約23:20</span>　<span class="t">沈維鈞觸碰帶電外殼、電流過身，<b>觸電身亡</b>；現場偽裝成加班獨處之工安意外。</span></div>
+        <div class="ev"><span class="d">09/19–09/22</span>　<span class="t">鑑識回報：電路<b>人為破壞</b>（非老化）、顏料<b>鈦白時代錯置</b>、交易帳<b>洗錢對敲</b>。</span></div>
+      </div>
+      <div class="clear">
+        <div class="h">◎ 排除（紅鯡魚）</div>
+        卓文瀚——19:40 早退、無修復室門禁權限，筆記本「講清楚／記行程」係求署名與想單獨談，予排除。<br>
+        郭崇德——案發夜於外地秋拍預展、有簽到人證；其為被利用之人頭買家，無門禁無手法，予排除。
+      </div>
+      <div class="concl">綜合研判：高博彥為<span class="em">掩蓋贗品與洗錢金流、阻止沈維鈞出具鑑定報告</span>，趁其加班破壞檢視燈電路、偽裝觸電意外予以滅口。三環（人為破壞觸電・兇手高博彥・贗品洗錢動機）俱足。</div>
+      <div class="sign">承辦檢察官　偵字第 114-311 號</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>

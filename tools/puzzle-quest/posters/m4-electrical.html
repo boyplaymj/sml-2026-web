@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 28%,#46413a,#221f1b 82%);perspective:2200px;font-family:"Noto Sans CJK TC",sans-serif;}
+  .doc{position:relative;width:686px;min-height:1020px;padding:42px 46px;background:#fdfdfb;color:#1a1a1a;transform:rotateX(2deg) rotateZ(-.7deg) rotateY(1deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);}
+  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 26%,transparent 76%,rgba(60,55,45,.13));mix-blend-mode:soft-light;}
+  .conf{color:#a01414;font-weight:800;font-size:12px;letter-spacing:2px;border:2px solid #a01414;display:inline-block;padding:2px 9px;position:absolute;top:36px;right:44px;transform:rotate(6deg);}
+  .hdr{border-bottom:3px double #17130d;padding-bottom:9px;}
+  .co{font-size:21px;font-weight:900;letter-spacing:1px;}
+  .co small{display:block;font-size:12px;font-weight:400;color:#6a6155;letter-spacing:2px;margin-top:2px;}
+  .ttl{font-size:19px;font-weight:800;letter-spacing:4px;margin-top:6px;}
+  .meta{display:flex;justify-content:space-between;font-size:13px;color:#555;margin-top:8px;}
+  .sub{font-size:14px;margin-top:12px;line-height:1.8;color:#333;}
+  .sub b{color:#17130d;}
+  table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14.5px;}
+  th,td{border:1px solid #b8b0a0;padding:8px 10px;text-align:left;vertical-align:top;}
+  th{background:#efeadd;font-weight:800;}
+  .bad{color:#a01414;font-weight:800;}
+  .chk{margin-top:14px;background:#eef3ec;border:1px solid #b9c7b4;padding:10px 14px;font-size:13.5px;line-height:1.8;}
+  .chk .h{font-weight:900;color:#2a6b3a;letter-spacing:1px;margin-bottom:3px;}
+  .plain{margin-top:14px;font-size:14px;line-height:1.95;background:#f6f3ea;border-left:4px solid #a01414;padding:11px 15px;}
+  .plain b{color:#a01414;}
+  .judge{margin-top:14px;font-size:18px;font-weight:900;}
+  .judge .bad{font-size:21px;}
+  .sign{margin-top:18px;text-align:right;font-size:14px;line-height:1.8;color:#333;}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="conf">機密 · 鑑識卷</div>
+      <div class="hdr">
+        <div class="co">城中市政府警察局　刑事鑑識中心<small>電氣工程鑑定科</small></div>
+        <div class="ttl">電 氣 鑑 定 報 告</div>
+      </div>
+      <div class="meta"><span>報告編號：EE-114-0919</span><span>採證日：114/09/18　鑑定日：114/09/19</span></div>
+      <div class="sub">送鑑標的：明硯藝廊　修復室　金屬外殼可調式檢視燈（含燈箱底座）一具。委託單位：本署偵查隊（沈維鈞死亡案）。</div>
+      <table>
+        <tr><th>鑑定項目</th><th>檢測結果</th><th>判定</th></tr>
+        <tr><td>保護接地（地線）連通性</td><td class="bad">不連通——地線於燈座內遭剪斷，切口<b>亮銅無氧化</b>、屬近期切痕</td><td class="bad">人為切斷 ✕</td></tr>
+        <tr><td>金屬外殼對地電壓</td><td class="bad">量測帶約 110V 市電電位（正常應為 0V）</td><td class="bad">外殼帶電 ✕</td></tr>
+        <tr><td>火線（帶電線）接續</td><td class="bad">一段火線被額外接至金屬外殼固定螺絲，非原廠配線、接點為<b>新剝線新鎖固</b></td><td class="bad">人為短接 ✕</td></tr>
+        <tr><td>工具痕與氧化程度</td><td>剪切／剝線痕新，金屬新鮮無銹，與數週以上之自然老化不符</td><td class="bad">近期形成</td></tr>
+      </table>
+      <div class="chk">
+        <div class="h">◎ 併附：明硯藝廊委外例行電氣安全檢查單（114/08/20）</div>
+        同一具檢視燈於 <b>114/08/20</b> 通過年度電氣安全檢查，當時<b>接地連通、絕緣阻抗正常、外殼不帶電，判定合格</b>。（即：致命之接地缺失與外殼帶電，係 8/20 合格<b>之後</b>才出現。）
+      </div>
+      <div class="plain">
+        白話說明：金屬燈平常碰了不電人，靠一條「地線」把漏電瞬間導走並跳電。本件同時出現兩處人為動作——<b>①地線被剪斷</b>（保護沒了）、<b>②火線被特意接到金屬外殼</b>（整盞燈變成通電鐵塊）；配合現場檯面積水增加導電，人一觸碰外殼，電流即經人體通過。地線切口亮銅無鏽、火線係新接，對照 8/20「檢查還合格」——足證係案發前後數日內<b>有人動手腳，非燈具自然老化</b>。
+      </div>
+      <div class="judge">綜合研判：<span class="bad">觸電死亡係電路遭人為破壞所致，非設備老化之工安意外。</span></div>
+      <div class="sign">鑑定人　電氣工程鑑定科　技正　方毅<br>覆核　鑑識中心　主任　─</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>
