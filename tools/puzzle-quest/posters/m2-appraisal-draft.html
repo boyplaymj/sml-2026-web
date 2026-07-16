@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 28%,#46413a,#221f1b 82%);perspective:2200px;font-family:"Noto Serif CJK TC","Noto Sans CJK TC",serif;}
+  .doc{position:relative;width:668px;min-height:900px;padding:46px 50px;background:#fcfbf6;color:#1a1a1a;transform:rotateX(3deg) rotateZ(.8deg) rotateY(-1deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);}
+  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 26%,transparent 76%,rgba(60,55,45,.13));mix-blend-mode:soft-light;}
+  .org{text-align:center;font-size:22px;font-weight:900;letter-spacing:3px;}
+  .doctype{text-align:center;font-size:17px;letter-spacing:6px;color:#555;margin:4px 0 14px;}
+  .no{position:absolute;top:46px;right:50px;font-family:"Noto Sans CJK TC";font-size:13px;color:#666;letter-spacing:1px;}
+  .rows{font-size:15px;line-height:2;border-top:2px solid #17130d;border-bottom:1px solid #999;padding:10px 0;font-family:"Noto Sans CJK TC";}
+  .rows .r{display:flex;gap:8px;}.rows .k{font-weight:800;width:88px;}
+  .prog{margin-top:18px;font-family:"Noto Sans CJK TC";font-size:15.5px;}
+  .prog .h{font-weight:900;margin-bottom:8px;letter-spacing:1px;}
+  table{width:100%;border-collapse:collapse;font-size:15px;}
+  td,th{border:1px solid #bbb;padding:9px 12px;text-align:left;}
+  th{background:#efeae0;font-weight:800;width:34%;}
+  .done{color:#2a6b3a;font-weight:800;}
+  .doing{color:#a06a12;font-weight:800;}
+  .hold{color:#8a1414;font-weight:900;letter-spacing:2px;}
+  .memo{margin-top:20px;font-family:"Noto Sans CJK TC";}
+  .memo .h{font-weight:900;margin-bottom:6px;}
+  .handwrite{background:#fffdf4;border:1px dashed #b0a88f;padding:14px 16px;font-size:16.5px;line-height:1.95;color:#2a2a2a;font-family:"Noto Serif CJK TC";}
+  .sign{margin-top:22px;text-align:right;font-size:15px;line-height:1.9;color:#333;font-family:"Noto Sans CJK TC";}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="no">件號 MY-A-114-077</div>
+      <div class="org">明硯藝廊　鑑定部</div>
+      <div class="doctype">鑑 定 工 作 單</div>
+      <div class="rows">
+        <div class="r"><span class="k">品名</span><span>谿山行旅圖（傳・清末民初名家）　設色紙本　立軸</span></div>
+        <div class="r"><span class="k">委件事由</span><span>秋季拍賣上拍前・出具鑑定意見書</span></div>
+        <div class="r"><span class="k">主責鑑定</span><span>沈維鈞</span></div>
+        <div class="r"><span class="k">收件日</span><span>114/08/14</span></div>
+      </div>
+      <div class="prog">
+        <div class="h">作業進度：</div>
+        <table>
+          <tr><th>目視・著錄</th><td class="done">已完成</td></tr>
+          <tr><th>紙絹・題跋・鈐印比對</th><td class="doing">複驗中</td></tr>
+          <tr><th>科學檢測（送外部實驗室）</th><td class="doing">送驗中・待報告</td></tr>
+          <tr><th>鑑定意見書簽發</th><td class="hold">暫　緩</td></tr>
+        </table>
+      </div>
+      <div class="memo">
+        <div class="h">主責備註（沈維鈞 手記）：</div>
+        <div class="handwrite">數處與著錄不合，存疑；在檢測報告回來、疑點釐清之前，<b>暫不簽發</b>鑑定意見書。上拍時程請館方另議，勿催。</div>
+      </div>
+      <div class="sign">鑑定部　沈維鈞<br>最後更新　中華民國一一四年九月十五日</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>

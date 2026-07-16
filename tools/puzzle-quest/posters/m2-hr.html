@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#2a2723;}
+  .stage{width:900px;height:1180px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 42% 28%,#46413a,#221f1b 82%);perspective:2200px;font-family:"Noto Serif CJK TC","Noto Sans CJK TC",serif;}
+  .doc{position:relative;width:668px;min-height:900px;padding:48px 52px;background:#fbfbf8;color:#1a1a1a;transform:rotateX(3deg) rotateZ(-1deg) rotateY(1deg);box-shadow:0 4px 8px rgba(0,0,0,.35),0 30px 62px rgba(0,0,0,.6);}
+  .doc::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 26%,transparent 76%,rgba(60,55,45,.13));mix-blend-mode:soft-light;}
+  .org{text-align:center;font-size:23px;font-weight:900;letter-spacing:3px;}
+  .doctype{text-align:center;font-size:18px;letter-spacing:6px;color:#555;margin:4px 0 12px;}
+  .conf{color:#555;font-weight:700;font-size:13px;letter-spacing:3px;border:2px solid #777;display:inline-block;padding:2px 10px;position:absolute;top:44px;right:48px;transform:rotate(4deg);}
+  .rows{font-size:15px;line-height:1.9;border-top:2px solid #17130d;border-bottom:1px solid #999;padding:10px 0;margin-top:6px;font-family:"Noto Sans CJK TC";}
+  .rows .r{display:flex;gap:8px;}.rows .k{font-weight:800;width:96px;}
+  .result{margin-top:18px;text-align:center;font-size:26px;font-weight:900;letter-spacing:6px;color:#8a1414;border:2px solid #8a1414;padding:10px 0;}
+  .sec{margin-top:16px;font-size:15.5px;line-height:1.95;font-family:"Noto Sans CJK TC";}
+  .sec .h{font-weight:900;letter-spacing:1px;margin-bottom:4px;}
+  .quote{margin-top:6px;background:#f6f1ea;border-left:4px solid #b8ad97;padding:12px 16px;font-size:15.5px;line-height:1.9;color:#33302a;}
+  .em{color:#8a1414;font-weight:800;}
+  .note{margin-top:16px;font-size:14.5px;line-height:1.85;color:#444;font-family:"Noto Sans CJK TC";border-top:1px dashed #ccc;padding-top:12px;}
+  .sign{margin-top:24px;text-align:right;font-size:15px;line-height:1.9;color:#333;font-family:"Noto Sans CJK TC";}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(10,8,4,.5));}
+</style></head>
+<body>
+  <div class="stage">
+    <div class="doc">
+      <div class="conf">人事室 · 內部</div>
+      <div class="org">明硯藝廊　人事室</div>
+      <div class="doctype">職級晉升審核結果通知</div>
+      <div class="rows">
+        <div class="r"><span class="k">受審人</span><span>卓文瀚（鑑定部・助理鑑定師）</span></div>
+        <div class="r"><span class="k">申請項目</span><span>晉升「副鑑定師」</span></div>
+        <div class="r"><span class="k">審核年度</span><span>中華民國一一四年度（第三次申請）</span></div>
+      </div>
+      <div class="result">審　核　未　通　過</div>
+      <div class="sec">
+        <div class="h">考核評語（主管：沈維鈞　資深鑑定師）：</div>
+        <div class="quote">學識尚可，惟<span class="em">獨立鑑定經驗不足</span>，重要判斷仍需資深同仁複核。本年度數件鑑定<span class="em">署名歸屬爭議</span>，處事宜再歷練。建議續留原職級，明年度再議。</div>
+      </div>
+      <div class="note">附記：關於鑑定署名歸屬乙案，依本館作業規範，鑑定意見書以主責鑑定師具名、助理列協辦，另案再行說明，不予變更。</div>
+      <div class="sign">承辦　人事室　林秀娟<br>核定　董事長　高博彥<br>中華民國一一四年八月二十二日</div>
+    </div>
+    <div class="vig"></div>
+  </div>
+</body>
+</html>
