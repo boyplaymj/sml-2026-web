@@ -51,7 +51,7 @@ function toPublic (t) {
     updatedAt: t.updatedAt,
     days: (t.days || []).map(d => ({
       no: d.no, date: d.date, wd: d.wd, theme: d.theme,
-      items: (d.items || []).filter(it => it.private !== true).map(it => ({
+      items: (d.items || []).filter(it => !it.private).map(it => ({
         time: it.time || '', ttl: it.ttl, desc: it.desc || '', tag: it.tag || ''
       }))
     }))
