@@ -45,6 +45,13 @@ const CORS = {
   'Access-Control-Allow-Headers': 'Content-Type,Authorization', 'Content-Type': 'application/json; charset=utf-8'
 };
 const reply = (code, obj) => ({ statusCode: code, headers: CORS, body: JSON.stringify(obj) });
+// 明確布林解析:真布林原樣;字串 'false'/'0'/'no'/'' 視為 false(擋掉 "false" 被 !! 變 true)。
+const toBool = (v) => {
+  if (typeof v === 'boolean') return v;
+  if (typeof v === 'number') return v !== 0;
+  if (typeof v === 'string') { const s = v.trim().toLowerCase(); return !(s === '' || s === 'false' || s === '0' || s === 'no'); }
+  return !!v;
+};
 function httpGetJson (url) { return new Promise((res, rej) => { https.get(url, r => { let d = ''; r.on('data', c => (d += c)); r.on('end', () => { try { res(JSON.parse(d)); } catch (e) { rej(e); } }); }).on('error', rej); }); }
 
 // ── Firebase ID token 驗證(RS256, Google securetoken 公鑰) ──
@@ -107,7 +114,7 @@ function sanitizeConfigPatch (patch) {
   if (p.quizMultiplier != null) { const n = Number(p.quizMultiplier); if (Number.isFinite(n) && n >= 1 && n <= 10) out.quizMultiplier = n; }
   if (p.flashWindowSec != null) { const n = Math.floor(Number(p.flashWindowSec)); if (Number.isFinite(n) && n >= 10 && n <= 3600) out.flashWindowSec = n; }
   if (p.quizWindowSec != null) { const n = Math.floor(Number(p.quizWindowSec)); if (Number.isFinite(n) && n >= 10 && n <= 3600) out.quizWindowSec = n; }
-  if (p.disabled != null) out.disabled = !!p.disabled;
+  if (p.disabled != null) out.disabled = toBool(p.disabled);
   return out;
 }
 async function saveConfig (patch) {
@@ -126,14 +133,14 @@ function sanitizeQuiz (item, key) {
   const optionA = String(q.optionA || '').trim();
   const optionB = String(q.optionB || '').trim();
   const correct = (q.correct === 'B') ? 'B' : 'A';
-  if (!question || !optionA || !optionB) throw new Error('question/optionA/optionB required');
+  if (!question || !optionA || !optionB) { const err = new Error('question/optionA/optionB required'); err.statusCode = 400; throw err; }
   const weight = Math.max(1, Math.min(100, Math.floor(Number(q.weight)) || 1));
   return {
     key,
     question, optionA, optionB, correct,
     explain: String(q.explain || '').trim(),
     weight,
-    enabled: q.enabled == null ? true : !!q.enabled,
+    enabled: q.enabled == null ? true : toBool(q.enabled),
     updatedAt: Date.now()
   };
 }
@@ -198,6 +205,6 @@ exports.handler = async (event) => {
 
     return reply(400, { ok: false, error: 'unknown action: ' + a });
   } catch (e) {
-    return reply(500, { ok: false, error: String(e.message || e) });
+    return reply(e.statusCode || 500, { ok: false, error: String(e.message || e) });
   }
 };
