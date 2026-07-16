@@ -1,7 +1,7 @@
 {
   "app": "両雀 Ryōjaku",
   "tagline": "ELITE COMMUNITY · 後台中樞",
-  "updated": "2026-07-15",
+  "updated": "2026-07-16",
   "groups": [
     {
       "id": "overview",
@@ -16,7 +16,8 @@
       "id": "new",
       "title": "新專區",
       "modules": [
-        { "id": "ladder",   "title": "賽事天梯",   "doc": "../modules/ladder.md",   "status": "design", "icon": "🏆" },
+        { "id": "ladder",     "title": "賽事天梯",   "doc": "../modules/ladder.md",     "status": "design", "icon": "🏆" },
+        { "id": "reputation", "title": "信譽評價",   "doc": "../modules/reputation.md", "status": "design", "icon": "⭐" },
         { "id": "ingame",   "title": "APP 內遊戲", "doc": "../modules/ingame.md",   "status": "design", "icon": "🎮" },
         { "id": "parlor",   "title": "麻將館專區", "doc": "../modules/parlor.md",   "status": "design", "icon": "🀄" },
         { "id": "training", "title": "訓練工具",   "doc": "../modules/training.md", "status": "design", "icon": "🎯" }
