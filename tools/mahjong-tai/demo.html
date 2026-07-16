@@ -235,11 +235,33 @@ if (!SR) {
   rec.lang = 'zh-TW';
   rec.interimResults = true;
   rec.continuous = false;
-  let recording = false, finalText = '';
+  let recording = false, finalText = '', micGranted = false, pressed = false;
 
   const mic = $('#mic');
-  const start = () => { if (recording) return; finalText=''; try { rec.start(); } catch(e){} };
-  const stop  = () => { if (recording) rec.stop(); };
+  // iOS Safari 直接 rec.start() 會丟 not-allowed 且不跳權限詢問;
+  // 先用 getUserMedia 主動叫出麥克風授權對話框,拿到後再開始辨識。
+  async function ensureMic() {
+    if (micGranted) return true;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { micGranted = true; return true; }
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+      s.getTracks().forEach(t => t.stop());   // 只為觸發授權,拿到就關掉
+      micGranted = true;
+      return true;
+    } catch (err) {
+      $('#status').textContent = '拿不到麥克風(' + (err && err.name || err) + ')— 請在瀏覽器允許麥克風權限,或改用 Chrome。';
+      return false;
+    }
+  }
+  const start = async () => {
+    if (recording) return;
+    pressed = true;
+    const ok = await ensureMic();
+    if (!ok || !pressed) return;           // 沒授權 or 已放開就不啟動
+    finalText = '';
+    try { rec.start(); } catch(e){}
+  };
+  const stop  = () => { pressed = false; if (recording) rec.stop(); };
 
   // 按住講話(桌機滑鼠 + 手機觸控)
   mic.addEventListener('mousedown', start);
@@ -249,7 +271,13 @@ if (!SR) {
   mic.addEventListener('touchend', e => { e.preventDefault(); stop(); });
 
   rec.onstart = () => { recording=true; mic.classList.add('rec'); mic.textContent='🔴 聆聽中…放開結束'; $('#status').textContent=''; };
-  rec.onerror = e => { $('#status').textContent = '辨識錯誤:' + e.error + (e.error==='not-allowed'?'(請允許麥克風權限)':''); };
+  rec.onerror = e => {
+    let msg = '辨識錯誤:' + e.error;
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+      msg += ' — 請允許麥克風權限。iPhone 另需「設定→一般→鍵盤→啟用聽寫」開啟;若仍不行請改用 Chrome App。';
+    }
+    $('#status').textContent = msg;
+  };
   rec.onresult = e => {
     let interim = '';
     for (let i=e.resultIndex; i<e.results.length; i++) {
