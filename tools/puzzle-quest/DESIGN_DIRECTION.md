@@ -103,6 +103,17 @@
   - 🔴**遊戲內交付前提**：panel 目前只附圖片；語音要在遊戲裡當線索，需先在 `PuzzleQuest.js` panel 加每階段 `audio` 欄位 → push `AttachmentBuilder`（音訊不設 embed image）。此引擎小改動出 CASE-12 時一併做（甜甜重啟生效）。
   - 語音線索**同樣守埋深/提示規範**：早階段語音不得含 keystone/core 名詞；keystone 只在 S4 相關素材。
 
+## 6b. 偵探筆記本 / 證物加工（CASE-13 起適用；引擎已上線）
+玩家查案時每階段面板有「📓 存證」鈕：挑**一張**當前階段的照片線索存進私人筆記本，**每案上限 3 格**；「📖 翻筆記」隨時 ephemeral 私下翻閱。CASE-12 玩後回饋（線索就地更新難回翻，但這是刻意設計）→ 用此機制補救，且**存進去的照片會「變化」**（比面板更多/更清楚），讓筆記本贏過純截圖、變成有取捨的策略。
+- **引擎位置**：`sweetbot-next/model/PuzzleQuest.js`（按鈕/select/handler）＋ `model/puzzleEvidence.js`（sharp 證物加工）。純本機 sharp、**不燒 LLM、不加成本**。證物版依線索決定性 → 快取在 `data/puzzle-assets/_note/`（不進 git、重啟自動重生）。
+- **作者要做的（選用、極輕量）**：在該題 JSON 加一個 `noteMeta`，key＝線索**檔名**，值可含：
+  - `focus: [x, y, w, h]`（0~1 比例）→ 存進去時**放大該關鍵區域**成清晰特寫（放大鏡感）。這是「存對線索才看得清細節」的策略核心，**優先給拱心石/含小字或小物證的線索**標。
+  - `caption: "一句話"`（中文 OK，走 Discord embed 顯示，不燒進圖）→ 存證卡上的說明。
+  - `reveal: "另一張檔名.png"`（進階、選用）→ 存進去才**顯真相**：改用一張暗藏細節的強化圖（浮現隱形字/UV/圈出異常）。要另做圖，留給少數關鍵線索。
+  - 範例：`"noteMeta": { "c4-tox.png": { "focus":[0.12,0.55,0.5,0.2], "caption":"毒物報告·乙二醇代謝物" } }`
+- **沒標 `noteMeta` 的線索**：仍可存，只是不放大——一律套「證物版」風格（泛黃＋EVIDENCE 章＋CASE FILE 邊框），存了就跟截圖不一樣。
+- **埋深規範照舊**：`focus`/`reveal` 若會放大/顯露 keystone，等同該素材本身——**只有 S4 線索可以指向 keystone**；早階段線索的 focus 別放大出 core/keystone 級資訊。
+
 ## 7. 沿用既有規範
 - 💰 成本：燒 LLM（電話 AI）者照 `tools/COST_CONTROL.md` 四件套（帳本表/月封頂/後台卡/kill switch）——CASE-09 已建 `sweetbot-puzzle-ai-usage`，新題沿用同表、只是換 puzzleId。
 - 製圖管線、panel 讀本地檔、restart=部署等踩雷見 `CASE-09-HANDOFF.md` §4/§6。
