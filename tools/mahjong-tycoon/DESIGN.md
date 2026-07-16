@@ -325,8 +325,8 @@ attractiveness = w1·聲譽 + w2·環境 + w3·餐飲 + w4·宣傳熱度
 - **events**:§7 新增 淹水/招牌/停電/漏水/颱風假樂透 事件。
 - **location**:加 `terrain`(`floodRisk`/`windExposure`/`heatIsland`,§2.1.1 正典值);**world 表**加 `weather.realAlert`(真實層全國警報旗標,§17.1a,無需縣市錨點)+各區模擬天氣 + `activeWeatherEvents[]`(帶 durationDays 2-3);**equipment**:加防災類;新 `balance.weather`(機率/乘數/季節/事件天數表)。**天災險已砍**(改員工防災準備)。
 - **staff**:新增「防災準備」任務(§17.5,吃注意力/並發懲罰)+ 颱風出勤風險(員工來不了 → serviceLevel)——**已展開為 `CODEX_SPEC_staff.md` §13**(disasterprep 任務/mitigations 疊加/搶手人手/出勤風險/設備互補;Phase 1 埋 demand hook、Phase 3 接天候事件源);**面板**:新增 **📰新聞分頁**(玩家主動翻 → 看模擬層 2-3 天預報 + 真實層颱風警報);**求生**:維修成本 sink 與貸款還款時鐘疊加(天氣壞那週現金流壓力最大)。
-- 🔴 皆 seed 待平衡;此為設計 v0.1,待展開細節後併 CONTENT §R + 新 `CODEX_SPEC_climate`,交 Codex。切期:**選址/防災設備 Phase 1 埋屬性、員工防災任務接 staff Phase 1、新聞面板+天氣事件 Phase 3 為主**。
-- **成本**:混合模型 = 模擬層(DDB world 狀態 + deterministic seed)+ 真實層(CWA 開放資料**免費**,小排程 Lambda 抓警報,需快取 + fallback)。**無 LLM、無付費 API**,符合 §成本控管。真實層雖免費仍屬外部依賴,回本規範以「不可讓核心迴圈依賴外部可用性」為準(降級純模擬)。
+- 🔴 皆 seed 待平衡;此為設計 v0.1。**已展開為 `CODEX_SPEC_climate.md`**(雙層架構/模擬層純函式/真實層 CWA Lambda/天候事件/颱風假樂透/weatherMod/新聞面板/資料模型/14 驗收點);CONTENT §R 天氣文案待另補。切期:**選址/防災設備 Phase 1 埋屬性(terrain)、員工防災任務接 staff §13 Phase 1、新聞面板+天氣事件 Phase 3 為主**。
+- **成本**:混合模型 = 模擬層(**純確定性函式、零儲存**,deterministic seed)+ 真實層(CWA 開放資料**免費**,小排程 Lambda 抓警報寫單一全域列,需快取 + fallback)。**無 LLM、無付費 API**,預估 < $1/月,符合 §成本控管(詳 `CODEX_SPEC_climate.md` §成本控管)。真實層雖免費仍屬外部依賴,鐵律「不可讓核心迴圈依賴外部可用性」(降級純模擬)。
 
 ---
 
