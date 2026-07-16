@@ -332,6 +332,8 @@
 
 **短程疲勞**(sender 全域):短程 = 距離後 25% 門檻;滾動 +1/趟、−1/30 分;同 window 前 3 趟全額,之後 ×0.6 → ×0.3;長途不受影響。
 
+- **S6 實作記要(2026-07-16)**:短程疲勞五純函式已追加進同一 `fatigue.js`(`shortTripThreshold` 取 `config.destinations` 距離的 `shortDistPercentile` 百分位、numpy 'linear' 內插〔[30,55,90,160]@0.25→48.75〕;`isShortTrip` distance≤門檻含邊界;`decayShortFatigue` 每分 `recoverPerMin` 恢復不倒扣、無上限;`shortTripMult` 前 `freeCount` 趟全額之後照 `decayMults` floor;`addShortFatigue` +`perTrip` 只短程才由引擎呼叫)。`freeCount` 用 `??` 讓後台可設 0。短程倍率在引擎端與 pair rewardMult 相乘;長途完全不觸發。config 走 `balance.antiAbuse.shortTripFatigue`(已在 seed/DDB)。單元測試 +20 條(門檻內插/邊界/decay 防呆/mult 全點/六連送〔1,1,1,0.6,0.3,0.3〕),連 pair 共 43 passed、與 S3/S4 profit 35 合計 78 passed。
+
 全部進 config `balance.antiAbuse{}`,後台可調 + kill switch;NPC 城也吃這兩套。
 
 ### 15.6 對資料結構的含意（待 Block A 之後同步）
