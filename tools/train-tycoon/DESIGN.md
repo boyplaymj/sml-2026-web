@@ -426,6 +426,7 @@ travelDuration = 距離 × distanceToMinutes × (1 + 編組總重 × weightSlowP
 - 觸發:期望 ~1/小時在途,`maxPerTrip 3` + `minGapMin 20`(防 @洗版);`claimWindowSec 120`;號誌樓 `signalRateBonus +0.10`。
 - 量級:基本 ~375🦷/趟,平均撿 1–3 個 ≈ +100~300🦷(勤快玩家 +30~50%),稀有大獎當驚喜、不喧賓奪主。
 - config:`catalogs.randomEventPool` + `balance.randomEvents`。
+- **S9 抽池實作記要(2026-07-16)**:`randomEvent.js` 三純函式(rng 注入、不碰 Date.now)。`rollTripEvents(opts, config, rng)` 觸發次數 = `count = max(0, min(base, maxPerTrip, floor(durationMin/minGapMin)))`,其中 `base = floor(expected) + Bernoulli(frac(expected))`(**恆消耗 1 rng**)、`expected = (durationMin/60) × ratePerHour × (hasSignal? 1+signalRateBonus : 1)`;短程 `floor(dur/minGap)=0` → 天然無事件(呼應防 farm)。逐事件消耗 2 rng(加權抽池累積權重**嚴格 `<`** → 邊界歸下一格;reward 解析)。reward:`teeth` 整數 [min,max]、`scaleWithLocoTier` → ×max(1,locoTier);`pctFreight` 浮點 [min,max)、`teeth = round(pct×freightRevenue)`;`popularity` 帶出。TTL:`eventExpiresAt = spawnedAt + claimWindowSec×1000`、`isEventClaimable`(下界含、上界不含,spawn 時機與 @ping/領取寫入留 engine)。單元測試 38 條(整數/frac 進退位/maxPerTrip cap/gapCap/signal/加權邊界/reward 解析/TTL 四界/防呆)。
 
 ### 15.11 鐵律：所有數字/比例後台全可微調（定案 2026-07-15）
 **全遊戲每一個獎勵金額、權重、比例%、觸發率、倍率、成本、疲勞曲線、容量上限**一律走 config,後台 `train_tycoon_admin.html` 改 draft→發布,甜甜端惰性讀(免重啟)。後台必備「**獎勵/數值微調**」頁,把 §15.9/15.10 及 balance 全參數做成可調表單 + kill switch。程式端**零硬編數值**,一律讀 config(fallback 僅保底)。
