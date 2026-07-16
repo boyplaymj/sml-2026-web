@@ -365,6 +365,9 @@
 | →5 | 120,000 | 400 |
 | →6 | 350,000 | 1,000 |
 
+- **S10 上限/升級/人氣實作記要(2026-07-16)**:`caps.js` 五純函式。`stationCaps(tier)` → `{tier, platform, depot, buildSlots}`(各按 config 陣列長度 clamp tier)。`upgradeRequirement(tier)` → `{nextTier, costTeeth, tripGate} | null`(**索引語意=從 tier T 升 T+1 用 index T**;tier6 → null 頂級)。`canUpgrade(tier, teeth, trips)` → **牙齒且趟數雙達才 true**(擋課金秒跳,護經濟)。`popularityBonusRate(pop)` = `(max(0,pop)/100)×bonusRatePer100`(負數 clamp 0)。`recipientMult(tier, pop)` **復用 profit.js 的 recipientMultiplier**(tier clamp + `recipientMultPer100` 人氣加成,不重寫)。單元測試 33 條(tier clamp 兩端/三 cap 值/升級雙門檻各差 1 邊界/tier6 頂/負人氣 clamp/人氣加成),五模組合計 **175 passed**。
+- **✅ Phase 0 引擎層全完成(S1–S10,2026-07-16)**:資料層(5 表 + 3 DAO + seed)+ 純函式引擎(profit/fatigue/settle/randomEvent/caps,175 單元測試、全 Codex 驗本地過)。引擎全可測、無副作用、rng/now 注入、零硬編數值。**下一步照計畫停下重評面板切法**(原 §面板 6–10 重新細切)。
+
 ### 15.8 設施 facilities（基地建設層，定案 2026-07-15）
 **主堡(tier)= 上限閘 + 底盤**(決定能蓋哪些設施/每種最多幾座/地皮/站房主體外觀);**設施 = à la carte 花牙齒買、每座疊一個 sprite 上站景圖、各給小機能**。是 §14「每個升級都看得見」留存主軸的具體化。
 
