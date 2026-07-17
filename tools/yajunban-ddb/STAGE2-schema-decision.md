@@ -56,7 +56,7 @@
 ### ④ 跨平台 identity → claim item 唯一鎖（⚠️ Codex P0-1 修正）
 - 前提:`userId` = Discord user id → Discord 查詢=PK 本身免索引。✅ 不變。
 - ~~原案「`PLAYER#PERMANENT.appAccountId` + GSI `identity-index`」~~:**GSI 不保證唯一、非強一致** → 兩個 Discord user 可能同綁一個 APP 帳號。
-- **改**:加 identity claim item **`PK=APP#<appAccountId>, SK=IDENTITY`**(monster 表內,PK overloading)、屬性 `userId`。綁定 = 單一 `TransactWrite`{ Put `APP#<id>` with `ConditionExpression attribute_not_exists(PK)`(唯一鎖)+Update `PLAYER#PERMANENT.appAccountId` }。APP→userId 直接 `GetItem APP#<id>`(免 GSI)。換綁走 Delete+Put 同交易。
+- **改**:加 identity claim item **`PK=APP#<appAccountId>, SK=IDENTITY`**(monster 表內,PK overloading)、屬性 `userId`。綁定 = 單一 `TransactWrite`{ Put `APP#<id>` with `ConditionExpression attribute_not_exists(userId)`(唯一鎖;用表實際 PK 屬性名 `userId`,非字面 `PK`)+Update `PLAYER#PERMANENT.appAccountId` }。APP→userId 直接 `GetItem APP#<id>`(免 GSI)。換綁走 Delete+Put 同交易。
 
 ### ⑤ GSI → index overloading
 | 表 | GSI | PK / SK | 用途 |

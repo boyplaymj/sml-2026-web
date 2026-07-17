@@ -3,7 +3,7 @@
 > **定稿 · Codex 階段2二驗已合流(2026-07-17)**:4-item 切法確認不變、存疑①talent=StringSet、存疑⑤stats 留 CORE;轉生改 exact-key 覆寫(見 STAGE2 決策③)。M#CORE/M#BUILD 欄位不受影響。背包⑦/世界⑧ schema 排階段4/7。
 > 交接文件 · 產出日期 2026-07-17 · 承接 [STAGE2-schema-decision.md](./STAGE2-schema-decision.md)（4-item 切法權威）+ [STAGE1-access-patterns.md](./STAGE1-access-patterns.md)（存取模式）
 > 語義來源:設計冊 `score-repo/yajunban_design.html`（section-stats / -growth / -race / -talent / -skills / -jobs / -slots / -data,canonical）。型別慣例:`sweetbot-next/DAO/DDB/*`（DDBBaseDAO / TrainTycoonStationDAO / PuzzleRoundDAO）。
-> **本檔僅為草稿**:若 Codex 二驗建議調整決策②的 4-item 熱冷切法(例如把某欄從 CORE 移到 BUILD/PROGRESS),本 schema 的 item 歸屬要跟著改。
+> **狀態:定稿**(見上行)。歷史備註:本檔曾為草稿待二驗;Codex 二驗已確認 4-item 切法不變、M#CORE/M#BUILD 欄位定稿;背包⑦/世界⑧ 另排階段4/7。
 
 ---
 
@@ -27,7 +27,7 @@
 - **表**:`sweetbot-yajunban-monster` · PAY_PER_REQUEST · ap-southeast-1
 - **PK** = `userId`(S,= Discord user id,沿用 sweetbot 慣例;`String(userId)` 存)
 - **SK** = 實體型別字串。本檔:`M#CORE`(熱)、`M#BUILD`(溫)
-- 轉生 = 刪 `SK begins_with "M#"`,保留 `PLAYER#PERMANENT`(決策③)
+- 轉生 = 固定 3 顆 exact-key `TransactWrite`(Put M#CORE/BUILD/PROGRESS + Update PLAYER#PERMANENT),**非** `delete begins_with`(DDB 無 atomic delete-many);詳見 STAGE2 決策③
 - 兩顆共通稽核欄:`createdAt`(N,epoch ms,建立時)、`updatedAt`(N,epoch ms,每次寫)——對齊 PuzzleRoundDAO / TrainTycoon 慣例
 - **型別代碼**:S=String / N=Number / M=Map / L=List / SS=StringSet / BOOL=Boolean / B=Binary
 - **累計型 vs 狀態型**:累計型(xp/charm/reputation/survival_hours)只增不減 → 可用原子 `ADD` + 最終一致;狀態型(friendship/satiety/obesity_level/mood/battle_deaths)有上下限 → 需強一致 + 條件檢查(STAGE1 1-1 設計影響)。每列在「語義說明」標注。
@@ -159,5 +159,5 @@ Codex 讀 `49d41a5` 草稿後 6 點,Claude vet 全採納:
 
 ## ➡️ 交給階段4+(定稿後)
 
-- 本檔定稿(Codex 二驗確認 4-item 切法不變 + 上述地雷併入)後,接 `M#PROGRESS`(任務/群感/靈魂/菌圃/成就)與 `PLAYER#PERMANENT`(碎片/career_history/祖傳天賦/appAccountId+identity-index)schema。
+- 本檔定稿(Codex 二驗確認 4-item 切法不變 + 上述地雷併入)後,接 `M#PROGRESS`(任務/群感/靈魂/菌圃/成就)與 `PLAYER#PERMANENT`(碎片/career_history/祖傳天賦/appAccountId)schema;identity 由 `APP#<appAccountId>` claim item 承載(非 GSI,見 STAGE2 決策④)。
 - 靜態天賦定義表、技能平衡表、公會招牌技表=**設定表**(不落怪獸 item),另立設定表 schema。
