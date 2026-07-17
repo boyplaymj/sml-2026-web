@@ -13,7 +13,7 @@
 3. **EXP# 是否擴及 charm/reputation**:任務可給 EXP/魅力/聲望/友好度(section-quest 可給清單)。這些全是**當代欄**(轉生即清,重建價值低)。草稿:EXP# 的 `asset` 欄 v1 只用 `"xp"`;charm/reputation 變動不獨立記列(QUEST# 事件列的 rewards 快照已含,供稽核)。若要開,用 `asset` 值擴充即可、**不加新 TYPE**。待確認。
 4. **反哺兌換的雙表雙帳**:碎片素→礦物碎片的兌換,fortress-ledger 已定 `S#season#EX#ts#ulid` 記「碎片素支出」(STAGE1 1-5/設計冊 3906)。但 yajunban-ledger 的 FRAGMENT# 若不記「碎片入帳」,重放就無法重建 `PERMANENT.shards` 完整值。草稿:**兌換 TransactWrite 同時 Put 兩表各一列**(fortress EX#=支出、yajunban FRAGMENT#=入帳,refId 互指)——重放只認 FRAGMENT#,EX# 供堡壘經濟對帳。跨表同交易 DDB 允許(TransactWrite 跨表 OK)。待二驗確認不算雙重記帳。
 5. **balanceAfter 不存**:TransactWrite 的 Update 無法在交易內取「更新後值」→ 存 balanceAfter 需改 read-modify-write(多一次強讀+樂觀鎖,違反高頻寫預算)。草稿:**一律不存**(對齊 sweetbot-player-point-log 只存 variation 的慣例);餘額對帳=重放加總 vs 主 item 現值。若某流程本就強讀快照(如轉生)也**不**例外開欄,免半殘語義。待背書。
-6. **season / gen 維度欄**:怪獸域流水的自然維度是**世代 gen**(轉生正交於賽季;`M#CORE.xp` 是當代值,重放重建必須按 gen 切段)。草稿:每列必帶 `gen`(寫入當下 `PERMANENT.generation`);`season` 選帶(寫入當下 seasonId,供未來 season-index GSI 免 backfill)。存疑:seasonId 的取值來源(全域 config?)本階段未定,若 v1 拿不到就先不寫該欄(**屬性不存在,不存 null**——STAGE4 P0-1 慣例)。
+6. **season / gen 維度欄**:怪獸域流水的自然維度是**世代 gen**(轉生正交於賽季;`M#CORE.xp` 是當代值,重放重建必須按 gen 切段)。草稿:每列必帶 `gen`(寫入當下 `PERMANENT.generation`);`season` 寫入當下 seasonId,供未來 season-index GSI 免 backfill。~~存疑:seasonId 取值來源未定、v1 拿不到就先不寫~~ → **STAGE7a P2-6c 收緊**:「免 backfill」的前提就是 **`season` 從 v1 起每列都穩定寫入**;若 v1 漏寫,漏的列日後仍要 backfill,等於旋鈕失效。**故決策改為:v1 就把 seasonId 落成全域 config(單一來源)、ledger 每列必帶 `season`**(與 `gen` 同級,非選帶)。config 缺值時退 `season="S_UNKNOWN"` 佔位而非略過屬性,保證每列都有可 GSI 的鍵材料(避免屬性不存在→稀疏 GSI 漏列)。
 7. **ts 字典序與位數**:SK 中 `ts`=epoch ms 的 `String(Date.now())`,現為 13 位、到 2286 年前字典序=時間序,**不補零**(對齊 fortress-ledger 設計冊寫法 `"S#"+seasonId+"#EX#"+ts+"#"+ulid`)。若二驗要求防呆可改補零至 14 位,但兩邊要一致。待確認。
 8. **ULID 依賴**:sweetbot-next 目前**無 ulid 套件**(已 grep 確認 package.json/原始碼皆無)。實作需加 `ulid` npm 依賴,或退而用 `crypto.randomUUID()` 當尾綴(唯一性同樣成立,只失去 ulid 自含時間戳的可讀性;排序已由 SK 的 ts 段承擔)。屬階段9 DAO 實作決定,schema 不受影響。
 9. **候選型別不納 v1**:菌圃收成(STAGE1 1-4「產出入背包/ledger」措辭含糊)、轉生事件稽核(REBIRTH#)、成就換獎——正典來源(STAGE1 實體清單/STAGE2 決策①/設計冊 3149)只點名 EXP/FRAGMENT/QUEST 三型。草稿**不編造新型別**;收成產出=道具入 `INV#`(STAGE4 已定),要不要留流水待產品拍板(若要,建議走 QUEST#同款事件列思路另立 TYPE,別塞爆 FRAGMENT#)。
@@ -73,7 +73,7 @@
 | `refId` | S | 關聯 id(可選,無關聯**不寫屬性**) | questId / battleId / raidId / fortress-ledger EX 列 ulid / achId;任務發獎的資源列指回同交易 QUEST# 列 ulid(存疑①) |
 | `questId` | S | (僅 QUEST# 列)任務靜態 id | 事件列主體;搭 `questType`(`main/daily/weekly/challenge/emergent`) |
 | `rewards` | M | (僅 QUEST# 列)獎勵包快照 | 如 `{ xp:N, shards:M{red:N,...}, items:M{<itemId>:N}, charm:N, reputation:N }`——**稽核用,不參與重放**(存疑①);缺項不寫 |
-| `season` | S | 賽季 id(可選) | 寫入當下賽季;拿不到就不寫屬性(存疑⑥);未來 season-index GSI 的鍵材料 |
+| `season` | S | 賽季 id(**必帶**·STAGE7a P2-6c) | 寫入當下 seasonId(v1 起全域 config 單一來源);config 缺值退 `"S_UNKNOWN"` 佔位、**不略過屬性**(存疑⑥已收緊);未來 season-index GSI 的鍵材料、免 backfill |
 | `gen` | N | 世代數 | 寫入當下 `PERMANENT.generation`;**重放重建當代欄(xp)必須按 gen 切段**的依據 |
 | `createdAt` | N | 建立時間 epoch ms | 與 SK 的 ts 同值(N 型,查詢/顯示免解析 SK);STAGE3 慣例 epoch ms,**不用 ISO**(point-log 的 ISO SK 是舊表歷史包袱,不沿用) |
 | `updatedAt` | N | = createdAt | append-only 列不可變;留欄純為 STAGE3/4 共通稽核欄一致 |
@@ -120,7 +120,7 @@
 1. **append-only**:DAO 只給 `putEntry`(含在 transaction builder 內)與 Query 讀;**不提供 Update/Delete 方法**。
 2. **transaction builder 合流**(STAGE2 P1-4):任務發獎一次交易含多顆 monster item + 多列 ledger Put——builder 要合併同 key mutation,ledger 列本身各自獨立 key 無此問題。
 3. **分頁 loop 必做**:所有 Query 照 PlayerPointLogDAO.queryByDateRange 的 `ExclusiveStartKey` loop 寫法,防 1MB 截斷低估。
-4. **屬性不存在 ≠ null**:`refId`/`season`/`asset`(QUEST# 列)等可選欄,不適用時**不寫屬性**,絕不存 DDB NULL(STAGE4 P0-1 慣例)。
+4. **屬性不存在 ≠ null**:`refId`/`asset`(QUEST# 列)等**可選**欄,不適用時**不寫屬性**,絕不存 DDB NULL(STAGE4 P0-1 慣例)。(注:`season` 已改**必帶**,缺值退 `"S_UNKNOWN"` 佔位而非略過——STAGE7a P2-6c,見存疑⑥。)
 5. **ulid 依賴**:實作前確認加 `ulid` 套件或替代尾綴方案(存疑⑧)。
 
 ## ✅ Claude(Opus)覆核 — 2026-07-17

@@ -228,5 +228,9 @@ TransactWrite (ClientRequestToken = <場次結算冪等碼>) {
 
 ## ➡️ 交回 / 下一步
 - Claude 覆核上方**存疑1/2/3**(PvP CD/24hr/重生/快照粒度落點)拍板後,可去 DRAFT。
-- **依賴階段7**(`sweetbot-yajunban-world` spatial 表):重生挑格 + 相鄰格佔用查詢;此表先就緒、挑格演算法待階段7 世界表接上。
+- ✅ **依賴階段7 已結案**(2026-07-17,STAGE7b 定稿):重生挑格 + 相鄰格佔用查詢由 `sweetbot-yajunban-world`(`PK=zone#bucket`,決策⑫–⑯)提供;重生落點/相鄰 PvP/偷菜的格佔用查詢接法見 [STAGE7b](./STAGE7b-world-spatial.md)。
+  - ⚠️ **回饋:重生結算 M#CORE Update 要升級**(STAGE7b Codex P1-3/P1-4):
+    - **不可**在結算交易裡巢狀呼叫 world `moveTo()` 再產生**第二個** M#CORE Update(DDB 同交易禁對同 key 重複操作)→ transaction builder 把「戰鬥結算(xp/reputation/battle_deaths/釋放 activeBattleId)**+** pos/posVersion 重生落點搬移 **+** 租約釋放」**合併成同一顆 M#CORE Update**,再加 `Delete 舊 OCC` / `Put 新 OCC`(world 表)。
+    - 該 M#CORE Update 需帶 **`ConditionExpression posVersion=:read`** 樂觀鎖(重生不扣 Khui、無天然防護)、SET `posVersion+1`,OCC 寫同值。
+    - 淨效果:PvE 重生結算 = 1 顆 M#CORE(合併) + 2 顆 world OCC(Delete/Put);PvP 再加敗方對稱處理。仍單一 TransactWrite,遠低於 100 item/4MB。
 - Codex 二驗建議聚焦:①秒/毫秒是否真的到處分清、②結算 TransactWrite 的 `version` 條件是否足以擋所有重送路徑(L1/L2/L3 三層終結會不會多次觸發同場結算)、③PVP# 關係 item 雙向寫是否有孤兒/半寫風險。

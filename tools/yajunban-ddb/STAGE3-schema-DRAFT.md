@@ -26,7 +26,7 @@
 
 - **表**:`sweetbot-yajunban-monster` · PAY_PER_REQUEST · ap-southeast-1
 - **PK** = `userId`(S,= Discord user id,沿用 sweetbot 慣例;`String(userId)` 存)
-- **SK** = 實體型別字串。本檔:`M#CORE`(熱)、`M#BUILD`(溫)
+- **SK** = 實體型別字串,**物理屬性名 `sk`(小寫,與 ledger 表對齊)**(STAGE7a P2-6b 釘死:DAO 端一律 `#sk=:val`,不可寫概念名 `SK`)。本檔:`M#CORE`(熱)、`M#BUILD`(溫)
 - 轉生 = 固定 3 顆 exact-key `TransactWrite`(Put M#CORE/BUILD/PROGRESS + Update PLAYER#PERMANENT),**非** `delete begins_with`(DDB 無 atomic delete-many);詳見 STAGE2 決策③
 - 兩顆共通稽核欄:`createdAt`(N,epoch ms,建立時)、`updatedAt`(N,epoch ms,每次寫)——對齊 PuzzleRoundDAO / TrainTycoon 慣例
 - **型別代碼**:S=String / N=Number / M=Map / L=List / SS=StringSet / BOOL=Boolean / B=Binary

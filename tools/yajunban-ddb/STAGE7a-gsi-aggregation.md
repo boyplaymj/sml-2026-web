@@ -1,8 +1,8 @@
 # 牙菌斑怪獸 · DDB 資料模型 — 階段7a:GSI 盤整 + 彙整/分析查詢策略
 
 > 交接文件 · 產出日期 2026-07-17 · 承接 [STAGE2-schema-decision.md](./STAGE2-schema-decision.md)(決策⑤ GSI overloading、P1-7 熱點 scale 待辦)
-> 狀態:**草稿**(Claude 出提案,待 signoff / Codex 二驗)。
-> 用途:定案「monster/ledger 表要不要加 GSI」+ 後台彙整(種族分佈/Stage漏斗/DAU/留存)查哪裡。與 [STAGE7b](./STAGE7b-world-spatial-DRAFT.md)(世界 spatial)同屬階段7,拆開因存取形狀正交。
+> 狀態:**已定稿**(Claude 提案 → Codex 兩輪二驗 8 findings 全採納 → 使用者 signoff,2026-07-17)。
+> 用途:定案「monster/ledger 表要不要加 GSI」+ 後台彙整(種族分佈/Stage漏斗/DAU/留存)查哪裡。與 [STAGE7b](./STAGE7b-world-spatial.md)(世界 spatial)同屬階段7,拆開因存取形狀正交。
 
 ---
 
@@ -98,7 +98,7 @@
 
 ---
 
-## ➡️ 交給 Codex 二驗的收口點
+## ➡️ 定稿後 · 遺留收口點(Codex 已驗,供階段9/上游參照)
 1. **決策⑨** monster 零 GSI:確認 STAGE1 全節真的沒有玩家向非 PK 即時查詢被我漏掉(尤其任務/成就/靈魂有沒有「跨玩家找」的隱藏需求)。
 2. ~~決策⑩ DAU 從 ledger 切窗~~ → **Codex P1-2 已修正**:ledger 不記高頻互動(STAGE5a 不記名單),DAU 改 `M#CORE.last_interaction` 快照(MVP)/ `ACT#` 標記(要留存曲線)。已改。
 3. **決策⑪** 稀疏 GSI 旋鈕:確認排行榜/賽季榜觸發門檻寫法,及 ledger season-index 延後不會卡到季末對帳 MVP。
