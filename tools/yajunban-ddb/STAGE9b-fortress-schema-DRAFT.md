@@ -9,10 +9,15 @@
 
 ## 🎯 關鍵決策:`level-index` 的 PK 用 `matchableBucket`,不用裸 `level`
 STAGE1 對 `level-index` 有兩處看似衝突:line 158「PK level·SK lastActiveAt」vs line 192「pagination loop + matchableBucket」。**拍板 = `matchableBucket`**,理由三:
-1. **稀疏化過濾護盾**:`matchableBucket` **只對「可被配對」的堡壘寫**(state=ACTIVE **且** 無護盾 **且** 不在 activeRaid);不合格就**不寫此屬性 → 不進 GSI**。直接解掉 STAGE1 line 158「須 pagination loop 防護盾濾光」的痛(護盾者根本不在索引裡)。
+1. **可稀疏化 + 格式可演進**:用泛型鍵 `matchableBucket` 而非裸 `level`,才有空間做稀疏化與 sharding。
 2. **格式可演進、GSI 結構不變**:v1 `matchableBucket = "L#" + level`;未來單一 level 過熱要打散 → 改成 `"L#" + level + "#" + shard`(寫入端 re-derive),**GSI schema 不用改**(裸 `level` 當 PK 就沒這彈性)。
-3. **配對查詢照舊**:段位帶 [L−N, L+N] = 對每個 level 算出 `matchableBucket` 字串各 Query 一次(未來 sharding 再 ×(shard+1))。
-> 代價:寫入端要維護 `matchableBucket`(合格時 SET、失格時 REMOVE)——這是**稀疏 GSI 的固有成本**,換來索引乾淨。列入 DAO 注意。
+3. **配對查詢**:段位帶 [L−N, L+N] = 對每個 level 算出 `matchableBucket` 字串各 Query 一次(未來 sharding 再 ×(shard+1))。
+
+### ⚠️ 稀疏條件只管「狀態型、伴隨寫入」的資格 —— 護盾不移出 GSI(Codex 9b P1-1 修正)
+~~原案:合格 = ACTIVE 且無護盾 且不在 raid,失格就 REMOVE `matchableBucket`。~~ **錯**:護盾 `shieldUntil` 是**時間自然到期**,若護盾期間 REMOVE,到期那刻**沒有任何寫入**會把它 SET 回去 → 該堡壘永遠不在配對池,直到玩家下次互動。這是 **false negative**,且和 lazy/零背景 job 方向衝突(同 STAGE7b OCC idle TTL 那類陷阱)。
+- **改**:`matchableBucket` 稀疏條件**只看會伴隨寫入的狀態型資格** = `state=ACTIVE` **且** `attribute_not_exists(activeRaidId)`(進/出 raid 本就有寫)。
+- **護盾 = 留在 index projection、query 後用 `shieldUntil > now` 過濾**(時間態不進稀疏條件)。護盾自然到期不需任何寫入,配對方讀時即時判定。
+> 代價:寫入端維護 `matchableBucket` 只在 **ACTIVE↔非ACTIVE、進↔出 raid** 這些必有寫入的轉換點 SET/REMOVE——不碰時間態,無 false negative。列入 DAO 注意。
 
 ---
 
@@ -33,7 +38,7 @@ STAGE1 對 `level-index` 有兩處看似衝突:line 158「PK level·SK lastActiv
 |---|---|
 | PK | `raidId` : S(ULID) |
 | SK | —(無) |
-| TTL | ✅ `leaseExpireAt` : N(秒;殭屍場 GC,STAGE1 line 165。**存活判定比 `arriveAt`+`state`,TTL 只回收**,同 battle 律) |
+| TTL | ✅ `ttl` : N(秒;**= `max(zombieLeaseEnd, cooldownUntil, revengeUntil, notifRetentionUntil)`**,Codex 9b P1-2)。**不能只設殭屍 GC**——同表還撐同目標冷卻(attacker-index)/守方預警/復仇(defender-index),太早 TTL 掉這些查詢會消失。TTL 仍只 GC、存活判定比 `arriveAt`+`state`(同 battle 律) |
 | GSI1 `attacker-index` | PK `attackerId` : S · SK `departAt` : N(同目標冷卻;Filter defenderId) |
 | GSI2 `defender-index` | PK `defenderId` : S · SK `arriveAt` : N(守方預警/復仇) |
 | AttributeDefinitions | raidId(S) / attackerId(S) / departAt(N) / defenderId(S) / arriveAt(N) |
@@ -68,32 +73,42 @@ STAGE1 對 `level-index` 有兩處看似衝突:line 158「PK level·SK lastActiv
 ---
 
 ## 🔭 GSI 投影(Projection)提案
-GSI 只投影查詢方要用的欄,省儲存/WCU(每寫基表 = 每 GSI 投影一份):
+GSI 只投影查詢方要用的欄,省儲存/WCU(每寫基表 = 每 GSI 投影一份)。
+⚠️ **`NonKeyAttributes` 只列非 key 欄**(Codex 9b P1-3):DDB 對每條 GSI **自動投影 table key + 該 index 的 key**,列進 `NonKeyAttributes` 會 ValidationException。下表把「自動可得」與「NonKeyAttributes」分開:
 
-| GSI | Projection | 投影欄 | 理由 |
-|---|---|---|---|
-| `level-index` | `INCLUDE` | `playerId, level, shieldUntil, activeRaidId`(+key `matchableBucket/lastActiveAt`) | 配對後要濾 shield/自己/activeRaid + 拿 playerId 出兵;稀疏已擋大部分護盾 |
-| `guild-index` | `KEYS_ONLY` | —(key 已含 guildId/channelId + 基表 playerId) | 對帳只需「此 guild 有哪些 playerId/channelId」比對 Discord |
-| `attacker-index` | `INCLUDE` | `defenderId, state`(+key) | 同目標冷卻要 Filter defenderId、看 state 是否進行中 |
-| `defender-index` | `INCLUDE` | `attackerId, state, arriveAt`(+key) | 守方預警/復仇要知誰打、何時到、狀態 |
-| `season-index` | `ALL` | 全欄 | 對帳導出要完整流水列(ledger 列小,ALL 可接受) |
+| GSI | Projection | 自動投影(table+index key) | NonKeyAttributes(手列) | 理由 |
+|---|---|---|---|---|
+| `level-index` | `INCLUDE` | playerId, matchableBucket, lastActiveAt | `level, shieldUntil, activeRaidId, state` | 配對後濾 shield(`shieldUntil>now`)/自己/activeRaid;**補 `state`**(Codex P1-4)供 GSI 最終一致/維護漏寫時防禦性過濾 |
+| `guild-index` | `KEYS_ONLY` | playerId, guildId, channelId | —(無) | 對帳只需「此 guild 有哪些 playerId/channelId」比對 Discord |
+| `attacker-index` | `INCLUDE` | raidId, attackerId, departAt | `defenderId, state` | 同目標冷卻 Filter defenderId、看 state 是否進行中 |
+| `defender-index` | `INCLUDE` | raidId, defenderId, arriveAt | `attackerId, state` | 守方預警/復仇要知誰打、何時到(arriveAt 已是 index SK 自動投影)、狀態 |
+| `season-index` | `INCLUDE`(改) | playerId, seasonId, ts | `type, delta, refId`(對帳摘要) | 見下 P2-5:改 INCLUDE 摘要,不用 ALL |
 
-> 全 GSI 最終一致 → 正確性靠基表條件寫(STAGE1 line 180)。稀疏投影不影響 query 正確性,只影響「查完要不要回基表補讀」。
+- **`season-index` 由 ALL 改 INCLUDE**(Codex 9b P2-5):`ARCHIVE` 列可能是整包季末快照,ALL 會把大 item 複製進 GSI。改投影對帳摘要欄;**完整 ARCHIVE 快照走基表 `Query PK=playerId + begins_with(sk,"S#<season>#ARCHIVE")` 讀**,不塞進 season-index。
+> 全 GSI 最終一致 → 正確性靠基表條件寫(STAGE1 line 180)。投影不影響 query 正確性,只影響「查完要不要回基表補讀」。
 
 ---
 
 ## 🔴 DAO 注意(給 migration 後的 DAO 實作)
-- **`matchableBucket` 維護**:堡壘任何改動 state/shield/activeRaid 的寫路徑,都要**同步 SET/REMOVE `matchableBucket`**(合格才有值)。漏維護 = 配對池髒(該進沒進/該出沒出)。
-- **配對 pagination loop 仍需**(STAGE1):即使稀疏,同 bucket 內仍可能多筆 + 需濾自己/activeRaid → `queryAll()`(STAGE8 §7)。
-- **raid TTL 秒/ms**:`leaseExpireAt` 秒級 10 位,其餘 ms(STAGE8 §2 一表兩制,DAO 封裝)。
+- **`matchableBucket` 維護**:只在 **state=ACTIVE↔非ACTIVE、進↔出 raid**(activeRaidId 變動)這些**必有寫入**的轉換點 SET/REMOVE(P1-1)。**不看 `shieldUntil`**(時間態,護盾在 index 內用 query 後 `shieldUntil>now` 過濾)。漏維護 = 配對池髒。
+- **配對 pagination loop 仍需**(STAGE1):即使稀疏,同 bucket 內仍可能多筆 + 需濾自己/activeRaid/**護盾(`shieldUntil>now`)** → `queryAll()`(STAGE8 §7)。
+- **raid TTL 秒/ms**:`ttl` 秒級 10 位 = `max(zombieLeaseEnd, cooldownUntil, revengeUntil, notifRetentionUntil)`(P1-2),其餘 ms(STAGE8 §2 一表兩制,DAO 封裝)。
 - **恰好一次**:raid LOOTED(state=RESOLVED 條件)、糖潮 claim(跨2表3item TransactWrite+ClientRequestToken)——見 STAGE8 §4.3/§6.5。
 
 ---
 
-## ➡️ 交給 Codex 二驗的收口點
-1. **`level-index` = `matchableBucket`**(非裸 level)這個拍板:稀疏化+可演進的理由是否成立;`"L#"+level` 格式 + 「合格才寫」的維護成本可接受嗎。
-2. **各表 PK/SK/TTL attr**:raid TTL 用 `leaseExpireAt`(對齊 STAGE1 line 165)、sugar-pulse 加 `ttl`(STAGE1 沒明寫、我補的 GC)是否合理;fortress/guild-pool 無 SK 對不對。
-3. **GSI 投影**:`level-index` 的 INCLUDE 欄集是否漏(配對真正要讀的);`season-index` 用 ALL 會不會太重。
-4. **AttributeDefinitions 完整性**:每個當 GSI 鍵的屬性都列進去了(DDB 建表會驗)。
-5. 有沒有**第 6 條 GSI / 漏的存取模式**(跨平台 identity 未定案不在此塊,對嗎)。
-6. schema 簽核後才寫 `create_yajunban_fortress_tables.js`(9b-ddl)——這順序 OK 嗎。
+## 🔍 Codex 二驗 findings + Claude vet 處置(2026-07-17)
+Codex 二驗:順序/切分/多數 PK-SK-TTL 認可;**4 P1 + 1 P2 成立全採納**(P1-1 是我稀疏設計的真 false-negative)。
+
+| # | Codex finding | vet | 處置 |
+|---|---|---|---|
+| **P1-1** | 護盾按時間到期,`matchableBucket` 因 shield REMOVE 後到期無寫入 SET 回 → false negative(與零背景 job 衝突) | ✅ 真錯(同 STAGE7b OCC 陷阱) | 稀疏條件改只看 `state=ACTIVE AND attribute_not_exists(activeRaidId)`;護盾改 index 內 query 後 `shieldUntil>now` 過濾 |
+| **P1-2** | raid TTL 不能只殭屍 GC(同表撐冷卻/預警/復仇查詢,太早刪就消失) | ✅ | TTL attr 改 `ttl` = `max(zombieLeaseEnd, cooldownUntil, revengeUntil, notifRetentionUntil)` |
+| **P1-3** | GSI `NonKeyAttributes` 不可列 table/index key(會 ValidationException) | ✅ | 投影表拆「自動投影 key」vs「NonKeyAttributes」,移除 playerId/arriveAt 等 key |
+| **P1-4** | level-index 補 `state` 供 GSI 最終一致/漏寫時防禦性過濾 | ✅ | NonKeyAttributes 加 `state` |
+| P2-5 | season-index 用 ALL,ARCHIVE 整包快照會複製進 GSI | ✅ | 改 INCLUDE 對帳摘要;完整 ARCHIVE 走基表 Query 讀 |
+| P2-6 | sugar-pulse `ttl` 合理、claim 靠條件寫非 TTL 寫得對 | ✅ 背書 | 無需改 |
+
+## ➡️ 定稿前 · 剩餘收口
+- Codex 訊息「確認項」尾段被截斷(`fortress-ledger 的 playerId/sk + season-index(sea…`)——待確認是否還有 P2/確認未收到。
+- 全 P1 已改;schema 簽核後才寫 `create_yajunban_fortress_tables.js`(9b-ddl migration)。
