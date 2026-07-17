@@ -1,6 +1,6 @@
 # 牙菌斑怪獸 · DDB 資料模型 — 階段3:`M#CORE` / `M#BUILD` 完整欄位 schema
 
-> **草稿 · 待 Codex 階段2二驗結果確認後定稿**
+> **定稿 · Codex 階段2二驗已合流(2026-07-17)**:4-item 切法確認不變、存疑①talent=StringSet、存疑⑤stats 留 CORE;轉生改 exact-key 覆寫(見 STAGE2 決策③)。M#CORE/M#BUILD 欄位不受影響。背包⑦/世界⑧ schema 排階段4/7。
 > 交接文件 · 產出日期 2026-07-17 · 承接 [STAGE2-schema-decision.md](./STAGE2-schema-decision.md)（4-item 切法權威）+ [STAGE1-access-patterns.md](./STAGE1-access-patterns.md)（存取模式）
 > 語義來源:設計冊 `score-repo/yajunban_design.html`（section-stats / -growth / -race / -talent / -skills / -jobs / -slots / -data,canonical）。型別慣例:`sweetbot-next/DAO/DDB/*`（DDBBaseDAO / TrainTycoonStationDAO / PuzzleRoundDAO）。
 > **本檔僅為草稿**:若 Codex 二驗建議調整決策②的 4-item 熱冷切法(例如把某欄從 CORE 移到 BUILD/PROGRESS),本 schema 的 item 歸屬要跟著改。
