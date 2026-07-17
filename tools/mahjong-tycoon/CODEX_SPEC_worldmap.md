@@ -41,20 +41,32 @@
 
 ---
 
-## 3. 天王里正典地理(§2.1.1 落成 config)
+## 3. 天王里正典地理(§2.1.1 落成 config)—— **定案 🅱:保留既有 6 區、每區補 terrain+mapPos**
 
-**一張圖、全服共用、相對位置與地勢建圖時定死**(不是 RNG,讓玩家看懂「為什麼我這區先淹」)。天王溪貫穿,MVP 3 區各占一地勢極端軸:
+**一張圖、全服共用、相對位置與地勢建圖時定死**(不是 RNG,讓玩家看懂「為什麼我這區先淹」)。天王溪貫穿;§2.1.1 的三個地勢極端軸(溪畔/舊城市場/海線)**實現為既有 6 區中最合適的 3 個**,其餘 3 區給梯度地勢。**不動已上線 clientMix,只加 `mapPos`+`terrain`。**
 
-| 行政區 | id(建議) | 相對位置 | 建議 mapPos | `floodRisk` | `windExposure` | `heatIsland` | 租金 | 玩點 |
-|---|---|---|---|---|---|---|---|---|
-| 🌊 溪畔區 | `riverside` | 西南・臨溪低窪 | `{x:1,y:3}` | **high** | low | med | 低 | 便宜但豪雨先淹→逼抽水機 |
-| 🏙 舊城市場區 | `oldtown` | 中央・密集老街 | `{x:2,y:2}` | med | low | **high** | 高 | 最旺最貴,酷暑冷氣最兇 |
-| 🌾 海線開闊區 | `seaside` | 東・臨海空曠 | `{x:4,y:2}` | med | **high** | low | 中 | 颱風招牌掉/停電→逼防風+發電機 |
-| 🏔 高地重劃(擴充) | `highland` | 北・高地 | `{x:2,y:0}` | low | med | low | 最高 | 安全又新(留 M2/連鎖) |
+| id(已上線) | name | emoji | 相對位置 | 建議 mapPos | flood | wind | heat | 租金 | 地勢原型 / 玩點 |
+|---|---|---|---|---|---|---|---|---|---|
+| `night_market` | 夜市邊 | 🏮 | 中央・密集老街 | `{2,2}` | med | low | **high** | 中(80) | **舊城市場原型**·最旺·酷暑冷氣最兇 |
+| `alley` | 社區巷弄 | 🏘️ | 西南・臨溪低窪 | `{1,3}` | **high** | low | med | **低(45)** | **溪畔原型**·最便宜但豪雨先淹→逼抽水機 |
+| `redevelopment` | 重劃區 | 🏙️ | 東・開闊臨海 | `{4,2}` | low | **high** | low | 高(130) | **海線原型**·空曠好停車·颱風招牌掉/停電→防風+發電機 |
+| `office` | 商辦區 | 🏢 | 北・高地商業 | `{2,0}` | low | med | med | 最高(150) | 高地安全·玻璃帷幕曬·最貴 |
+| `school` | 學校旁 | 🎓 | 西・河岸校區 | `{0,2}` | med | med | low | 中(90) | 校園綠地·近溪有堤 |
+| `elderly_community` | 高齡社區 | 👴 | 南・老社區坡 | `{2,4}` | med | low | med | 低(55) | 老社區·地勢溫和 |
 
-- **天王溪** = feature 疊層(§4),一串 🌊 tile 沿西南斜貫、繞過溪畔區,讓「臨溪低窪」一眼看懂。
-- mapPos/terrain 皆 **config 可調**(後台「地圖區域」每區編);上表為建議正典初值,Codex/Claude 灌入。
-- 5×5 對 3–4 區綽綽有餘;之後擴區用剩餘格 + `AUTO_POSITIONS`。
+- **天王溪** = feature 疊層(§4),🌊 tile 沿西南角 `(0,4)(1,4)(0,3)` 緊貼溪畔(`alley`),讓「臨溪低窪先淹」一眼看懂。
+- **地勢極端各只一個**(flood→alley/wind→redevelopment/heat→night_market),避免多區同災、選址差異模糊;其餘三區 med 梯度。
+- mapPos/terrain 皆 **config 可調**(後台「地圖區域」每區編);上表為建議正典初值。
+- 參考渲染(5×5,🏠= 玩家已開館時疊):
+```
+    x0    x1    x2    x3    x4
+y0  ⬜    ⬜   🏢商辦 ⬜    ⬜
+y1  ⬜    ⬜    ⬜    ⬜    ⬜
+y2 🎓學校 ⬜  🏮夜市  ⬜  🏙️重劃
+y3 🌊    🏘️巷弄 ⬜    ⬜    ⬜
+y4 🌊    🌊  👴高齡  ⬜    ⬜
+```
+- 5×5 容 6 區 + 河流綽綽有餘;擴充池(車站/溫泉,CONTENT §A)之後用剩餘格 + `AUTO_POSITIONS`。
 
 ---
 
@@ -135,23 +147,18 @@ grid 之下附每區一行,把選點要看的資訊攤開:
 
 ---
 
-## 9. 🔴 開放待決:行政區身分統一(需使用者拍板)
+## 9. 行政區身分統一(**已定案 🅱,2026-07-16 使用者選**)
 
-**三套命名並存,MVP 前必須收斂一套**:
-| 來源 | 區列 |
-|---|---|
-| CONTENT §A(後台已上線 6 區) | 🏮夜市邊 / 🏢商辦 / 🏘️巷弄 / 🎓學校旁 / 👴高齡社區 / 🏙️重劃區(+擴充 車站/溫泉) |
-| §2.1.1 天候正典(3+1) | 🌊溪畔 / 🏙舊城市場 / 🌾海線 / 🏔高地重劃 |
-| 引擎 `DEFAULT_POSITIONS` | `night_market / office / alley`(舊英文 id) |
+**背景**:曾三套命名並存——CONTENT §A 已上線 6 區(夜市邊/商辦/巷弄/學校旁/高齡社區/重劃區)、§2.1.1 天候正典 3+1 區(溪畔/舊城/海線/高地)、引擎 `DEFAULT_POSITIONS` 舊 3 區 id。
 
-- **Claude 建議(推薦路徑)**:以 **§2.1.1 天王里正典為準**(最新定案、且 terrain 是地圖教學點),**MVP 收斂成 3 區**,每區**融合「客層味 + 地勢軸」**:
-  - 🏙 舊城市場 = 老街市場熱鬧(吃 夜市/散客/游擊/雀友 clientMix)+ heat high
-  - 🌊 溪畔 = 平價老社區(吃 高齡/媽媽/散客)+ flood high
-  - 🌾 海線 = 空曠好停車(吃 觀光/大戶/開車客)+ wind high
-  - 🏔 高地重劃、🎓學校旁等 = Phase 2 擴充區,放地圖剩餘格。
-- **代價/需確認**:後台 config **已上線 6 區**(clientMix 已調)→ 收斂成 3 需**config migration + clientMix 重併**(把 6 區客層合進 3 區),且引擎 `DEFAULT_POSITIONS` 要換成新 id。**這動到已部署資料,故必須先拍板**。
-- **替代方案**:保留 6 區,每區補 `mapPos`+`terrain` 各放天王里地圖一格(溪畔/舊城/海線當其中 3 個的地勢原型)——不動 clientMix、遷移小,但地圖區較多、terrain 教學不如 3 區乾淨。
-- 🅰 收斂 3 區(推薦,乾淨但要遷 config) / 🅱 保留 6 區補 terrain(遷移小但較雜) → **待使用者選**。
+**定案 🅱 = 保留既有 6 區、每區補 `mapPos`+`terrain`**(不收斂成 3、不遷 clientMix):
+- 6 區 **id/name/emoji/clientMix 全維持已上線值不動**(零 clientMix 遷移風險)。
+- §2.1.1 三地勢原型(溪畔/舊城市場/海線)**降為 terrain 標籤**,實現在 3 個既有區上(alley/night_market/redevelopment,§3 表);不再是獨立行政區名。
+- 🏔 高地重劃**不另立**(重劃區 redevelopment 已在圖上當海線原型);北高地位置給 office 商辦。
+- **實作觸點(Phase 1,皆走 config、不改結算邏輯)**:
+  1. config `districts[]` 6 區各補 `mapPos`+`terrain`(§3 表)→ 走後台 SEED / 「地圖區域」編輯,寫進 `mahjong-tycoon-config`。
+  2. 引擎 `MahjongMap.js` 的 `DEFAULT_POSITIONS` 更新成 6 區真 id 的正典座標(§3),當 config 沒設 mapPos 時的 fallback(**非阻塞**:一旦 config 有 mapPos 就覆蓋它)。
+- **零 migration 破壞**:只加欄位,舊資料缺 `terrain`/`mapPos` 時 → terrain 視為全 med(climate fallback)、mapPos 走 DEFAULT/AUTO 落位,不報錯。
 
 ---
 
@@ -167,14 +174,14 @@ grid 之下附每區一行,把選點要看的資訊攤開:
 ## 11. 驗收點(給 Codex)
 
 1. **向後相容**:`render(districts, cursor)` 不傳 `opts` 時輸出與現況一致(既有 Phase 0 選點不迴歸)。
-2. **正典地理**:3+1 區依 `mapPos` 落在天王里正確相對位置(溪畔西南/舊城中央/海線東/高地北);`terrain` 值同 §2.1.1/climate。
+2. **正典地理**:6 區依 `mapPos` 落在天王里正確相對位置(§3:夜市中央/巷弄西南臨溪/重劃東/商辦北/學校西/高齡南);`terrain` 值同 §3 表、地勢極端各只一區(flood→alley/wind→redevelopment/heat→night_market)。
 3. **feature 疊層**:天王溪 🌊 tile 依 `balance.worldmap.features` 畫在游標/區之下、空地之上;river 格 `districtAt` 回 null(不可選、不參與結算)。
 4. **格子優先序**:cursor > 我的館 🏠 > 對手 > district > feature > 空地,每格仍剛好一個全形 emoji(對齊不破)。
 5. **status list**:每區一行顯示 terrain(legend icon)+ 租金 +(Phase 3)天氣 icon + activeEvents 橫幅;游標區高亮。
 6. **天候單一真相源**:天氣/事件只讀 climate `effectiveWeather` + `parlor.weather.activeEvents`,worldmap 不自算。
 7. **資料驅動**:size/features/legend/mapPos/terrain 全讀 config,無寫死;缺 `balance.worldmap` 時退化成純 5×5 無河流(不報錯)。
 8. **互動守門**:選點/看地圖 customId 帶 ownerId,非 owner 點 → ephemeral 擋;開館重讀 DDB 不信畫面。
-9. **§9 身分統一**:依拍板結果,config 區列與引擎 `DEFAULT_POSITIONS` 一致、無孤兒 id;若走 🅰 附 migration。
+9. **§9 身分統一(🅱)**:6 區 clientMix 維持不動、只加 mapPos+terrain;引擎 `DEFAULT_POSITIONS` 更新成 6 區真 id 正典座標;無孤兒 id;缺 terrain/mapPos 時 fallback(med/AUTO)不報錯。
 
 ---
 
