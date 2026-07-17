@@ -54,7 +54,8 @@
 ### 3.1 何時必用 TransactWrite(「消耗+授予」兩鍵一律原子)
 餵食(扣背包+結算)、配點(扣點數+加節點)、學/升技能(扣道具+寫招)、轉職(驗+改職階)、碎片投入(扣碎片+加數值)、任務發獎(怪獸+ledger)、偷菜(雙方 item)、raid、糖潮 claim、移動搬桶(CORE+world)、孵化、轉生。**來源 S1/S4/S7b**。
 
-### 3.2 transaction builder 合併同 item mutation(**階段9 必做的基礎設施**)
+### 3.2 transaction builder 合併同 item mutation(**階段9 應先寫的共用基礎設施**)
+- **獨立 `YajunbanTransactionBuilder` / shared helper,不塞進薄的 `DDBBaseDAO`**(Codex S8 P1-2:base DAO 只有簡單 CRUD,硬加會難維護)。職責:合併同 key Update、統一 `ClientRequestToken` 管理、條件表達式合併、秒/ms TTL helper(§2)。
 - DDB 同一 TransactWrite **禁對同一 key 兩個操作** → builder 送出前把「同一 item 的多筆 mutation」**合併成一個 Update**。
 - **範例(重生結算,S6/S7b P1-4)**:結算要動 M#CORE 的 `xp/reputation/battle_deaths/釋放 activeBattleId` **又要**寫重生落點 `pos/posVersion` → **不可**巢狀呼叫 world `moveTo()` 再生第二個 M#CORE Update,builder 合併成**單一 M#CORE Update**,再加 `Delete 舊 OCC`/`Put 新 OCC`/`Update battle state`。
 
@@ -93,7 +94,24 @@
 - LOOT 拾取:`attribute_exists(sk) AND ttl > :nowSec`(恰好一次+排到期未刪)。
 > 來源 S4/S5a/S6/S7b。
 
+### 4.4 條件式原子扣減/加值(**≠ RMW 樂觀鎖**,Codex S8 P1-3)
+與 §4.1 不同:這類**不需先讀**,單一條件寫天然原子。DAO 另立一組 `conditional guards`:
+| 對象 | 扣減 | 加值/上限 | 來源 |
+|---|---|---|---|
+| INV# 道具 `qty` | `SET qty = qty - :n` + `ConditionExpression qty >= :n` | 拾取 `SET qty=if_not_exists(qty,:0)+:n`(含首綁補 metadata,§ S4);**堆疊上限** `qty + :n <= :cap`(一般 999、唯一性道具 1) | S4:117 |
+| shards[color]、talent_points、資源 res.x | 各自 `x >= :cost` 條件扣 | `SET res.x = if_not_exists(res.x,:0) + :amt` | S1/S4 |
+- 是餵食/學技能/升級/轉生消耗/碎片投入的核心 guard;失敗 = **業務拒絕**(數量不足),歸 §「ConditionalCheckFailed 處理分類」。
+
 ---
+
+## ⚠️ 4.6 `ConditionalCheckFailed` 處理分類(Codex S8 P1-6:不是全往上炸)
+條件寫失敗**不是**一律例外。階段9 DAO 要**統一錯誤分類**成三類,各自處置:
+| 類別 | 觸發 | 處置 |
+|---|---|---|
+| **冪等 no-op**(成功語意) | 結算 `state != ACTIVE`(已被別層先結算) | **吞掉當成功**、read-back 現值回傳,不重試不報錯 |
+| **樂觀鎖衝突→重試** | `khui`/`posVersion`/`generation`/`soul.version`/`resTickAt` 條件不符(有人先寫) | **重讀最新值→重算→重送**(有限次退避);超次才炸 |
+| **業務拒絕**(給玩家看的正常結果) | INV `qty` 不足、LOOT `ttl` 過期、`activeBattleId` 被占用、資源 `res.x < cost` | 轉成**業務錯誤碼**(「材料不夠」「已被搶走」「戰鬥中」),**不是系統例外** |
+- TransactWrite 失敗只回一個 `TransactionCanceledException` + `CancellationReasons` 陣列 → DAO 要**解析 reasons 定位是哪個 item/哪類**,別籠統重試(樂觀鎖可重試、業務拒絕重試無意義)。
 
 ## 5️⃣ lazy compute & virtual-state 權威(零背景 job 的核心)
 
@@ -105,6 +123,7 @@
 ### 5.2 virtual-state 權威判定(S5b P0,消除 worker 空窗)
 - 逃跑/生病等「跨界態」= **`computeVirtualState(now)` 純推導**為權威:`virtualZeroAt = last_interaction + friendship值 × 86400000`;persisted `zero_*_since`/`sick_type` **僅快取、非唯一真相**。
 - 效果:**純讀熱路徑零寫**,又不依賴背景 worker 準時跑。
+- **統一單一出口**(Codex S8 P1-4):`computeVirtualState(coreItem, now)` **回傳整包 computed state**——`friendship/satiety/mood/khui` 現值 + `zeroAt/sickAt` 等衍生態。**面板讀取、死亡判定、DTO 帶名化、互動前檢查全走同一套**,禁 DAO/DTO/戰鬥入口各算一次(否則出現「面板看沒病、死亡判定說病了」的分歧)。§5.3 的 khui 現值、§5.1-A 的顯示值都併進此出口。
 
 ### 5.3 Khui 現值(S5b P0:只存 ts 不夠)
 - STAGE3 已加 **`khui` 值欄**;現值 = `min(5, khui + floor((now − khui_last_ts)/間隔))`(一般 20 分、新手 Stage1–2 10 分);消費寫 `khui = 現值 − n` 且更新 `khui_last_ts`。
@@ -122,9 +141,20 @@
 
 ---
 
+## 🏰 6.5 堡壘 5 表 DAO checklist(Codex S8 P1-5:不只指路)
+堡壘子系統(fortress/raid/sugar-pulse/guild-pool/ledger)已定案(5f6e62b),但階段9 要照做的原子/順序形狀在此列明,別漏:
+- **建堡壘四段式**:`state=CREATING` **先落 DDB**(`attribute_not_exists(playerId)` 條件 Put)→ **才做 Discord side-effect**(建頻道/邀請)→ 成功再 `SET state=ACTIVE`(條件 `state=CREATING`)。**DDB 佔位一定先於外部副作用**,防孤兒頻道;逾時 CREATING 可回收。
+- **內政 lazy 結算**:`resTickAt = 舊值` 樂觀鎖(§4.1),離線產出按 `upgradeDoneAt` 切段 + 12h/12h/24h 上限 + 扣兵糧。
+- **raid 恰好一次**:`RESOLVED → LOOTED` **兩段式**(先標 RESOLVED 才發 loot,`ConditionExpression` 擋重複掠奪);對齊 LOOT/PVP# 恰好一次族。
+- **糖潮 claim**:`CLAIM + META + fortress` **三 item 單一 TransactWrite**(恰好一次語意);大規模才 shard META(§9)。
+- **guild-pool 挑伺服器**:Scan 挑 ACTIVE 負載最低 → 條件 `ADD usedChannels` + `usedChannels < capacity`。
+- **GSI pagination loop**:`level-index` 段位配對**必 pagination loop**(護盾/自己/activeRaid 濾光後可能整頁空,要續撈);沿用 §7 `queryAll()`。
+> 來源 S1 §1-5(150–174 行)。本檔只列 DAO 形狀,數值/流程細節仍以堡壘既定案為準。
+
 ## 7️⃣ 鍵/屬性命名 · 掃描 · 排序
 - **SK 物理屬性名 `sk`**(monster+ledger 一致);DAO 一律 `ExpressionAttributeNames {"#sk":"sk"}`,**不寫概念名 `SK`**(S7a P2-6b)。
-- **Scan 必分頁 loop**(`LastEvaluatedKey`);單次 1MB 會截斷(踩過的雷)。分析彙整(種族分佈/Stage 漏斗)`FilterExpression #sk = :core`(`:core="M#CORE"`,只數核心顆免一隻怪重複計)。**來源 S7a**。
+- **Query 與 Scan 都必分頁 loop**(`LastEvaluatedKey`/`ExclusiveStartKey`);單次 1MB 會截斷(踩過的雷)。⚠️ **現有 `DDBBaseDAO.query()`/`scan()` 都只回第一頁**(`return res.Items`,無 loop,已核 `sweetbot-next/DAO/DDB/DDBBaseDAO.js:60/80`)→ 階段9 **必加 `queryAll()`/`scanAll()` helper** 做 `LastEvaluatedKey` loop,ledger 重放 / world bucket / fortress GSI / 背包 Query 全靠它,別直接用薄 base 的單頁版。**來源 Codex S8 P1-1**。
+- 分析彙整(種族分佈/Stage 漏斗)`FilterExpression #sk = :core`(`:core="M#CORE"`,只數核心顆免一隻怪重複計)。**來源 S7a**。
 - **ts 字典序**:ledger `sk` 的 `ts` = `String(Date.now())` 13 位,到 2286 年前字典序=時間序,**不補零**(對齊 fortress-ledger)。
 - **世界桶**:`gridBucket = floor(x/B)","floor(y/B)`,`B=16`;相鄰 R=1/重生 R=8 皆最壞 2×2=4 桶(**前提整數棋格**,S7b P2-6a);`B` 改動只能在賽季邊界。
 - **season 必帶**:ledger 每列 `season`=v1 全域 config seasonId,缺值退 `"S_UNKNOWN"` 佔位(不略過屬性),保 season-index 免 backfill。**來源 S5a/S7a P2-6c**。
@@ -155,9 +185,19 @@
 
 ---
 
-## ➡️ 交給 Codex 二驗的收口點
-1. **覆蓋完整性**:階段1–7 有沒有工程地雷/慣例**沒被收進本清單**(尤其堡壘 5 表的原子/樂觀鎖細節本檔只指路未展開,是否要納)。
-2. **§3.2 transaction builder**:是否為階段9 應**先寫的基礎設施**(合併同 key mutation + ClientRequestToken 管理 + 秒/ms 封裝),建議定成 DAO base class 能力。
-3. **§4.1 樂觀鎖清單**:5 個樂觀鎖的條件欄有沒有漏(特別 INV# qty 扣減的 `qty>=:n` 是否該列入)。
-4. **§5.2 virtual-state**:純推導權威 vs persisted 快取的邊界,階段9 要不要一個統一 `computeVirtualState()` 出口涵蓋 逃跑/生病/friendship/satiety。
-5. 本檔定位=**不新增決策只彙整**,若發現某條其實與定稿階段**衝突**(而非只是複述)→ 屬真 finding,回指原階段修。
+## 🔍 Codex 二驗 findings + Claude vet 處置(2026-07-17)
+Codex(Neku)二驗:**無 P0**,6 P1 全屬「補齊共用基礎設施」。Claude 逐條 vet(含核 `DDBBaseDAO.js:60/80`、`STAGE4:117`):**6 條全成立、全採納**。
+
+| # | Codex P1 finding | vet | 處置 |
+|---|---|---|---|
+| P1-1 | 只寫 Scan 分頁不夠,**Query 也要**;現有 `DDBBaseDAO.query()/scan()` 只回第一頁 | ✅ 已核 code | §7 加 `queryAll()/scanAll()` helper 要求 |
+| P1-2 | transaction builder 該獨立 helper,別塞薄 `DDBBaseDAO` | ✅ 合理 | §3.2 改「獨立 `YajunbanTransactionBuilder`」 |
+| P1-3 | INV# 漏,且是**條件式原子扣減≠RMW 樂觀鎖** | ✅ 分類正確 | 新增 §4.4 conditional guards(qty≥n + 堆疊 cap) |
+| P1-4 | `computeVirtualState()` 統一出口,回 friendship/satiety/mood/khui/zeroAt/sickAt | ✅ 防分歧 | §5.2 強化為單一出口、四處共用 |
+| P1-5 | 堡壘 5 表只指路不夠,要 DAO checklist | ✅ 該展開 | 新增 §6.5 堡壘 checklist(四段式/RESOLVED→LOOTED/糖潮三item/guild-pool/GSI loop) |
+| P1-6 | 補 `ConditionalCheckFailed` 處理策略(no-op/重試/業務拒絕) | ✅ 真缺 | 新增 §4.6 三類錯誤分類 + 解析 CancellationReasons |
+| P2-* | (Codex 訊息被截斷,未收到) | ⏳ 待補 | 已回請 Codex 重貼 P2 全文 |
+
+## ➡️ 定稿前 · 剩餘收口
+- **P2 待補**:Codex P2 建議被截斷,補齊後再定稿。
+- 本檔定位=**不新增決策只彙整**;上述 6 P1 皆屬「補齊實作基礎設施/分類」,無一與定稿階段衝突(未回改任何上游階段)。
