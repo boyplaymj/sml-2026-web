@@ -1,6 +1,6 @@
 # 牙菌斑怪獸 · DDB 資料模型 — 階段6:戰鬥租約表 `sweetbot-yajunban-battle`
 
-> **草稿 · 待 Claude 覆核 + Codex 二驗**（產出 2026-07-17）
+> **定稿 · Claude 覆核 + Codex 二驗已合流(2026-07-17)**:3 P0 修正(開戰鎖 activeBattleId 防雙開、version 移記憶體結算靠 state=ACTIVE、Khui 扣 RMW 樂觀鎖)+ 3 P1(PvP 雙方 CORE、24hr 業務閘、PVP# 回填)。（產出 2026-07-17）
 > 承接 [STAGE2-schema-decision.md](./STAGE2-schema-decision.md) 決策①(battle 獨立表)、[STAGE1-access-patterns.md](./STAGE1-access-patterns.md) §1-3(戰鬥+棋盤存取模式)、[STAGE3-schema-DRAFT.md](./STAGE3-schema-DRAFT.md)(M#CORE 戰鬥數值/battle_deaths/hp 語義)。
 > 語義來源:設計冊 `score-repo/yajunban_design.html` §section-battle(3×3/8步管線/19狀態/pH/三層終結/租約崩潰安全)、§section-board(菌氣 Khui 移動/賽季地圖/重生)。型別慣例:`sweetbot-next/DAO/DDB/*`(DDBBaseDAO / TrainTycoonTransitDAO 的 `TransactWriteCommand`、PuzzleRoundDAO 的 epoch ms createdAt)。
 
@@ -78,11 +78,11 @@
 
 | 屬性名 | 型別 | 語義 | 說明 |
 |---|---|---|---|
-| `battleId` | S | **PK**,單場戰鬥唯一鍵 | ULID(開戰生成,時間可排序);冪等三元組之一 |
+| `battleId` | S | **PK**,單場戰鬥唯一鍵 | ULID(開戰生成,時間可排序);結算冪等靠 `state=ACTIVE`+ClientRequestToken(version 已移記憶體,P0-2) |
 | `state` | S | 場次生命狀態 | enum `ACTIVE`(進行中)/`RESOLVED`(已結算)。**存活判斷靠此 + `leaseExpireAt` 比時間戳,絕不靠 TTL 是否已刪**(見鐵律①) |
 | `battleType` | S | 戰鬥種類 | enum `PVE`/`PVP`(已定案);預留 `BOSS`/`RAID`/`QUEST`/`TREASURE`(存疑6) |
-| `version` | N | 樂觀鎖 / 回合推進版本 | 每回合推進 +1;結算 `ConditionExpression version = :expected` 防過期按鈕/亂序(對齊設計冊「版本號守衛 turn_id」)。初值 `0` |
-| `action_id` | S | 最後處理的互動冪等 token | 每次按鈕互動帶 `turn_id`/`action_id`;`= 當前` 則忽略重送(防連點/重連多觸發)。與 `battleId+version` 組成**冪等三元組**(STAGE1 §1-3) |
+| ~~version~~(移出 DDB) | — | **回合版本留記憶體**(Codex 階段6 P0-2) | 每回合 +1 在 bot View 記憶體,**不落 DDB**(回合零 DDB 寫);若落 DDB version 會停在 0 使結算條件形同無效→ DDB 結算冪等改靠 `state=ACTIVE`,不靠 DDB version |
+| ~~action_id~~(移出 DDB) | — | **互動去重留記憶體** | 按鈕 turn_id/action_id 在 View 記憶體去重;DDB 側結算冪等 = `state=ACTIVE` 條件 + 結算 ClientRequestToken |
 | `attackerId` | S | 攻擊方(先按攻擊者)Discord userId | 對應 M#CORE 之 PK;結算寫回此人 M#CORE |
 | `defenderId` | S | 防禦方 | PvP=對方 `userId`;PvE=`NPC#<templateId>#<spawnUlid>`(存疑7) |
 | `attackerRef` | M | 攻擊方開戰快照(啟動資訊) | `{ userId:S, race:S, stage:N, pos:{ x:N, y:N }, snapAt:N(ms) }`——只存啟動/相剋/重生所需最小集,**不快照 build**(存疑3) |
@@ -103,37 +103,49 @@
 
 ### 3.1 開戰(條件寫,防重複開戰 + 承接崩潰自癒)
 ```
-Khui 前置:先在 M#CORE 原子扣 2 Khui(ConditionExpression 現值 khui≥2,防超支;
-          扣後不退還——即使中途棄賽,對齊設計冊)。可與下方開戰同 TransactWrite。
-PutItem sweetbot-yajunban-battle
-  Item: { battleId(新ULID), state=ACTIVE, battleType, version=0, action_id(初值),
-          attackerId, defenderId, attackerRef, defenderRef,
-          leaseExpireAt=floor(now/1000)+WINDOW_SEC, createdAt=now(ms), updatedAt=now(ms) }
-  ConditionExpression: attribute_not_exists(battleId)      // ULID 幾乎不撞;防同 id 重寫
+開戰 = 單一 TransactWrite(原子:開戰鎖 + Khui RMW 扣 + 建租約)。
+DAO 先讀雙方 M#CORE 拿 khui 快照(base+ts)+ activeBattleId,再:
+TransactWrite (ClientRequestToken=<開戰冪等碼>) {
+  ① Update M#CORE(attacker):
+       SET activeBattleId=<新ULID>, activeBattleExpireAt=now+WINDOW_MS,
+           khui=:computedKhui-2, khui_last_ts=now, updatedAt=now
+       Condition: (attribute_not_exists(activeBattleId) OR activeBattleExpireAt < :nowMs)  // 開戰鎖:不在別場(P0-1)
+                  AND khui=:readBase AND khui_last_ts=:readTs                              // khui RMW 樂觀鎖(P0-3)
+  ② Update M#CORE(defender)（PvP 才有;PvE 無此顆）:
+       SET activeBattleId=<同ULID>, activeBattleExpireAt=now+WINDOW_MS
+       Condition: attribute_not_exists(activeBattleId) OR activeBattleExpireAt < :nowMs      // 防被重複拉入戰
+  ③ Put battle:
+       { battleId, state=ACTIVE, battleType, attackerId, defenderId, attackerRef, defenderRef,
+         leaseExpireAt=floor(now/1000)+WINDOW_SEC, createdAt=now(ms), updatedAt=now(ms) }
+       Condition: attribute_not_exists(battleId)
+}
 ```
-- **防「同時對同一目標重複開戰」**不是靠此 battleId(每次都是新 ULID),而是靠**開戰前置檢查**:PvP 讀 `PVP#<opponentId>` 關係 item 比 CD(存疑1)+ 讀對手座標確認仍相鄰;PvE/位置類再比對手 `arriveAt`/是否已移動(移動了 → 攻擊失敗、Khui 仍扣)。
+- **防重複開戰(P0-1)**:靠 ①② 的 `activeBattleId` 鎖(不存在或已過期才可開),**非** `attribute_not_exists(battleId)`(每次新 ULID 擋不住)。TOCTOU race 被鎖擋——兩個並發開戰只有一個過鎖條件、另一個整筆 rollback(Khui 也不扣)。
+- **Khui 扣 RMW(P0-3)**:khui 是 virtual(lazy 算),Condition **不能**寫 `khui≥2`(算不了 `khui+regen`)→ DAO 先讀 base+ts 快照,交易條件 `khui=:readBase AND khui_last_ts=:readTs` 樂觀鎖,SET `computedKhui-2`;併發或自然回復使快照失效則 condition 失敗重讀重試。扣後不退還(棄賽亦然)。
+- **崩潰自癒**:`activeBattleExpireAt`/`leaseExpireAt` 過期 = 鎖自動釋放、可重開。
 - **崩潰自癒**:舊場若 bot 崩潰未結算 → 其租約 `leaseExpireAt`(秒)到期後 DDB 自動 GC(免費);**但**自癒判定**不等** DDB 真的刪(TTL 可延遲 48h),而是**開戰/互動時比** `now > leaseExpireAt*1000 || state=RESOLVED` → 過期租約視同不存在、可開新場。
 
 ### 3.2 結算(KO/逃跑/3回合平手 → 1 次寫,同交易釋放租約)
 ```
 TransactWrite (ClientRequestToken = <場次結算冪等碼>) {
-  ① Update M#CORE(attacker):  SET xp += drop.xp(PvE), reputation ±= Δ,
-                              pos = 重生落點(若敗), last_interaction=now,
-                              battle_deaths = if_not_exists(battle_deaths,0)+1(若戰死),
-                              updatedAt=now(ms)
-                              [PvE ADD/累計型走 xp;狀態型 battle_deaths 需條件+上限3判永久死亡]
-  ② Update sweetbot-yajunban-battle(此 battleId):
-        SET state=RESOLVED, resolvedReason, resolvedAt=now(ms),
-            leaseExpireAt = floor(now/1000)+GC_SEC(縮短交 GC), updatedAt=now(ms)
-        ConditionExpression: state = ACTIVE AND version = :expectedVersion   // 冪等:第二次結算讀到 RESOLVED 即被拒
-  ③ (PvP) Update/Put PVP#<opponentId> 關係 item ×2(雙向): lastEndAt=now, 
-            lastRewardAt(僅24hr首戰)   // lazy-prune·不開 TTL(monster 表永不開 TTL,見覆核)
+  ① Update M#CORE(attacker): SET xp += drop.xp(PvE), reputation ±= Δ, last_interaction=now,
+        battle_deaths = if_not_exists(battle_deaths,0)+1(若戰死), pos=重生落點(若敗),
+        REMOVE activeBattleId, activeBattleExpireAt,        // 釋放開戰鎖
+        updatedAt=now(ms)
+  ①b (PvP) Update M#CORE(defender): 同上結算雙方(reputation/pos/battle_deaths/last_interaction
+        /釋放鎖)——**PvP 必須寫雙方 CORE**(Codex P1-4),PvE 只寫一顆;builder 合併同 key
+  ② Update battle(此 battleId): SET state=RESOLVED, resolvedReason, resolvedAt=now(ms),
+        leaseExpireAt=floor(now/1000)+GC_SEC(縮短交 GC), updatedAt=now(ms)
+        ConditionExpression: state = ACTIVE                 // 冪等:第一次結算即翻 RESOLVED,其餘拒(P0-2,不靠 DDB version)
+  ③ (PvP) Update PVP#<opponentId> ×2(雙向): SET lastEndAt=now
+        (+ SET lastRewardAt=now 僅當 Condition attribute_not_exists(lastRewardAt) OR lastRewardAt<=cutoff)  // 24hr 首戰業務閘 P1-5
+        // lazy-prune·不開 TTL(monster 表永不開 TTL)
   ④ (PvP 掉落/道具) Update INV#<itemId>: SET qty = if_not_exists(qty,0)+n     // monster 表 backpack, STAGE2 決策⑦
 }
 ```
 - **permadeath**:`battle_deaths+1` 達 3 → 引擎觸發永久死亡流程(轉生/封存,屬階段4/引擎),schema 面只保證 CORE 有 `battle_deaths` 狀態型欄(STAGE3)。
 - **PvP 不給 EXP**:只 `reputation` + 掉落 + 地圖優勢(設計冊)。EXP 僅 PvE/日常互動。聲望懲罰(打低 2 階以上 → 聲望反降)在 Δ 計算內。
-- **冪等雙層**:同 item 冪等靠 ②的 `version` 條件;**跨 item 轉資源**(碎片/道具/雙向 PVP)靠 `TransactWrite` + `ClientRequestToken`(STAGE1 設計影響)。
+- **冪等雙層**:同 item 冪等靠 ②的 `state=ACTIVE` 條件(第一次結算翻 RESOLVED,其餘拒;**不靠 DDB version**,回合版本在記憶體,P0-2);**跨 item 轉資源**(碎片/道具/雙向 PVP)靠 `TransactWrite` + `ClientRequestToken`。
 
 ### 3.3 AFK 確定性結算(L2)
 - 觸發:連續 2–3 回合無動作(引擎 asyncio 計時器,掛機方不需操作)。判 AFK 前給 **~30 秒重連寬容窗**(區隔真斷線 vs 惡意掛機)。
@@ -167,7 +179,7 @@ TransactWrite (ClientRequestToken = <場次結算冪等碼>) {
 | ① | TTL 只做 GC、絕不當即時鎖 | 存活判斷一律比 `state=ACTIVE && now≤leaseExpireAt*1000`(§3.1);TTL 僅免費 GC 殭屍(§3.4);租約秒/ms 分離(鐵律①) |
 | ② | 戰鬥暫態不落此表、放記憶體 | §2 明列 HP/pH/狀態層/回合全在 bot 記憶體;崩潰即棄不 resume |
 | ③ | 結算 1 次 | §3.2 單一 TransactWrite:M#CORE 塞全部變動 + 標記租約 RESOLVED + permadeath +1;高頻回合零 DDB 寫 |
-| ④ | 冪等雙層 | 同 item = `version` 條件(§3.2②);跨 item 轉資源 = TransactWrite + ClientRequestToken(§3.2 header);互動去重 = `action_id`(§2) |
+| ④ | 冪等雙層 | 同 item = `state=ACTIVE` 條件(§3.2②,不靠 DDB version,P0-2);跨 item 轉資源 = TransactWrite + ClientRequestToken(§3.2 header);回合去重 = 記憶體 turn_id/action_id(§2,不落 DDB) |
 | ⑤ | 防重複開戰 + 崩潰自癒 | Put `attribute_not_exists(battleId)` + 開戰前置比 CD/座標/過期租約(§3.1);過期租約視同可重開(§3.1/§3.4) |
 | — | 空 SS 不寫 / 巢狀 SET+if_not_exists 非 ADD / 未設不寫 | `battle_deaths`/`INV.qty` 用 `SET if_not_exists(x,0)+n`(§3.2,呼應 STAGE3 覆核「ADD 不作用於巢狀 Map」);快照 M 只塞有值欄 |
 
@@ -184,7 +196,7 @@ TransactWrite (ClientRequestToken = <場次結算冪等碼>) {
 
 ## ✅ Claude(Opus)覆核 — 2026-07-17
 
-整體:優秀。TTL 秒/毫秒處理到位(頭號鐵律+逐欄+DAO 封裝)、租約非即時鎖、暫態不落庫、結算 1 次、冪等三元組全對。**發現 1 個安全隱患 + 存疑1/2/3 拍板**:
+整體:優秀。TTL 秒/毫秒處理到位(頭號鐵律+逐欄+DAO 封裝)、租約非即時鎖、暫態不落庫、結算 1 次。**發現 1 個安全隱患 + 存疑1/2/3 拍板**(註:結算冪等原寫「三元組」,經 Codex P0-2 修正為 `state=ACTIVE`+記憶體 version):
 
 **🔴 安全隱患:別在 monster 表開原生 TTL**
 - 草案 PVP# 關係 item 建議帶 `ttl`(秒)交 DDB GC。但 PVP# 放 monster 表(PK=userId),而 **monster 表裝的是永久玩家資料(M#CORE/BUILD/PROGRESS/PERMANENT/ACHIEVE)——在這張表開 native TTL 是 foot-gun**:任何 bug 誤寫 `ttl` 到永久 item 就被靜默刪除。
@@ -197,6 +209,21 @@ TransactWrite (ClientRequestToken = <場次結算冪等碼>) {
 - **存疑4/5/6/7**:背書——AFK 崩潰即棄場、租約結束標 RESOLVED+短 TTL(冪等哨兵勝過即時 Delete)、battleType 預留 enum、PvE `NPC#` 前綴。
 
 **回 Codex #2(三層終結重複結算)**:`ConditionExpression state=ACTIVE` 已擋——L1/L2/L3 任一先結算即設 RESOLVED,其餘結算條件失敗 no-op,不只靠 version。sound。
+
+## 🔍 Codex 階段6 二驗 findings + Claude vet 處置(2026-07-17)
+
+3 P0 + 3 P1 全採納(P0 都是真問題、互相關聯):
+
+| # | finding | 處置 |
+|---|---|---|
+| P0-1 | 開戰防重複 race window(`attribute_not_exists(battleId)` 擋不住同時開兩場) | 加**開戰鎖** M#CORE `activeBattleId`+`activeBattleExpireAt`,開戰 TransactWrite 條件雙方鎖不存在或過期(STAGE3 補欄+§3.1 改) |
+| P0-2 | `version` 每回合+1 與「回合零 DDB 寫」矛盾 | version/action_id **移出 DDB 留記憶體**;DDB 結算冪等只靠 `state=ACTIVE`(§2/§3.2/§5 改) |
+| P0-3 | Khui 扣 2 condition 算不了 virtual khui | 改 **RMW 樂觀鎖** `khui=:readBase AND khui_last_ts=:readTs` SET computedKhui-2(§3.1 改) |
+| P1-4 | PvP 結算不能只寫 attacker CORE | PvP 寫**雙方 CORE**、PvE 一顆(§3.2 ①b) |
+| P1-5 | 24hr 首戰獎勵需業務閘非只 ClientRequestToken | PVP# 發獎帶 `attribute_not_exists(lastRewardAt) OR lastRewardAt<=cutoff` 條件(§3.2 ③) |
+| P1-6 | PVP# 新 item family 需回填 STAGE2/4 | 已回填 STAGE2 ERD(順補上漏的 PLAYER#ACHIEVE) |
+
+**開戰鎖 = 崩潰自癒二用**:`activeBattleId`/`activeBattleExpireAt` 既防雙開(P0-1),過期又=鎖釋放可重開(自癒),與 battle 表 `leaseExpireAt` 呼應;「玩家一次一戰」語義由此鎖保證。
 
 ## ➡️ 交回 / 下一步
 - Claude 覆核上方**存疑1/2/3**(PvP CD/24hr/重生/快照粒度落點)拍板後,可去 DRAFT。

@@ -77,8 +77,10 @@
 sweetbot-yajunban-monster (single-table, PK overloading)
   PK=userId:
     ├─ SK M#CORE / M#BUILD / M#PROGRESS   怪獸三顆(轉生 exact-key 覆寫重置)
-    ├─ SK INV#<itemId>                     背包道具(qty,原子扣)        [⑦ 新增]
-    └─ SK PLAYER#PERMANENT                 永久(碎片/職人資歷/祖傳天賦/appAccountId)
+    ├─ SK INV#<itemId>                     背包道具(qty,原子扣)        [⑦]
+    ├─ SK PVP#<opponentId>                 PvP CD/24hr 關係(lazy-prune·無 TTL)  [階段6]
+    ├─ SK PLAYER#PERMANENT                 永久(碎片/職人資歷/祖傳天賦/appAccountId)  [轉生保留]
+    └─ SK PLAYER#ACHIEVE                   成就/圖鑑/稱號              [階段4·轉生保留]
   PK=APP#<appAccountId>:
     └─ SK IDENTITY → userId                綁定唯一鎖 attribute_not_exists [④ 修正]
 

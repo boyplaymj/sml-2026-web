@@ -60,6 +60,8 @@
 | `sick_type` | S | `"none"` | 生病旗標:`none`/`starve`(飢餓型)/`obese`(臃腫型)。卡進化門檻+HP 流失。見存疑⑥。**(決策⑥補欄,原僅 obesity_level)** | — |
 | `sick_since` | N | `null` | 生病起始 epoch ms(未病=null),供 DoT/未處理則死判定 | — |
 | `pos` | M | `{x:0,y:0}` | 棋盤座標。移動消耗菌氣寫入。見存疑⑨(zone 維度待 section-board) | `{ x:N, y:N }` |
+| `activeBattleId` | S | (未戰時不寫) | **開戰鎖**(Codex 階段6 P0-1):進行中戰鬥 battleId。開戰 TransactWrite 條件 `attribute_not_exists(activeBattleId) OR activeBattleExpireAt<now` 防雙開/被重複拉入戰;結算 REMOVE。過期=自癒可重開。保證「一次一戰」 | — |
+| `activeBattleExpireAt` | N | (未戰時不寫) | 開戰鎖過期(epoch ms);崩潰未結算則過期→鎖自動釋放 | — |
 | `khui` | N | (孵化滿 5) | **菌氣當前基準值**(Codex 階段5 P0-1:只存 ts 不夠,公式需 base)。讀時現值=`min(5, khui + floor((now−khui_last_ts)/間隔))`;消費(移動−1/戰鬥−2)時 `SET khui=現值−消費, khui_last_ts=now`(條件防超支) | — |
 | `khui_last_ts` | N | `Date.now()` | 菌氣回復基準時間(epoch ms)。間隔=20 分/新手 Stage1–2 10 分;與 `khui` 配對算現值,零週期寫、僅消費時更新。**(決策⑥補欄)** | — |
 | `last_interaction` | N | `Date.now()` | 最後開面板/照顧互動(epoch ms)。友好每日 −1 衰退 + 心情新鮮度 + B 情境呼喚判定的基準 | — |
