@@ -47,6 +47,17 @@
 - **replaceSlotIfKey 整合（真表，測試列後刪）**：正確 key→true 且換成新格保持 rerollable、idx1 未動、stale key→false（擋雙擊）、claimed 格→false、測試列已清 → **9/9 斷言通過**。
 - `claimSlot` 冪等已在 D1 對真表驗過（true/false）。
 
+## Codex 二驗修正（2 blocker → 金流交易化）
+
+Codex 抓到金流非原子(givePoint 吞錯 → 標已領卻沒入帳;重抽三步非交易 → 免費重抽/穿底)。已改用**單一 TransactWrite**(對齊 train-tycoon / live-vote 房規):
+
+- **`DailyQuestDAO.claimAndCredit(id,date,index,pointΔ,expΔ)`**:同一交易 =「SET quests[i].claimed(條件 done && !claimed)」+「viewer ADD point/exp」。同生同滅 → 不會標已領卻沒入帳;`TransactionCanceledException` → 回 false(已領)。
+- **`DailyQuestDAO.rerollAndCharge(id,date,index,oldKey,newSlot,cost)`**:同一交易 =「SET quests[index]=newSlot(條件 key 未變 && !claimed)」+「viewer ADD -cost(條件 point>=cost)」。→ 雙擊只一方成功、不免費重抽、餘額不穿底。
+- **記帳分離**:point-log / tax-ledger 由 `DailyQuest.recordPointLog()` 在交易成功**後**補寫(非餘額正確性關鍵),語義同 `givePoint` 的 log 段;為避免動到共用 `ViewerDetailDAO`(tax session 正在改)改用本檔自有的 PlayerPointLog/TaxLedger DAO。
+- **prop 獎**:P1 種子池無 prop 任務;prop 路徑仍走 `claimSlot`(原子標)+`giveLogic`(與現有 DailyCheckIn 發道具同標準,非交易化)→ 已在程式與此處**明確標為未交易化**,待日後有 prop 任務再處理。
+
+**驗證(TransactWrite 對真表,13 斷言)**:claimAndCredit 標claimed+餘額+150🦷/+30exp、二次 false 且不重複入帳；rerollAndCharge 足額換格扣80、餘額<80 → false 且**不扣不換(原子中止)**、slot 未變；測試 viewer+daily 列已清。sweetbot-next `bdaae45`。
+
 ## Codex 查驗點
 
 1. **領獎冪等**：`onClaim` 先 `claimSlot` 再 givePoint（mark-then-pay）；雙擊/並發只發一次。
