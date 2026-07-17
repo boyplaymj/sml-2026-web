@@ -51,7 +51,7 @@
 | `charm` | N | `0` | 魅力值。**累計型**(只增)。技能/道具解鎖門檻+進化門檻+外觀提示。🔒裸值 | — |
 | `friendship` | N | `0` | 友好度。**狀態型 0–100**(每天無互動 −1,lazy)。羈絆技功率/進化門檻/歸零逃跑。需強一致+上限檢查。🔒裸值(DTO→分帶😄😊😐😤) | — |
 | `reputation` | N | `0` | 聲望。**累計型**(只增)。門檻+防閉關練功;=0 持續 7 天觸發逃跑(見 zero_reputation_since)。🔒裸值 | — |
-| `survival_hours` | N | `0` | 存活時數。**累計型**。可由 born_at lazy 算,但設計冊列為欄位→保留(A 層被動加/離線累計)。🔒裸值 | — |
+| `survival_hours` | N | `0` | 存活時數。**累計型·活動/A層被動吸收累計**(離線亦累計)。⚠️ **非 `now−born_at`**;`born_at` 只作年齡/進化天數基準,不當 survival_hours 計算源(Codex Stage3 合流 #5)。🔒裸值 | — |
 | `xp` | N | `0` | 累計 EXP。**累計型**。只解鎖(進化/技能/插槽/菌核躍動),不加裸戰鬥數值。🔒裸值 | — |
 | `obesity_level` | N | `0` | 肥胖等級 **0–10**。**狀態型**(收支結算,ADD 但夾限)。7–9 生病風險、10 死亡;3/6/9 觸發重生圖。🔒裸值(DTO→體態名) | — |
 | `satiety` | N | (孵化滿值) | 飽食度。**狀態型**(隨時間 lazy 下降,見 last_fed_at)。見底→飢餓生病。🔒裸值。**(決策⑥補欄)** | — |
@@ -70,7 +70,7 @@
 | `createdAt` | N | `Date.now()` | item 建立時間(epoch ms) | — |
 | `updatedAt` | N | `Date.now()` | 最後寫入時間(epoch ms),每次 UpdateItem SET | — |
 
-**孵化 PutItem 初值**(STAGE1 1-1):`ConditionExpression: attribute_not_exists(userId)` 防重複孵化;`stage=1, xp=0, charm/friendship/reputation/survival_hours=0, obesity_level=0, battle_deaths=0, satiety=滿, sick_type=none`。
+**孵化 = 單一 `TransactWrite` 原子建立 M#CORE + M#BUILD**(Codex Stage3 合流 #3:不可只 Put M#CORE,否則中途失敗留半隻怪獸)。兩顆各帶 `ConditionExpression attribute_not_exists(userId)` 防重複孵化。M#CORE 初值:`stage=1, xp=0, charm/friendship/reputation/survival_hours=0, obesity_level=0, battle_deaths=0, satiety=滿, sick_type=none`;M#BUILD 初值:`job_guild=null, job_tier=0, talent_points_available=0, skill_slots=預設空槽`,而 `talent_nodes/talent_unlockable/skill_bag/slots` 屬性**不寫**(缺省視為空)。M#PROGRESS 走 lazy-create(首次接任務/成就時建),或 Stage4 決定納入孵化交易。
 
 ---
 
@@ -82,11 +82,11 @@
 |---|---|---|---|---|
 | `userId` | S | (必填) | PK,同 CORE | — |
 | `sk` | S | `"M#BUILD"` | SK 固定值 | — |
-| `talent_nodes` | SS | (空 set) | **已點天賦節點 id 集合**。選 StringSet:配點=TransactWrite 內 `ADD talent_nodes :node`(冪等原子單節點)+扣點,稀疏(單命點得極少)、可讀、除錯易。替代=145-bit bitmap(B)省 bytes 但失原子單節點寫。見存疑①。🔒:只給結構/方向,裸節點集合經 DTO(戰鬥讀取才配靜態平衡表) | 元素=節點 id 字串,如 `"biofilm_A_3"`, `"acid_B_5"`, `"center_reborn_2"` |
+| `talent_nodes` | SS | **(不寫·缺省=空集)** | **已點天賦節點 id 集合**。⚠️ **DynamoDB 不能存空 SS**(Codex Stage3 合流 #2)→ 預設**不寫此屬性**、缺省視為空;第一次配點用 `ADD talent_nodes :nodeSet` 建立(冪等原子單節點)+扣點。稀疏可讀。🔒:只給結構/方向,經 DTO(戰鬥才配靜態平衡表) | 元素=節點 id 字串,如 `"biofilm_A_3"`, `"acid_B_5"`, `"center_reborn_2"` |
 | `talent_points_available` | N | `0` | 可用天賦點(未花)。進化 +1 / 菌核躍動 +1。配點時原子扣(條件 ≥1)。🔒裸值(只揭「可以點了」事件,不給數字) | — |
-| `talent_unlockable` | SS | (空 set) | **數值天賦「已達門檻可習得」標記集合**(💎 數值天賦環,數值默默跨門檻時寫入)。與 talent_nodes 分開:unlockable=可習得待點、nodes=已點。**(決策⑥點名補欄)**。🔒 | 元素=數值天賦節點 id,如 `"gem_atk_1"` |
+| `talent_unlockable` | SS | **(不寫·缺省=空集)** | **數值天賦「已達門檻可習得」標記集合**(💎 數值天賦環,數值跨門檻時 `ADD` 寫入)。⚠️ 同 talent_nodes:空 SS 不寫、缺省視為空。與 nodes 分開:unlockable=可習得待點、nodes=已點。**(決策⑥點名補欄)**。🔒 | 元素=數值天賦節點 id,如 `"gem_atk_1"` |
 | `skill_slots` | M | (見預設) | 已裝備技能槽(槽數受 stage 限:主動 1→4/被動 1→2/天賦欄固定 1)。裝備/替換寫。存裝備中技能 id | `{ active:L[skillId,...], passive:L[skillId,...], talent:L[skillId] }`;3 格技能佔多格由 DTO/戰鬥層驗 |
-| `skill_bag` | M | `{}` | 技能包包:已學會技能→等級。學新招/升級寫(TransactWrite 扣道具)。基礎技替換不消失、一般技替換遺忘(從 bag 刪)。各技有 Lv 上限(後台平衡閥) | `{ <skillId>: { id:S, level:N } }`(key=skillId,冗存 id 便於取值) |
+| `skill_bag` | M | `{}` | 技能包包:已學會技能→等級。學新招/升級寫(TransactWrite 扣道具)。基礎技替換不消失、一般技替換遺忘(從 bag 刪)。各技有 Lv 上限(後台平衡閥) | `{ <skillId>: { level:N } }`(key 即 skillId,不冗存 id;Codex Stage3 合流 #4) |
 | `job_guild` | S | `null` | 所屬公會:`acid_smith`/`matrix_builder`/`pioneer`/`bridger`/`toxin_chemist`/`schemer`(六公會);未就職=null。轉職 TransactWrite 驗種族禁忌+階段+任務。見存疑⑩ | — |
 | `job_tier` | N | `0` | 職階:0=未就職 / 1=見習(初萌菌) / 2=正職(定殖者) / 3=一轉(優勢種) / 4=二轉(關鍵種,須 Stage6)。🔒對玩家給稱號名 | — |
 | `slots` | M | `{}` | **23 插槽外觀**(疊圖 1–23):每插槽存生成圖 URL + 生成時間。進化/裝備/外觀天賦寫(可 batch)。**只存 URL+ts,是 CORE 拆冷的主因**(不進熱寫)。key=插槽名(body/head_1/arm_l_1…item_r,共 23,見 section-slots) | `{ <slotName>: { url:S, generated_at:N } }`;generated_at=epoch ms(見存疑④) |
@@ -146,6 +146,16 @@
 - **存疑① talent SS vs bitmap**:**我背書 Fable5 選 SS**(單節點原子 ADD 的價值 > 省 15 bytes),但這**推翻了 STAGE2 文件寫的「bitmap」**。定稿時要回頭把 STAGE2 決策②的 talent 存法改成 SS(一致性)。
 
 **驗收方式**:對照設計冊 section-stats/growth/slots 逐欄語義、對照 sweetbot-next DAO 型別慣例、DynamoDB 表達式規則檢查——非只看「schema 長得對」。
+
+### Codex Stage3 合流(2026-07-17,已套用到上表)
+Codex 讀 `49d41a5` 草稿後 6 點,Claude vet 全採納:
+1. **stats 留 CORE** ✅(與 Claude/二驗一致)
+2. **talent SS + DDB 不能存空 SS** → talent_nodes/talent_unlockable 預設不寫、缺省=空、首配點 `ADD` 建立(已改)
+3. **孵化改 TransactWrite 建 M#CORE+M#BUILD**(防半隻怪獸,已改孵化說明)
+4. **skill_bag 簡化** `{<skillId>:{level:N}}`(已改)
+5. **survival_hours 措辭釘死**=活動累計非 `now−born_at`(已改)
+6. **Stage4 可草稿但先不定稿**(碰 `PERMANENT.appAccountId`/轉生保留邊界)
+⚠️ 註:Codex 這輪讀的是 `49d41a5`(P0 修正**前**);**Stage2 兩個 P0 已在 `83008bd` 修好**(③exact-key TransactWrite 覆寫、④`APP#` claim item 唯一鎖),Stage4 拍板可據此。
 
 ## ➡️ 交給階段4+(定稿後)
 
