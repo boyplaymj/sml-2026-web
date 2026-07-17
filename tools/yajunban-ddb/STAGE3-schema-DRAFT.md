@@ -60,13 +60,15 @@
 | `sick_type` | S | `"none"` | 生病旗標:`none`/`starve`(飢餓型)/`obese`(臃腫型)。卡進化門檻+HP 流失。見存疑⑥。**(決策⑥補欄,原僅 obesity_level)** | — |
 | `sick_since` | N | `null` | 生病起始 epoch ms(未病=null),供 DoT/未處理則死判定 | — |
 | `pos` | M | `{x:0,y:0}` | 棋盤座標。移動消耗菌氣寫入。見存疑⑨(zone 維度待 section-board) | `{ x:N, y:N }` |
-| `khui_last_ts` | N | `Date.now()` | 菌氣 Khui 最後結算時間(epoch ms)。**零週期寫**:讀時 `(now−ts)/間隔` 算現值(一般 20 分/新手 Stage1–2 10 分 +1,上限 5),移動扣 1/戰鬥扣 2 時記時間戳。**(決策⑥補欄)** | — |
+| `khui` | N | (孵化滿 5) | **菌氣當前基準值**(Codex 階段5 P0-1:只存 ts 不夠,公式需 base)。讀時現值=`min(5, khui + floor((now−khui_last_ts)/間隔))`;消費(移動−1/戰鬥−2)時 `SET khui=現值−消費, khui_last_ts=now`(條件防超支) | — |
+| `khui_last_ts` | N | `Date.now()` | 菌氣回復基準時間(epoch ms)。間隔=20 分/新手 Stage1–2 10 分;與 `khui` 配對算現值,零週期寫、僅消費時更新。**(決策⑥補欄)** | — |
 | `last_interaction` | N | `Date.now()` | 最後開面板/照顧互動(epoch ms)。友好每日 −1 衰退 + 心情新鮮度 + B 情境呼喚判定的基準 | — |
 | `last_fed_at` | N | `null` | 最後餵食(epoch ms)。satiety lazy 下降基準。**(決策⑥補欄)** | — |
 | `daily_counts` | M | `{}` | 每日照顧次數計數(跨日 lazy 歸零)。摸頭≤3/玩耍≤1/整理≤1/鼓勵≤3(餵食不計,用 satiety 當閥)。**(決策⑥補欄)** | `{ headpat:N, play:N, groom:N, cheer:N }`(缺鍵視為 0) |
 | `daily_reset_date` | S | (今日) | 每日計數重置基準日 `YYYYMMDD`(UTC,DTO 轉時區)。讀時比對→跨日清 daily_counts。見存疑⑦ | — |
 | `zero_friendship_since` | N | `null` | 友好度降到 0 的時間(epoch ms);非 0 時清 null。=0 持續 7 天→逃跑判定。**(決策⑥點名)** | — |
-| `zero_reputation_since` | N | `null` | 聲望降到 0 的時間(epoch ms);非 0 時清 null。=0 持續 7 天→逃跑判定。**(決策⑥點名)** | — |
+| `zero_reputation_since` | N | (未歸零時不寫) | 聲望降到 0 的時間(epoch ms);**快取/通知用,非唯一真相**(可由 reputation 值+時間戳虛擬推導,見 5b P0-2 virtual-state)。=0 持續 7 天→逃跑。**(決策⑥點名)** | — |
+| `rate_mods` | M | `{}` | **lazy rate 修正快取**(Codex 階段5 P1-6):從 M#BUILD 天賦/職業/道具去正規化的 compact 修正,讓 `getStatusCore`(只讀 CORE)能算 khui/satiety/菌圃 lazy 值免讀 BUILD。天賦/職業變更時同步(低頻);缺鍵=用設定表 base rate | `{ khui_regen:N, satiety_decay:N, garden_mature:N, ... }` |
 | `createdAt` | N | `Date.now()` | item 建立時間(epoch ms) | — |
 | `updatedAt` | N | `Date.now()` | 最後寫入時間(epoch ms),每次 UpdateItem SET | — |
 

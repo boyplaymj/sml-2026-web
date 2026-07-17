@@ -1,6 +1,6 @@
 # 牙菌斑怪獸 · DDB 資料模型 — 階段5b:lazy compute 統一規範
 
-> **草稿 · 待 Claude 覆核 + Codex 二驗**（產出日期 2026-07-17）
+> **定稿 · Claude 覆核 + Codex 二驗已合流(2026-07-17)**:2 P0 修正(khui 加 base 值欄、C 型改 virtual-state 權威判定)+ P1-6 rate_mods 快取進 CORE。（產出日期 2026-07-17）
 > 承接 [STAGE1-access-patterns.md](./STAGE1-access-patterns.md)（「lazy compute 零背景 job」鐵律 + 各系統 lazy 欄）+ [STAGE2-schema-decision.md](./STAGE2-schema-decision.md)（resTickAt 樂觀鎖 / DAO 注意）+ [STAGE3-schema-DRAFT.md](./STAGE3-schema-DRAFT.md)（M#CORE/M#BUILD 定稿）+ [STAGE4-schema-DRAFT.md](./STAGE4-schema-DRAFT.md)（M#PROGRESS soul.version RMW）
 > 語義來源:設計冊 `score-repo/yajunban_design.html`（canonical）。數值以設計冊為準;設計冊標「後端精確數值微調」者本檔標 ⏳待定。
 > **性質:跨切面規範**。把散落各 item 的「讀時惰性計算」欄位統一成一套樣板,供階段9 DAO 實作對齊。本檔不新增 schema 欄,只規範「怎麼算、何時寫」。
@@ -32,7 +32,7 @@
 | **mood 心情** | M#CORE `mood` | 不存衰減值;由 `satiety`(算出值)+`last_interaction`+戰鬥近況+成長感即時合成。rate/權重=設定表 | `mood = f(satiety現值, now−last_interaction, 生病, 近期戰果)`;⏳權重待調 | **永不主動落庫**(欄位僅供管理員覆寫/快取);讀時算 | 0–100(DTO 層夾) | **A**(存疑①) | 🔒裸值→emoji+口吻提示,永不出數字 |
 | **satiety 飽食** | M#CORE `satiety`,基準 `last_fed_at` | 存上次餵食後的飽食值 + `last_fed_at`(epoch ms);下降率=設定表⏳ | `satiety現 = clamp(satiety存 − rate×(now−last_fed_at), 0, 上限)` | **唯一寫入=餵食**(重置 satiety + last_fed_at);自然下降不落庫。**跨越見底→落庫寫 sick_type=starve**(存疑②) | 0–滿值(讀時 clamp) | **A**(值)/**C**(生病轉換) | 🔒裸值→需求提示💬 |
 | **friendship 每日 −1** | M#CORE `friendship`,基準 `last_interaction` | 存 friendship 值 + `last_interaction`;−1/天=設計冊確認 | `days = floor((now−last_interaction)/86400000)`;`friendship現 = max(0, friendship存 − days)` | **狀態型有下限**→不可純讀不落。開面板/照顧時 lazy 結算落庫(`SET friendship=新值, last_interaction 進位`);跨越 0→寫 `zero_friendship_since` | 0–100(下限硬夾) | **C**(存疑③) | 🔒裸值→分帶😄80-100/😊50-79/😐20-49/😤0-19(設計冊確認) |
-| **khui 菌氣** | M#CORE `khui_last_ts` | **只存時間戳**;間隔=設定表(20分/新手Stage1-2 10分,設計冊確認),上限5 | `regen = floor((now−khui_last_ts)/間隔ms)`;`khui現 = min(5, base + regen)` | **零週期寫**;僅消費(移動−1/戰鬥−2)時 `SET khui=消費後值, khui_last_ts=now`(條件防超支) | 0–5(上限硬夾) | **A**(值)/消費時寫 | 🔒→菌氣格數,不給間隔內部數 |
+| **khui 菌氣** | M#CORE `khui`(值)+`khui_last_ts` | **存 base 值 + 時間戳**(Codex P0-1:只存 ts 不夠,公式需 base);間隔=設定表(20分/新手10分),上限5 | `khui現 = min(5, khui + floor((now−khui_last_ts)/間隔ms))` | **零週期寫**;僅消費(移動−1/戰鬥−2)時 `SET khui=現值−消費, khui_last_ts=now`(條件防超支) | 0–5(讀時 min 夾) | **A**(值)/消費時寫 | 🔒→菌氣格數,不給間隔內部數 |
 | **每日計數重置** | M#CORE `daily_counts`,基準 `daily_reset_date` | Map `{headpat,play,groom,cheer}` + `daily_reset_date`(YYYYMMDD UTC) | 讀時:`daily_reset_date≠今日 → 視 counts 全 0` | 跨日**搭下次照顧寫入**時 `SET daily_counts={}, daily_reset_date=今日`;純讀不落(存疑⑥) | 各項 ≤上限(摸頭3/玩耍1/整理1/鼓勵3),條件寫拒超 | **C** | 灰化按鈕表達,不出數字 |
 | **日常/週常任務刷新** | M#PROGRESS `quests.<qid>`,基準 `acceptedAt`/`resetTag` | 每任務 `resetTag`(週期標記字串,如日期/週序) + `acceptedAt` | 讀任務面板:`resetTag≠當前週期 → 該任務進度視 0/可重領` | 讀時比對→**下次領取/繳交寫入**時刷新 `resetTag`+清 progress;純讀不落 | progress ≤ target | **C** | 進度條相對值 |
 | **群感閾值比對** | M#PROGRESS `qs_marks`(計數)+`qs_triggered` | 印記各主題計數(累計,軟上限);閾值/組合表=**靜態設定表不落 item** | 讀面板:`qs_marks vs 靜態閾值 → 支線是否浮現` | 印記累積本來就落庫(SET+if_not_exists+:n);**浮現支線→`ADD qs_triggered`**(消費落庫,防重觸發) | 印記軟上限(代謝飽和,條件寫) | **C**(浮現) | 🔒裸值·絕不出面板,只模糊暗示 |
@@ -134,6 +134,23 @@ lazyResolve(field, item, now):
 - **mood(存疑①)**:保留欄位當「管理員覆寫/快取」可選、預設純算(A);不必從 schema 移除。
 - 背書 soul=B(`soul.version`)、堡壘=B(`resTickAt`)、khui=A、daily/群感浮現/任務刷新=C 搭便車。
 - 交 Codex 二驗:對抗式查 C 型跨界持久的觸發點(worker vs 互動)有無漏、`zero_*_since`/`sick_type` 由誰負責寫、C 型「開面板結算」的寫放大上限。
+
+## 🔍 Codex 階段5 二驗 findings(5b)+ Claude vet 處置(2026-07-17)
+
+2 P0 全採納(都是真問題):
+
+| # | finding | 處置 |
+|---|---|---|
+| P0-1 | khui 只存 ts 不夠,公式需 base | 已改:M#CORE 加 `khui` 值欄,現值=`min(5, khui + floor((now−ts)/間隔))`,消費寫 `khui=現值−n, khui_last_ts=now`(STAGE3 已補欄+本檔 khui 列已修) |
+| P0-2 | C 型跨界不能只靠互動/worker,否則逃跑/死亡有空窗 | **改 virtual-state 權威判定**(見下),persisted 欄降為快取 |
+| P1-6 | rate 走設定表衝擊 CORE-only 快速面板(rate 受天賦/職業影響) | M#CORE 加 compact `rate_mods` 快取(從 BUILD 去正規化),`getStatusCore` 免讀 BUILD 即可算 lazy;天賦變更時同步(STAGE3 已補欄) |
+
+### 🔑 P0-2:virtual-state 權威判定(取代原「worker 落庫」)
+所有裁決(逃跑/生病致死)先跑 **`computeVirtualState(now)`**,用時間戳純推導、不依賴 persisted 欄:
+- `virtualZeroAt = last_interaction + friendship值 × 86400000`(友好度歸零的虛擬時刻);**逃跑 = `now − virtualZeroAt ≥ 7天` 且期間無互動**。
+- satiety→生病同理:`virtualSickAt = last_fed_at + satiety值/下降率`。
+- **persisted `zero_*_since`/`sick_type` 只當快取/通知標記,不是唯一真相**;缺了也不影響正確性(可從時間戳重推)。
+→ 徹底消除「worker 沒掃到的空窗」;純讀熱路徑仍零寫入(顯示照舊讀時算)。這比原存疑③解法嚴謹:不是「誰負責寫」而是「判定根本不靠寫」。
 
 ## ➡️ 交給下一輪
 

@@ -1,6 +1,6 @@
 # 牙菌斑怪獸 · DDB 資料模型 — 階段5a:`sweetbot-yajunban-ledger` 流水帳表 schema
 
-> **草稿 · 待 Claude 覆核 + Codex 二驗**
+> **定稿 · Claude 覆核 + Codex 二驗已合流(2026-07-17)**:3 P1 併入(`entryClass` 防雙計、gen transaction condition、per-event 冪等閘)。雙軌帳無硬傷。
 > 交接文件 · 產出日期 2026-07-17 · 承接 [STAGE2-schema-decision.md](./STAGE2-schema-decision.md)(決策①:ledger 獨立表 PK=userId·SK=`<TYPE>#ts#ulid` 權威)+ [STAGE4-schema-DRAFT.md](./STAGE4-schema-DRAFT.md)(M#PROGRESS/PERMANENT 定稿·寫入路徑)+ [STAGE1-access-patterns.md](./STAGE1-access-patterns.md)(1-4 任務發獎/碎片、1-5 fortress-ledger 分界)
 > 語義來源:設計冊 `score-repo/yajunban_design.html`(section-quest「完成/歷史→ledger 加 QUEST# 流水」、section-growth 礦物碎片來源、section-data 資料層拍板;canonical)。型別慣例:`sweetbot-next/DAO/DDB/PlayerPointLogDAO.js`(牙齒流水欄位風格)+ STAGE3 共通慣例(epoch ms、createdAt/updatedAt、玻璃箱)。
 
@@ -66,6 +66,7 @@
 | `userId` | S | PK,Discord user id | `String()`,對齊 monster 表/point-log 的 discordId 角色 |
 | `sk` | S | SK,`<TYPE>#<ts>#<ulid>` | 見上;唯一性靠 ulid 尾綴 |
 | `type` | S | 型別冗欄:`EXP`/`FRAGMENT`/`QUEST` | 與 SK 前綴同值,免字串切割、供 FilterExpression;對齊 point-log `pointType` 風格 |
+| `entryClass` | S | **重放分類**(Codex P1-3):`RESOURCE`(EXP#/FRAGMENT#,參與重放加總)/`EVENT`(QUEST#,純稽核不重放) | DAO 只提供 `replayResources()` 掃 `entryClass=RESOURCE`,杜絕後人誤掃 `QUEST#.rewards` 雙計 |
 | `asset` | S | 資源標的 | EXP#=`"xp"`(存疑③可擴);FRAGMENT#=`"red"/"blue"/"green"/"purple"/"yellow"/"white"`(六色,section-growth);QUEST# **不帶此欄**(事件列) |
 | `delta` | N | 增減量,**正=入帳、負=扣除** | 對齊 point-log `variation`;FRAGMENT# 兌換數值=負;QUEST# 不帶此欄 |
 | `reason` | S | 來源事由(機器可讀 slug) | 如 `quest_claim` / `boss_drop` / `pvp_win` / `season_reward` / `terrain_corrode` / `achievement` / `fortress_raid` / `fortress_exchange` / `rebirth_inherit` / `stat_exchange`;對齊 point-log `reason`,供聚合統計 |
@@ -129,6 +130,24 @@
 - **背書界線**(牙齒→point-log / 堡壘→fortress-ledger / yajunban 內部→本表)+ **balanceAfter 不存** + **gen 切段重放**。
 - 存疑⑧ ulid:退 `crypto.randomUUID()` 當尾綴完全可行(排序主責在 ts 段),不必為此加 npm 依賴——階段9 DAO 自決。
 - 存疑②戰鬥 xp v1 不記 = 對(免把單筆 Update 升級成交易)。
+
+## 🔍 Codex 階段5 二驗 findings(5a)+ Claude vet 處置(2026-07-17)
+
+5a **無 P0**(雙軌大方向 Codex 認可)。3 P1 全採納:
+
+| # | finding | 處置 |
+|---|---|---|
+| P1-3 | QUEST# 要標不可重放,防後人掃 rewards 雙計 | 已加 `entryClass=EVENT/RESOURCE` 欄;DAO 只 `replayResources()` 掃 RESOURCE |
+| P1-4 | gen 寫入要補 transaction condition 防跨代錯寫 | 見下 gen 寫入規則 |
+| P1-5 | 冪等不能只靠任務主 item,各資源事件要 stable event gate | 見下冪等強化 |
+
+### gen 寫入規則(P1-4)
+- 一般事件:讀當前 `PERMANENT.generation` 當 `gen`,**同交易 `ConditionExpression PERMANENT.generation = :readGen`**(防任務發獎與轉生 race 寫錯代)。
+- 轉生交易:若產生新世代初始列,用 `newGen = oldGen + 1`。
+
+### 冪等強化(P1-5)
+- **各資源事件各自要 stable event gate**,不能只靠任務主 item:BOSS 掉落=戰鬥結算 state、PvP=同對 24hr 首戰閘、地形/成就=事件唯一 id、碎片兌換=餘額條件、raid=`state=RESOLVED→LOOTED`。
+- `ClientRequestToken` 只短期(~10 分)防網路重送,**不當長期業務冪等**。長期冪等靠主 item 狀態轉換條件。
 
 ## ➡️ 交給下一步
 
