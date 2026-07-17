@@ -1,7 +1,7 @@
 # 牙菌斑怪獸 · DDB 資料模型 — 階段9a:核心 4 表建表 IaC
 
 > 交接文件 · 產出日期 2026-07-17 · 承接 STAGE1–8(全定稿)+ [STAGE8 §表清單](./STAGE8-dao-engineering.md)
-> 狀態:**草稿**(Claude 出腳本,待 signoff / Codex 二驗)。
+> 狀態:**已定稿**(Claude 出腳本 → Codex 二驗 4 P1+2 P2 全採納 → 使用者 signoff + 實際建表,2026-07-17)。
 > **範圍**:只建**完全定稿**的牙菌斑核心 4 表(monster/ledger/battle/world)。**堡壘 5 表不在此塊**(見文末「⏸ 堡壘 5 表前置」)。
 > **產物**:`create_yajunban_core_tables.js`(本資料夾;定稿+驗後複製進 `sweetbot-next/migration/` 再 `node` 執行)。
 > **性質**:純建表 IaC,**不碰 bot 邏輯**——沿用 repo 既有 migration 慣例(`create_livevote_tables.js` 冪等 CreateTable + `create_earthquake_tables.js` 的 `UpdateTimeToLive`)。
