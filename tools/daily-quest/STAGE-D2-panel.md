@@ -23,6 +23,8 @@
 
 ## 領獎（`onClaim`，冪等）
 
+> ⚠️ 本節與下節「重抽」描述的是 D2 初版兩步流程，已被 §「Codex 二驗修正」的單一 TransactWrite 取代，僅存作歷史脈絡；實作以 `claimAndCredit`/`rerollAndCharge` 為準。
+
 順序 = **先原子搶 claimed、再發獎**（mark-then-pay，防雙領）：
 1. ownerGuard（非本人 → ephemeral 拒絕）
 2. 讀 slot：未完成/已領 → ephemeral 快擋
@@ -60,9 +62,10 @@ Codex 抓到金流非原子(givePoint 吞錯 → 標已領卻沒入帳;重抽三
 
 ## Codex 查驗點
 
-1. **領獎冪等**：`onClaim` 先 `claimSlot` 再 givePoint（mark-then-pay）；雙擊/並發只發一次。
-2. **重抽原子**：`replaceSlotIfKey` 條件式（key 未變 + 未領）→ 雙擊不會重複扣 80🦷；扣費在換格成功之後。
-3. **餘額地板**：givePoint 無下限,`onReroll` 有先擋 `< 80`。
+> ⚠️ 下列 1–3 已被 §「Codex 二驗修正」的**單一 TransactWrite** 取代（`claimAndCredit`/`rerollAndCharge`）。以現行程式為準：mark-then-pay / replaceSlotIfKey-then-givePoint 的兩步舊流程已不存在。
+1. **領獎冪等**：`onClaim` → `claimAndCredit`（標 claimed 條件 `done && !claimed` + viewer ADD point/exp，同一交易同生同滅）；雙擊/並發只一方成功入帳。
+2. **重抽原子**：`onReroll` → `rerollAndCharge`（換格條件 `key 未變 && !claimed` + viewer ADD `-cost` 條件 `point>=cost`，同一交易）；雙擊不重複扣、不免費重抽、餘額不穿底。
+3. **餘額地板**：由交易內 `point>=cost` 條件保證（非事前讀取判斷）。
 4. **重抽不重複**：新任務排除今日已出現 key；候選空的處理。
 5. ownerGuard（他人不能領/重抽別人的表）。
 6. customId 解析與 `Config.interactionDataTag` 一致；面板 update 重繪不洗版。
