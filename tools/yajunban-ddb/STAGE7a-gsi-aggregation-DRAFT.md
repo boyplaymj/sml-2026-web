@@ -41,7 +41,8 @@
 ### 採用 pattern:沿用「牙齒經濟後台」既有做法(reference [[project_teeth_economy_dashboard]])
 - 該後台已在跑「掃流水帳 → 聚合 → 存快照」(gen_usage.py / economy Lambda)。牙菌斑分析**掛同一條管線**,不新建成本四件套。
 - **來源分兩路**:
-  - **存量指標**(種族分佈 / Stage 漏斗 / 總怪獸數 / 平均數值)→ 週期 **Scan monster 表**,`FilterExpression SK = "M#CORE"`(只數核心顆,避免一隻怪重複計 4 顆)→ 聚合。小規模(< 數千怪 × ~2KB)單次 scan < 1–2 MB,幾十 RCU,日跑一次可忽略。
+  - **存量指標**(種族分佈 / Stage 漏斗 / 總怪獸數 / 平均數值)→ 週期 **Scan monster 表**,`FilterExpression #sk = :core`(`ExpressionAttributeNames {"#sk":"sk"}`、`:core="M#CORE"`;**用實際 SK 屬性名 `sk`,非概念名 `SK`**——Codex P2-6;只數核心顆,避免一隻怪重複計 4 顆)→ 聚合。小規模(< 數千怪 × ~2KB)單次 scan < 1–2 MB,幾十 RCU,日跑一次可忽略。
+    > 📌 STAGE3 只寫「SK = 實體型別字串」未明訂**物理屬性名**;此處與 ledger 對齊定為 **`sk`(小寫)**,請 STAGE3 定稿時把 monster 表 SK 屬性名一併釘死 `sk`,免 DAO 端各寫各的。
   - **活躍/留存指標**(DAU / WAU / 留存曲線 / 新增)→ ⚠️ **不可靠 ledger**(Codex P1-2 修正):STAGE5a「不記名單」明文把摸頭/玩耍/整理/鼓勵/餵食零星/菌氣/移動這些**高頻互動排除在 ledger 外**,故 ledger 不是完整「哪天有互動」時間軸,直接切窗會嚴重低估 DAU。改採二選一:
     - **MVP(快照型)**:掃 `M#CORE.last_interaction`(或 `updatedAt`)做「最近 N 日活躍」快照統計。夠算「近期活躍數」,但**單一 timestamp 無歷史 → 算不出 per-day DAU / cohort 留存曲線**。
     - **要真 DAU/留存**:加**每日活躍標記** `ACT#<yyyymmdd>`(每玩家每日**至多一筆**,當日首次任意互動時 `Put attribute_not_exists` stable-gate 防寫爆;放 ledger 表或獨立 `PK=ACT#<date>,SK=userId` 讓「某日活躍名單」= 一次 Query)。成本 = 每活躍玩家每日 1 筆微寫,可忽略。留存 = 註冊 cohort × `ACT#` 日期集合 join。
@@ -64,7 +65,7 @@
 | 玩家向全服排行榜(生存/聲望) | 設計冊真的要上榜 | monster 稀疏 GSI:只對「入榜資格」的怪填 `rankBucket#season` PK + 分數 SK(稀疏=沒資格不投影,省 WRU) | 不建;欄位預留 |
 | 分析 scan 變貴(彙整 > 數百 MB / > 數秒) | 怪獸數 ~上萬級 | ① Scan `Segment` 平行化 先試;② 仍不夠再上分析 GSI 或 DDB→S3 export + Athena | 不建;記門檻 |
 | per-day DAU / cohort 留存曲線 | 後台要看留存(非只「近期活躍數」) | 每日活躍標記 `ACT#<yyyymmdd>`(每人每日至多一筆,stable-gate),或獨立 `PK=ACT#<date>` | MVP 先用 `M#CORE.last_interaction` 快照(決策⑩) |
-| ledger 賽季榜/整季導出 | 季末對帳要按 season 撈 | ledger `season-index`(PK seasonId · SK ts) | STAGE2 ⑤ 已標「初期不建,需要再加」,維持 |
+| ledger 賽季榜/整季導出 | 季末對帳要按 season 撈 | ledger `season-index`(PK seasonId · SK ts) | STAGE2 ⑤ 已標「初期不建,需要再加」,維持;**但「免 backfill」的前提是 `season` 欄 v1 就穩定寫入**(Codex P2-6c)→ 需 v1 就有 seasonId 來源。STAGE5a 存疑⑥「seasonId 取值來源未定、拿不到就不寫」是**破口**:漏寫的列日後仍要 backfill。**建議 v1 就把 seasonId 落成全域 config,讓 ledger 每列必帶 season**(回饋 STAGE5a) |
 
 **稀疏 GSI 要點**:GSI 只投影「有 GSI-PK 屬性」的 item。排行榜只需 top 玩家 → 只有夠格的怪寫 `rankBucket` 屬性 → GSI 稀疏、又小又便宜。這是正解,不是「全體都投影再排序」。
 
