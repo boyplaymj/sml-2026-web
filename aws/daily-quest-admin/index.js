@@ -92,6 +92,16 @@ async function scanAll (table) {
   return items;
 }
 
+// 寬鬆布林正規化:前端可能送字串 "false"/"0"/"" → 這些都算 false(照 earthquake-admin)
+function toBool (v, dflt = true) {
+  if (v === undefined || v === null) return dflt;
+  if (typeof v === 'boolean') return v;
+  const s = String(v).trim().toLowerCase();
+  if (['false', '0', 'no', 'off', ''].includes(s)) return false;
+  if (['true', '1', 'yes', 'on'].includes(s)) return true;
+  return dflt;
+}
+
 const ALLOWED_EVENT_RE = /^(checkin|post_message|mention_user|get_mentioned|add_reaction|reply_message|teeth_earned|teeth_spent|redpacket_grab|gift_send|item_use|item_buy|exp_gain|vote_join|bind_youtube|quest_complete|yt_keyword|stock_bet|game_bet|game_play:[a-z0-9_]+|game_win:[a-z0-9_]+|game_achieve:[a-z0-9_]+|button_click:[a-z0-9_]+)$/;
 
 // 正規化前端送來的 task → 乾淨型別(避免 DDB 存到字串 "150")
@@ -120,7 +130,7 @@ function normalizeTask (raw, existingKeys) {
     t.rewardPropId = String(raw.rewardPropId || '').trim();
     t.rewardPropQty = Math.max(1, Math.floor(Number(raw.rewardPropQty) || 1));
   }
-  t.enabled = raw.enabled !== false;
+  t.enabled = toBool(raw.enabled, true);
   return t;
 }
 
@@ -189,16 +199,17 @@ exports.handler = async (event) => {
       const totalWeight = pool.reduce((s, x) => s + x.weight, 0);
       const TRIALS = 3000;
       const counts = {}; const diffCount = {};
+      let totalDrawn = 0; // 實際抽到總數(drawCount>pool 時 < drawCount*TRIALS)
       for (const p of pool) counts[p.key] = 0;
       for (let i = 0; i < TRIALS; i++) {
         for (const d of weightedDrawWithoutReplacement(pool, drawCount)) {
           counts[d.key]++;
           diffCount[d.difficulty] = (diffCount[d.difficulty] || 0) + 1;
+          totalDrawn++;
         }
       }
       const tasks = pool.map(p => ({ key: p.key, title: p.title, difficulty: p.difficulty, weight: p.weight, appearProb: +(counts[p.key] / TRIALS).toFixed(3) }))
         .sort((a, b) => b.appearProb - a.appearProb);
-      const totalDrawn = drawCount * TRIALS;
       const difficultyMix = {};
       for (const [k, v] of Object.entries(diffCount)) difficultyMix[k] = +(v / totalDrawn).toFixed(3);
       return reply(200, { ok: true, drawCount, pool: pool.length, totalWeight, difficultyMix, tasks });
