@@ -182,6 +182,10 @@ function verifyGsis (def, table, problems) {
   for (const eg of expected) {
     const ag = actual.find((g) => g.IndexName === eg.IndexName);
     if (!ag) { problems.push(`缺 GSI「${eg.IndexName}」`); continue; }
+    // Codex 9b-ddl P1:GSI 可能表 ACTIVE 但索引仍 CREATING/backfilling → 驗 IndexStatus。
+    if (ag.IndexStatus && ag.IndexStatus !== 'ACTIVE') {
+      problems.push(`GSI「${eg.IndexName}」IndexStatus=${ag.IndexStatus}(非 ACTIVE),待其 ACTIVE 後重跑本腳本重驗`);
+    }
     if (!sameSet(ag.KeySchema || [], eg.keys, 'AttributeName', 'KeyType')) {
       problems.push(`GSI「${eg.IndexName}」KeySchema 不符`);
     }
@@ -218,7 +222,9 @@ async function ensureTable (client, def) {
     await waitUntilTableExists({ client, maxWaitTime: 180 }, { TableName: def.name });
     console.log(`表 ${def.name} 建立完成。`);
     row.create = 'created';
-    row.schema = 'OK';
+    // Codex 9b-ddl P1:建完也 re-describe + verifySchema,不盲寫 'OK'(含 GSI IndexStatus 驗證)。
+    table = await describe(client, def.name);
+    row.schema = verifySchema(def, table);
   } else {
     row.create = 'existed';
     if (table.TableStatus !== 'ACTIVE') {
