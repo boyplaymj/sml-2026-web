@@ -1,0 +1,21 @@
+[Unit]
+Description=SML bug-scanner — 掃描 bug 回報區、交 claude 判定並貼回報告
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=smlbot
+WorkingDirectory=/opt/sml/repo
+Environment=HOME=/home/smlbot
+Environment=AWS_REGION=ap-southeast-1
+# kill switch:改 0 即停用(記得 daemon-reload 不需要,env 每次啟動讀取)
+Environment=BUG_SCANNER_ENABLED=1
+# 1=明確 bug 就在 bug-scan/<日期> 分支上 commit(仍永不 push/部署);0=只診斷+附 patch
+Environment=BUG_AUTO_FIX=1
+ExecStart=/usr/bin/python3 /opt/sml/repo/tools/bug-scanner/scan.py
+TimeoutStartSec=1800
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

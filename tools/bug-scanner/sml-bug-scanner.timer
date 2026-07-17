@@ -1,0 +1,11 @@
+[Unit]
+Description=每天 04:00(台灣時間)觸發 SML bug-scanner
+
+[Timer]
+# systemd 252 支援日曆時區後綴;host 為 UTC,這裡直接指定台北時間。
+OnCalendar=*-*-* 04:00:00 Asia/Taipei
+Persistent=true
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target
