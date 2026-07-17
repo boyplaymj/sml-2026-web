@@ -180,7 +180,7 @@ TransactWrite (ClientRequestToken = <場次結算冪等碼>) {
 | ② | 戰鬥暫態不落此表、放記憶體 | §2 明列 HP/pH/狀態層/回合全在 bot 記憶體;崩潰即棄不 resume |
 | ③ | 結算 1 次 | §3.2 單一 TransactWrite:M#CORE 塞全部變動 + 標記租約 RESOLVED + permadeath +1;高頻回合零 DDB 寫 |
 | ④ | 冪等雙層 | 同 item = `state=ACTIVE` 條件(§3.2②,不靠 DDB version,P0-2);跨 item 轉資源 = TransactWrite + ClientRequestToken(§3.2 header);回合去重 = 記憶體 turn_id/action_id(§2,不落 DDB) |
-| ⑤ | 防重複開戰 + 崩潰自癒 | Put `attribute_not_exists(battleId)` + 開戰前置比 CD/座標/過期租約(§3.1);過期租約視同可重開(§3.1/§3.4) |
+| ⑤ | 防重複開戰 + 崩潰自癒 | **防雙開靠 M#CORE 開戰鎖**`activeBattleId`+`activeBattleExpireAt`(開戰 TransactWrite 條件雙方鎖不存在或已過期,P0-1);battle 表 Put `attribute_not_exists(battleId)` **只防 ULID 重寫**(理論上不撞);開戰前置比 CD/座標;過期鎖/租約視同可重開=崩潰自癒(§3.1/§3.4) |
 | — | 空 SS 不寫 / 巢狀 SET+if_not_exists 非 ADD / 未設不寫 | `battle_deaths`/`INV.qty` 用 `SET if_not_exists(x,0)+n`(§3.2,呼應 STAGE3 覆核「ADD 不作用於巢狀 Map」);快照 M 只塞有值欄 |
 
 ---
