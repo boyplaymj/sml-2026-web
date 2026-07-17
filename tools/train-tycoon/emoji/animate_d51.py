@@ -28,15 +28,15 @@ wheels = parse(WHEELS, 3)
 
 base = Image.open(SRC).convert("RGBA")
 W, H = base.size
-PAD_TOP = 40  # 上方留白給煙
-canvas_h = H + PAD_TOP
+PAD_TOP = 0        # 不加上留白(煙自然飄出框、不改變原圖比例)
+canvas_h = H
 
 frames = []
 for f in range(N):
     t = f / N
     fr = Image.new("RGBA", (W, canvas_h), DARK + (255,))
     # ② 行駛抖動:上下微晃 + 偶爾左右 1px
-    bob = int(round(math.sin(2 * math.pi * (f / N) * 2) * 1.2))   # 上下 ±1px、一圈晃兩次
+    bob = int(round((math.sin(2 * math.pi * (f / N) * 2) + 1) * 0.9))  # 只往下 0~2px、不裁上緣
     jit = 1 if f % 4 == 1 else (-1 if f % 4 == 3 else 0)          # 微幅左右
     layer = base.copy()
     # ③ 輪子轉動:在每個輪上疊旋轉輻條(灰,over 近黑輪)
@@ -57,12 +57,12 @@ for f in range(N):
         npuff = 5
         for i in range(npuff):
             age = ((f / N) + i / npuff) % 1.0
-            rise = age * 46
-            drift = age * 10 * (1 if i % 2 else -1) * 0.4
-            rad = 3 + age * 9
-            alpha = int(200 * (1 - age))
+            rise = age * 22            # 小幅上升(留在框內、頂多飄出上緣一點)
+            drift = -age * 24          # 往左後方拖(行進中煙尾)
+            rad = 2 + age * 5          # 小煙珠
+            alpha = int(190 * (1 - age))
             px = sx + jit + drift
-            py = PAD_TOP + sy + bob - rise
+            py = sy + bob - rise
             col = (225, 225, 228, alpha)
             d2.ellipse([px - rad, py - rad, px + rad, py + rad], fill=col)
     frames.append(fr)
