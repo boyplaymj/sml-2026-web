@@ -70,6 +70,36 @@
   .deadmsg .ic{font-size:22px}
   .deadmsg .t{font-weight:700;font-size:12px;color:#cdd8ee}
   .deadmsg .s{font-size:10px;color:var(--dim);line-height:1.5}
+
+  /* 背景工作面板 —— 無工作時整塊收起、不佔空間 */
+  .taskpanel{display:none;flex:0 0 auto;flex-direction:column;gap:6px;max-height:44%;
+    overflow-y:auto;border-top:1px solid var(--line);padding-top:8px;margin-top:1px}
+  .taskpanel.show{display:flex}
+  .taskpanel::-webkit-scrollbar{width:6px}
+  .taskpanel::-webkit-scrollbar-thumb{background:rgba(140,175,230,.2);border-radius:3px}
+  .taskpanel .hd{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;
+    letter-spacing:.3px;color:var(--dim)}
+  .taskpanel .hd .n{margin-left:auto;color:#2fe0b0}
+  .trow{display:flex;flex-direction:column;gap:5px;padding:6px 8px;border-radius:10px;
+    background:linear-gradient(180deg,rgba(30,44,72,.42),rgba(14,24,42,.48));border:1px solid var(--line)}
+  .trow .l1{display:flex;align-items:center;gap:6px;min-width:0}
+  .trow .ic{font-size:12px;flex:0 0 auto;line-height:1}
+  .trow .tt{font-size:11.5px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .trow .chip{font-size:9px;color:var(--dim);border:1px solid var(--line);padding:1px 6px;border-radius:999px;flex:0 0 auto;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .trow .el{font-size:9.5px;color:var(--faint);flex:0 0 auto;font-variant-numeric:tabular-nums}
+  .trow .note{font-size:9.5px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .trow .bar{height:4px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}
+  .trow .bar>i{display:block;height:100%;border-radius:3px;
+    background:linear-gradient(90deg,#2fe0b0,#0fb488);transition:width .5s ease}
+  .trow .bar.indet>i{width:36%;background:linear-gradient(90deg,transparent,#2fe0b0,transparent);
+    animation:slide 1.3s ease-in-out infinite}
+  @keyframes slide{0%{margin-left:-40%}100%{margin-left:100%}}
+  .trow.done{opacity:.72}
+  .trow.done .bar>i{background:linear-gradient(90deg,#2fe0b0,#0fb488)}
+  .trow.failed .bar>i,.trow.failed .bar.indet>i{background:linear-gradient(90deg,#ff7a8a,#e84860);animation:none;width:100%}
+  .trow.stale{opacity:.8}
+  .trow.newdone{animation:flash .9s ease}
+  @keyframes flash{0%{box-shadow:0 0 0 0 rgba(47,224,176,.55)}100%{box-shadow:0 0 0 0 rgba(47,224,176,0)}}
 </style>
 </head>
 <body>
@@ -84,6 +114,7 @@
       </div>
     </header>
     <div class="cards" id="cards"></div>
+    <div class="taskpanel" id="tasks"></div>
   </div>
 
 <script>
@@ -162,7 +193,68 @@ function apply(data){
     if(acc&&acc.ok&&m){const pct=Math.round(m.pct);o.tank.set(pct);o.pctEl.textContent=pct;o.inkEl.style.color=grade(pct).ink;resets[o.ai+o.key]=m.resets_at||0;}
     else if(acc&&acc.dead){o.tank.set(0);o.pctEl.textContent='—';}
   });
+  handleTasks(data.tasks||[]);
   lastUpdated=data.updated||Math.floor(Date.now()/1000);
+}
+
+// ── 背景工作面板 ────────────────────────────────────────────────
+const TSTATE={running:{ic:'⏳',cls:''},stale:{ic:'💤',cls:'stale'},
+              done:{ic:'✅',cls:'done'},failed:{ic:'⚠️',cls:'failed'}};
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function fmtElapsed(s){if(s<0)s=0;const h=Math.floor(s/3600),m=Math.floor(s%3600/60),ss=Math.floor(s%60);
+  if(h>0)return`${h}時${m}分`;if(m>0)return`${m}分${ss}秒`;return`${ss}秒`;}
+
+function handleTasks(tasks){
+  // 完成/失敗 → 桌面通知(只發一次;剛切成 done 或 90 秒內的新鮮 done 才發,避免開機補發舊項)
+  const prev=apply._tstate||{},next={},notified=apply._notified||(apply._notified=new Set());
+  const now=Math.floor(Date.now()/1000),justDone=new Set();
+  tasks.forEach(t=>{
+    next[t.id]=t.state;
+    if((t.state==='done'||t.state==='failed')&&!notified.has(t.id)){
+      const wasRunning=prev[t.id]==='running'||prev[t.id]==='stale';
+      if(wasRunning||now-(t.updated||0)<90){
+        notified.add(t.id);justDone.add(t.id);
+        ipcRenderer.send('notify',{
+          title:t.state==='done'?'✅ 背景工作完成':'⚠️ 背景工作失敗',
+          body:(t.title||t.id)+(t.channel?`（${t.channel}）`:'')+
+               (t.progress&&t.progress.note?' — '+t.progress.note:'')});
+      }
+    }
+  });
+  apply._tstate=next;
+  renderTasks(tasks,justDone);
+}
+
+function renderTasks(tasks,justDone){
+  const panel=document.getElementById('tasks');
+  if(!tasks.length){panel.classList.remove('show');panel.innerHTML='';return;}
+  const running=tasks.filter(t=>t.state==='running'||t.state==='stale').length;
+  let html=`<div class="hd"><span>背景工作</span>`+
+           (running?`<span class="n">${running} 進行中</span>`:`<span class="n" style="color:var(--dim)">—</span>`)+`</div>`;
+  for(const t of tasks){
+    const st=TSTATE[t.state]||TSTATE.running,p=t.progress||{};
+    const total=+p.total||0,cur=Math.max(0,+p.cur||0),pctw=total?Math.min(100,Math.round(cur/total*100)):0;
+    const chip=t.channel?`<span class="chip">${esc(t.channel)}</span>`:'';
+    let bar='';
+    if(total)bar=`<div class="bar"><i style="width:${pctw}%"></i></div>`;
+    else if(t.state==='running')bar=`<div class="bar indet"><i></i></div>`;
+    const noteTxt=[total?`${cur}/${total}`:'',p.note?esc(p.note):''].filter(Boolean).join(' · ');
+    const note=noteTxt?`<div class="note">${noteTxt}</div>`:'';
+    const flash=justDone&&justDone.has(t.id)?' newdone':'';
+    html+=`<div class="trow ${st.cls}${flash}"><div class="l1"><span class="ic">${st.ic}</span>`+
+      `<span class="tt">${esc(t.title||t.id)}</span>${chip}`+
+      `<span class="el" data-started="${t.started||0}" data-updated="${t.updated||0}" data-state="${t.state}"></span></div>`+
+      `${bar}${note}</div>`;
+  }
+  panel.innerHTML=html;panel.classList.add('show');updateElapsed();
+}
+function updateElapsed(){
+  const now=Math.floor(Date.now()/1000);
+  document.querySelectorAll('#tasks .el').forEach(e=>{
+    const st=e.dataset.state,started=+e.dataset.started||now,updated=+e.dataset.updated||now;
+    e.textContent=(st==='done'||st==='failed')?fmtElapsed(updated-started)+' 完成'
+                 :(st==='stale'?'停滯 '+fmtElapsed(now-updated):fmtElapsed(now-started));
+  });
 }
 
 function fmtLeft(s){if(s<=0)return'';const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);if(d>0)return`${d}天${h}時後重置`;if(h>0)return`${h}時${m}分後重置`;return`${m}分後重置`;}
@@ -172,6 +264,7 @@ function tickLabels(){
   const age=now-lastUpdated,ago=document.getElementById('ago'),pulse=document.getElementById('pulse');
   ago.textContent=lastUpdated?(age<60?`${age} 秒前`:`${Math.floor(age/60)} 分前`):'連線中…';
   pulse.classList.toggle('stale',age>120);
+  updateElapsed();
 }
 
 async function poll(){

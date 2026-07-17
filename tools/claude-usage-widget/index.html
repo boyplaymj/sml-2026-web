@@ -92,6 +92,33 @@
   .deadmsg .s{font-size:11px;color:var(--dim);line-height:1.5}
 
   footer{display:flex;justify-content:center;font-size:10px;color:var(--faint);letter-spacing:.3px}
+
+  /* 背景工作面板 —— 無工作時整塊收起、不佔空間 */
+  .taskpanel{display:none;flex:0 0 auto;flex-direction:column;gap:7px;max-height:38vh;
+    overflow-y:auto;border-top:1px solid var(--line);padding-top:10px}
+  .taskpanel.show{display:flex}
+  .taskpanel .hd{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;
+    letter-spacing:.3px;color:var(--dim)}
+  .taskpanel .hd .n{margin-left:auto;color:var(--good1)}
+  .trow{display:flex;flex-direction:column;gap:6px;padding:8px 10px;border-radius:12px;
+    background:linear-gradient(180deg,rgba(24,36,60,.62),rgba(14,24,42,.7));border:1px solid var(--line)}
+  .trow .l1{display:flex;align-items:center;gap:7px;min-width:0}
+  .trow .ic{font-size:13px;flex:0 0 auto;line-height:1}
+  .trow .tt{font-size:12.5px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .trow .chip{font-size:10px;color:var(--dim);border:1px solid var(--line);padding:1px 7px;border-radius:999px;flex:0 0 auto;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .trow .el{font-size:10px;color:var(--faint);flex:0 0 auto;font-variant-numeric:tabular-nums}
+  .trow .note{font-size:10px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .trow .bar{height:5px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}
+  .trow .bar>i{display:block;height:100%;border-radius:3px;
+    background:linear-gradient(90deg,var(--good1),var(--good2));transition:width .5s ease}
+  .trow .bar.indet>i{width:36%;background:linear-gradient(90deg,transparent,var(--good1),transparent);
+    animation:slide 1.3s ease-in-out infinite}
+  @keyframes slide{0%{margin-left:-40%}100%{margin-left:100%}}
+  .trow.done{opacity:.72}
+  .trow.failed .bar>i,.trow.failed .bar.indet>i{background:linear-gradient(90deg,var(--crit1),var(--crit2));animation:none;width:100%}
+  .trow.stale{opacity:.8}
+  .trow.newdone{animation:flash 1s ease}
+  @keyframes flash{0%{box-shadow:0 0 0 0 rgba(37,211,166,.55)}100%{box-shadow:0 0 0 0 rgba(37,211,166,0)}}
 </style>
 </head>
 <body>
@@ -102,6 +129,8 @@
   </header>
 
   <div class="cards" id="cards"></div>
+
+  <div class="taskpanel" id="tasks"></div>
 
   <footer id="foot">液面 = 已用額度 · 每 30 秒更新</footer>
 
@@ -255,9 +284,71 @@ function apply(data){
     }
     // 暫時性錯誤(!ok 且 !dead)→ 保留上一筆數值,什麼都不動
   });
+  handleTasks(data.tasks||[]);
   lastUpdated=data.updated||Math.floor(Date.now()/1000);
   document.getElementById('foot').textContent =
     (data.demo?'⚠ 示範資料(未連到採集器) · ':'') + '液面 = 已用額度 · 每 30 秒更新';
+}
+
+// ---- 背景工作面板 --------------------------------------------------------
+const TSTATE={running:{ic:'⏳',cls:''},stale:{ic:'💤',cls:'stale'},
+              done:{ic:'✅',cls:'done'},failed:{ic:'⚠️',cls:'failed'}};
+if(typeof Notification!=='undefined' && Notification.permission==='default'){
+  try{ Notification.requestPermission(); }catch(_){}
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function fmtElapsed(s){if(s<0)s=0;const h=Math.floor(s/3600),m=Math.floor(s%3600/60),ss=Math.floor(s%60);
+  if(h>0)return`${h}時${m}分`;if(m>0)return`${m}分${ss}秒`;return`${ss}秒`;}
+function notify(title,body){
+  try{ if(typeof Notification!=='undefined' && Notification.permission==='granted') new Notification(title,{body}); }catch(_){}
+}
+function handleTasks(tasks){
+  const prev=apply._tstate||{},next={},notified=apply._notified||(apply._notified=new Set());
+  const now=Math.floor(Date.now()/1000),justDone=new Set();
+  tasks.forEach(t=>{
+    next[t.id]=t.state;
+    if((t.state==='done'||t.state==='failed')&&!notified.has(t.id)){
+      const wasRunning=prev[t.id]==='running'||prev[t.id]==='stale';
+      if(wasRunning||now-(t.updated||0)<90){
+        notified.add(t.id);justDone.add(t.id);
+        notify(t.state==='done'?'✅ 背景工作完成':'⚠️ 背景工作失敗',
+          (t.title||t.id)+(t.channel?`（${t.channel}）`:'')+(t.progress&&t.progress.note?' — '+t.progress.note:''));
+      }
+    }
+  });
+  apply._tstate=next;
+  renderTasks(tasks,justDone);
+}
+function renderTasks(tasks,justDone){
+  const panel=document.getElementById('tasks');
+  if(!tasks.length){panel.classList.remove('show');panel.innerHTML='';return;}
+  const running=tasks.filter(t=>t.state==='running'||t.state==='stale').length;
+  let html=`<div class="hd"><span>背景工作</span>`+
+           (running?`<span class="n">${running} 進行中</span>`:`<span class="n" style="color:var(--dim)">—</span>`)+`</div>`;
+  for(const t of tasks){
+    const st=TSTATE[t.state]||TSTATE.running,p=t.progress||{};
+    const total=+p.total||0,cur=Math.max(0,+p.cur||0),pctw=total?Math.min(100,Math.round(cur/total*100)):0;
+    const chip=t.channel?`<span class="chip">${esc(t.channel)}</span>`:'';
+    let bar='';
+    if(total)bar=`<div class="bar"><i style="width:${pctw}%"></i></div>`;
+    else if(t.state==='running')bar=`<div class="bar indet"><i></i></div>`;
+    const noteTxt=[total?`${cur}/${total}`:'',p.note?esc(p.note):''].filter(Boolean).join(' · ');
+    const note=noteTxt?`<div class="note">${noteTxt}</div>`:'';
+    const flash=justDone&&justDone.has(t.id)?' newdone':'';
+    html+=`<div class="trow ${st.cls}${flash}"><div class="l1"><span class="ic">${st.ic}</span>`+
+      `<span class="tt">${esc(t.title||t.id)}</span>${chip}`+
+      `<span class="el" data-started="${t.started||0}" data-updated="${t.updated||0}" data-state="${t.state}"></span></div>`+
+      `${bar}${note}</div>`;
+  }
+  panel.innerHTML=html;panel.classList.add('show');updateElapsed();
+}
+function updateElapsed(){
+  const now=Math.floor(Date.now()/1000);
+  document.querySelectorAll('#tasks .el').forEach(e=>{
+    const st=e.dataset.state,started=+e.dataset.started||now,updated=+e.dataset.updated||now;
+    e.textContent=(st==='done'||st==='failed')?fmtElapsed(updated-started)+' 完成'
+                 :(st==='stale'?'停滯 '+fmtElapsed(now-updated):fmtElapsed(now-started));
+  });
 }
 
 function fmtLeft(sec){
@@ -275,6 +366,7 @@ function tickLabels(){
   const ago=document.getElementById('ago'), pulse=document.getElementById('pulse');
   ago.textContent = lastUpdated? (age<60?`${age} 秒前更新`:`${Math.floor(age/60)} 分前更新`):'連線中…';
   pulse.classList.toggle('stale', age>120);
+  updateElapsed();
 }
 
 // ---- 迴圈 ----------------------------------------------------------------

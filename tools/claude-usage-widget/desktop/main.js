@@ -1,8 +1,11 @@
 // Claude 用量液體槽 —— Electron 桌面掛件主程式。
 // 透明、無邊框、永遠最上層、可拖曳、記住位置。讀雲端 usage.json(與網頁同源資料)。
-const { app, BrowserWindow, ipcMain, screen } = require('electron');
+const { app, BrowserWindow, ipcMain, screen, Notification } = require('electron');
 const fs = require('fs');
 const path = require('path');
+
+// Windows 通知要有 AppUserModelID 才會正確顯示來源/不被吞掉。
+if (process.platform === 'win32') app.setAppUserModelId('com.sml.claude-usage');
 
 const STATE_FILE = () => path.join(app.getPath('userData'), 'window-state.json');
 const DEFAULT_BOUNDS = { width: 560, height: 380 };
@@ -67,6 +70,16 @@ function createWindow() {
 
 ipcMain.on('app-quit', () => app.quit());
 ipcMain.on('toggle-top', (_e, on) => { if (win) win.setAlwaysOnTop(!!on, 'screen-saver'); });
+
+// 背景工作完成 → 桌面原生通知(這就是「主動叫你」)。點通知把掛件叫到最前。
+ipcMain.on('notify', (_e, p) => {
+  try {
+    if (!Notification.isSupported()) return;
+    const n = new Notification({ title: (p && p.title) || 'Claude', body: (p && p.body) || '', silent: false });
+    n.on('click', () => { if (win && !win.isDestroyed()) { win.show(); win.focus(); } });
+    n.show();
+  } catch (_) {}
+});
 
 app.whenReady().then(createWindow);
 app.on('window-all-closed', () => app.quit());

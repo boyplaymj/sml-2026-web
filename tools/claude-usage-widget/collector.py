@@ -35,8 +35,18 @@ OAUTH_BETA = "oauth-2025-04-20"
 UA = "anthropic-sdk-typescript/0.60.0 userOAuthProvider"
 EXPIRY_SKEW_SEC = 120  # 距到期不足此秒數就當「該刷新」
 USAGE_URL = "https://api.anthropic.com/api/oauth/usage"
-MAIN_CRED_PATH = os.path.expanduser("~/.claude/.credentials.json")
-BACKUP1_SSM = "/sml/claude/accounts/backup1/credentials-json"
+# 「目前 active 的帳號」其憑證永遠住在這個檔(!切帳號 會把目標帳號寫進來)。
+LIVE_CRED_PATH = os.path.expanduser("~/.claude/.credentials.json")
+# 切帳號時寫下的標記檔,內容 = 當前 active 的 slot 名(無此檔=從沒切過=main）。
+ACTIVE_MARKER = os.path.expanduser("~/.claude/active-account")
+# 每個 slot 的持久憑證都在 SSM;非 active 的 slot 一律讀這裡。
+ACCOUNT_SSM_PREFIX = os.environ.get("CLAUDE_ACCOUNT_SSM_PREFIX", "/sml/claude/accounts").rstrip("/")
+
+# ── 背景工作帳本(桌面掛件的任務面板資料源)──────────────────────────
+# Claude/Codex 用 taskline.py 往這裡寫「工作中/進度/完成」;採集器唯讀轉發。
+LEDGER_PATH = os.environ.get("CLAUDE_TASKS_LEDGER", "/mnt/sml-brain/_runtime/claude-tasks.json")
+DONE_TTL_SEC = 600     # done/failed 超過此秒數就不再轉發(讓完成卡片淡出)
+STALE_SEC = 3600       # running 超過此秒數無更新 → 視為 stale(疑似程序中途掛掉)
 
 
 def _http(url, method="GET", headers=None, data=None, timeout=15):
@@ -166,14 +176,34 @@ def fetch_usage(access_token):
     return parse_usage(raw)
 
 
-def account_main():
-    # main 是「目前實際在跑」的活躍帳號,其憑證檔由 bridge/claude session 自己維護、
-    # 幾乎永遠新鮮。採集器對此檔採「唯讀」:絕不刷新、絕不寫回,徹底杜絕污染活躍帳號的風險
-    # (曾發生過憑證檔被別帳號 token 蓋掉的事故)。萬一剛好過期,就這輪回報 transient、
-    # widget 保留上一筆,下次 bridge 用到時自然刷新即恢復。
-    with open(MAIN_CRED_PATH) as f:
+def read_active_slot():
+    """讀 active-account 標記;無檔=從沒切過→視為 main。"""
+    try:
+        with open(ACTIVE_MARKER) as f:
+            return f.read().strip()
+    except Exception:
+        return "main"
+
+
+def account_from_live_file():
+    """讀「目前 active 帳號」的 live 憑證檔。此檔由 bridge/claude session 自己維護、
+    幾乎永遠新鮮。採集器對它採「唯讀」:絕不刷新、絕不寫回,徹底杜絕污染活躍帳號的風險
+    (曾發生過憑證檔被別帳號 token 蓋掉的事故)。萬一剛好過期,就這輪回報 transient、
+    widget 保留上一筆,下次 bridge 用到時自然刷新即恢復。"""
+    with open(LIVE_CRED_PATH) as f:
         cred = json.load(f)
     access = cred.get("claudeAiOauth", {}).get("accessToken", "")
+    return fetch_usage(access)
+
+
+def account_from_ssm(slot):
+    """讀某個「非 active」slot 的持久憑證(存 SSM)。過期就用 refreshToken 刷新並寫回 SSM
+    (自癒:下次切回不會拿到過期值)。寫的是 SSM、不是 live 檔,故不影響活躍帳號。"""
+    param = ACCOUNT_SSM_PREFIX + "/" + slot + "/credentials-json"
+    cred = json.loads(_ssm_get(param))
+    access, merged = ensure_fresh(cred)
+    if merged is not None:
+        _ssm_put(param, json.dumps(merged))
     return fetch_usage(access)
 
 
@@ -194,26 +224,48 @@ def _ssm_put(name, value):
     )
 
 
-def account_backup1():
-    cred = json.loads(_ssm_get(BACKUP1_SSM))
-    access, merged = ensure_fresh(cred)
-    if merged is not None:
-        _ssm_put(BACKUP1_SSM, json.dumps(merged))
-    return fetch_usage(access)
-
-
+# slot 顯示名(順序 = 掛件上的排列)。來源不寫死:active 的讀 live 檔、其餘讀 SSM。
 ACCOUNTS = [
-    ("main", "Main", account_main),
-    ("backup1", "Backup1", account_backup1),
+    ("main", "Main"),
+    ("backup1", "Backup1"),
 ]
 
 
+def read_tasks():
+    """讀背景工作帳本並做老化過濾;採集器對帳本唯讀(pruning 交給 taskline.py 寫入端)。
+    讀不到 / 格式壞 → 回空陣列,絕不讓它拖垮用量採集。"""
+    try:
+        with open(LEDGER_PATH) as f:
+            arr = json.load(f)
+        if not isinstance(arr, list):
+            return []
+    except Exception:
+        return []
+    now = int(time.time())
+    out = []
+    for t in arr:
+        if not isinstance(t, dict) or not t.get("id"):
+            continue
+        state = t.get("state")
+        updated = int(t.get("updated") or t.get("started") or 0)
+        if state in ("done", "failed"):
+            if updated and now - updated > DONE_TTL_SEC:
+                continue  # 完成太久 → 不再轉發,讓卡片淡出
+        elif state == "running" and updated and now - updated > STALE_SEC:
+            t = {**t, "state": "stale"}  # 久未更新 → 疑似程序中途掛掉
+        out.append(t)
+    # 最近更新的排前面,方便掛件取前幾筆顯示
+    out.sort(key=lambda x: int(x.get("updated") or x.get("started") or 0), reverse=True)
+    return out
+
+
 def build_payload():
+    active = read_active_slot() or "main"
     accounts = []
-    for slot, label, fn in ACCOUNTS:
-        entry = {"slot": slot, "label": label}
+    for slot, label in ACCOUNTS:
+        entry = {"slot": slot, "label": label, "active": slot == active}
         try:
-            u = fn()
+            u = account_from_live_file() if slot == active else account_from_ssm(slot)
             entry.update(u)
             entry["ok"] = True
         except Exception as e:
@@ -223,7 +275,8 @@ def build_payload():
             # dead = 憑證確定失效(需重新登入);其餘(429/網路/5xx)為暫時性
             entry["dead"] = ("需重新登入" in msg)
         accounts.append(entry)
-    return {"updated": int(time.time()), "accounts": accounts}
+    return {"updated": int(time.time()), "active": active,
+            "accounts": accounts, "tasks": read_tasks()}
 
 
 def main():
