@@ -1,7 +1,7 @@
 # 牙菌斑怪獸 · DDB 資料模型 — 階段9b:堡壘 5 表實體 schema 定案
 
 > 交接文件 · 產出日期 2026-07-17 · 承接 [STAGE1 §1-5](./STAGE1-access-patterns.md)(堡壘存取模式)+ [STAGE9a](./STAGE9a-core-tables-ddl.md)(核心 4 表已建)
-> 狀態:**草稿**(Claude 出 schema 提案,待 signoff / Codex 二驗)。
+> 狀態:**已定稿**(Claude 提案 → Codex 二驗 4 P1+1 P2 全採納 + 尾段確認無第 6 GSI/identity 排除正確 → 使用者 signoff,2026-07-17)。migration(9b-ddl)另出。
 > **為何先出 schema 不出 migration**:堡壘 5 表原標「已定案」但**實體 GSI 鍵名/投影/TTL attr 從未落到屬性層級**(commit `5f6e62b` 不在本 repo)。GSI 建錯要**刪表重建**,故先把實體 schema 釘死+Codex 驗,簽核後才寫 migration(9b-ddl)。
 > **範圍**:5 表 = `fortress` / `fortress-raid` / `sugar-pulse` / `fortress-guild-pool` / `fortress-ledger`。全 PAY_PER_REQUEST · ap-southeast-1。
 
@@ -109,6 +109,6 @@ Codex 二驗:順序/切分/多數 PK-SK-TTL 認可;**4 P1 + 1 P2 成立全採納
 | P2-5 | season-index 用 ALL,ARCHIVE 整包快照會複製進 GSI | ✅ | 改 INCLUDE 對帳摘要;完整 ARCHIVE 走基表 Query 讀 |
 | P2-6 | sugar-pulse `ttl` 合理、claim 靠條件寫非 TTL 寫得對 | ✅ 背書 | 無需改 |
 
-## ➡️ 定稿前 · 剩餘收口
-- Codex 訊息「確認項」尾段被截斷(`fortress-ledger 的 playerId/sk + season-index(sea…`)——待確認是否還有 P2/確認未收到。
-- 全 P1 已改;schema 簽核後才寫 `create_yajunban_fortress_tables.js`(9b-ddl migration)。
+## ➡️ 定稿後 · 交給 9b-ddl(migration)
+- Codex 尾段已補確認:`fortress`/`guild-pool` 無 SK、`raid` 單 PK raidId、`ledger` playerId/sk+season-index 皆對齊 STAGE1;**無需第 6 條 GSI**;跨平台 identity 不屬堡壘 5 表(排除正確)。
+- 全 P1+P2 已改、無阻斷點 → 出 `create_yajunban_fortress_tables.js`(5 表 + 5 GSI,沿用 9a 腳本骨架 + GSI 驗證)。

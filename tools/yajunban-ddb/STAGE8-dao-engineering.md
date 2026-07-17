@@ -126,6 +126,13 @@
 - 效果:**純讀熱路徑零寫**,又不依賴背景 worker 準時跑。
 - **統一單一出口**(Codex S8 P1-4):`computeVirtualState(coreItem, now)` **回傳整包 computed state**——`friendship/satiety/mood/khui` 現值 + `zeroAt/sickAt` 等衍生態。**面板讀取、死亡判定、DTO 帶名化、互動前檢查全走同一套**,禁 DAO/DTO/戰鬥入口各算一次(否則出現「面板看沒病、死亡判定說病了」的分歧)。§5.3 的 khui 現值、§5.1-A 的顯示值都併進此出口。
 
+### 5.2b 🚨 通則:時間態不可當「稀疏索引/TTL 是否存在」的唯一條件(已踩 2 次)
+> STAGE7b OCC(idle TTL 刪線上玩家)、STAGE9b `matchableBucket`(護盾期間 REMOVE)**連兩次同一個坑**,立為鐵律:
+- **任何純隨時間改變資格的狀態**(`shieldUntil`、租約到期、飽食/友好衰退到 0、冷卻結束…)**不可**當「稀疏 GSI 是否寫該 item / spatial 佔用是否存在 / TTL 是否刪」的**唯一條件**——因為**到期那一刻沒有任何寫入事件**會把 item 加回索引/救回佔用,造成 **false negative**(該出現卻查不到),且與零背景 job 方向直接衝突。
+- **稀疏索引/佔用只能依賴「伴隨寫入的狀態轉換」**(state=ACTIVE↔非、進↔出 raid、移動搬桶——這些本就有寫)。
+- **時間態一律留在 item/index projection、query 後用 virtual-state / lazy compute(`§5.2`)過濾**(`shieldUntil>now`、`virtualZeroAt<now`)。
+- 對照:TTL 可以是時間態(它本就是 GC),但**存活/存在判定不看 TTL**,而看 §5.2 的 virtual-state(STAGE6/7b 律)。
+
 ### 5.3 Khui 現值(S5b P0:只存 ts 不夠)
 - STAGE3 已加 **`khui` 值欄**;現值 = `min(5, khui + floor((now − khui_last_ts)/間隔))`(一般 20 分、新手 Stage1–2 10 分);消費寫 `khui = 現值 − n` 且更新 `khui_last_ts`。
 
