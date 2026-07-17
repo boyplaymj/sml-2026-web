@@ -8,15 +8,15 @@ from PIL import Image, ImageDraw
 
 SRC = os.environ["SRC"]
 OUT = os.environ.get("OUT", "/tmp/train-emoji/shine.gif")
-N = int(os.environ.get("FRAMES", 16))
+N = int(os.environ.get("FRAMES", 20))
 SCALE = float(os.environ.get("SCALE", 1.0))
 DARK = (54, 57, 63)
-GMAX = float(os.environ.get("GLOSS", 0.75))      # 高光最大強度
-SIGMA_F = float(os.environ.get("SIGMA", 0.05))   # 光帶寬(占寬比例)
+GMAX = float(os.environ.get("GLOSS", 0.30))      # 高光最大強度
+SIGMA_F = float(os.environ.get("SIGMA", 0.06))   # 光帶寬(占寬比例)
 SLOPE = float(os.environ.get("SLOPE", 0.45))     # 斜度
 GLASS_LUM = float(os.environ.get("GLASS_LUM", 115))  # 亮度低於此=玻璃/暗面,吃最多光
 GLASS_YMAX = float(os.environ.get("GLASS_YMAX", 0.58))  # 玻璃只認上半部(排除底盤/輪子)
-BODY_W = float(os.environ.get("BODY_W", 0.12))   # 非玻璃車體的微光權重(壓低,光主要落玻璃)
+BODY_W = float(os.environ.get("BODY_W", 0.0))   # 非玻璃車體的微光權重(壓低,光主要落玻璃)
 
 SMOKE = os.environ.get("SMOKE", "")
 
@@ -81,7 +81,7 @@ for i, fr in enumerate(frames):
     fr.convert("RGB").save(f"{fdir}/f{i:03d}.png")
 FF = os.environ.get("FF", "/opt/sml/repo/tools/bin/ffmpeg")
 pal = f"{fdir}/pal.png"
-fps = 1000 // int(os.environ.get("DUR", 80))
+fps = 1000 // int(os.environ.get("DUR", 140))
 subprocess.run([FF, "-y", "-loglevel", "error", "-i", f"{fdir}/f%03d.png",
                 "-vf", "palettegen=max_colors=128:stats_mode=full", pal], check=True)
 subprocess.run([FF, "-y", "-loglevel", "error", "-framerate", str(fps), "-i", f"{fdir}/f%03d.png",
