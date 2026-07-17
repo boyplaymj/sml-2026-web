@@ -191,6 +191,7 @@ TransactWrite (ClientRequestToken = <場次結算冪等碼>) {
 - **存活判定 helper**:`isBattleAlive(item) = item.state==='ACTIVE' && Date.now() <= item.leaseExpireAt*1000`——禁止任何地方靠「GetItem 拿不到 = 死」(TTL 刪可延遲 48h)。
 - **transaction builder**(承 STAGE2 P1-4):結算跨 M#CORE/INV#/PVP# 多顆時,合併「同一 item 的多個 mutation」成一個 Update,避免同交易重複操作同 key 被 DDB 拒。
 - **沿用** `TrainTycoonTransitDAO` 的泛用 `TransactWriteCommand` 提交樣式(見 `DAO/DDB/TrainTycoonTransitDAO.js`)。
+- **PVP# 清潔策略**(Codex P2·非阻斷):讀到過期 `PVP#<opponentId>`(`now−lastEndAt > 24h+grace`)時**順手 Delete/覆寫**,避免長期累積殭屍列(monster 表不開 TTL 故靠此 lazy 清)。
 
 ---
 
