@@ -47,8 +47,10 @@
 ### 2.3 提款防呆(沿用並強化)
 - Phase 0 提款 = 提走整個金庫。Phase 1 改 **`可提 = max(0, 金庫 − principalRemaining)`**(survival §7)→ 堵「借款立刻提走賴帳鑄幣」。
 
-### 2.4 基礎違約(Stage1+2,Stage3 留後)
-- Stage1 銀行專員(滯納金 + 利率跳升 + 信用降 + 寬限);Stage2 暴力討債(器具損壞/停業/嚇跑客)。紅線(`missedStreak ≥ 3` 或 `arrears > 破產門檻`)→ 破產(接 Phase 0 既有倒店 → 歸零館保留個人牙齒/stats)。補繳可解除。**Stage3 消防綁事件系統,本 slice 不做。**
+### 2.4 基礎違約(本 slice = 記帳 + 破產紅線;Stage1/2 實質後果 deferred)
+- **本 slice 實作範圍(Codex 2026-07-17 查驗確認)**:`arrears / missedStreak / collectionStage(0/1/2) / credit` 欄位累計 + 破產紅線(`missedStreak ≥ defaultStreakToClose` 或 `arrears > bankruptcyArrears`)→ 破產(接 Phase 0 既有倒店 → 歸零館保留個人牙齒/stats)。補繳可解除。
+- 🔴 **Stage1/2 的「實質後果」= 下一 slice**(欄位已齊、足夠接):Stage1 銀行專員(滯納金加成/利率跳升/信用降/寬限窗)、Stage2 暴力討債(器具損壞→維修 downtime/停業零收入/嚇跑客+負評)。目前是「有記帳、無後果」——`collectionStage` 只標級數,尚未施加懲罰效果。補做時建議先只補 Stage1(滯納率/寬限),Stage2 暴力討債綁事件系統留 Phase 3。
+- **Stage3 消防綁事件系統,本 slice 不做。**
 
 ---
 
