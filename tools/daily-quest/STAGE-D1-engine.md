@@ -37,6 +37,13 @@
   5. `markRerollUsed` 首次 true、二次 false（冪等）✅
   6. 測試列已清除 ✅
 
+## Codex 二驗修正（blocker）
+
+- **Codex 抓到 blocker**：`onGamePlay`/`onGameWin` wrapper 原本先送一次 `'any'` 再送 `gameKey`，但 `eventMatches` 已把 `:any` 當 wildcard → 單次 `track('game_play', gameKey)` 本就同時命中 `:any` 與 `:<game>`，wrapper 多送導致 generic 任務 **+2**。
+- **修正**：wrapper 改為單次 `track(gameKey)`；補加註警語。
+- **迴歸測試**：新增 7 條 wrapper 斷言（onGamePlay 只 track 一次、去重、q_any 進度 =1 非 2）→ 單測總數 **37/37 通過**。
+- 修正已 commit（sweetbot-next；因併行 AI 自動快照，落在 `1341d5b snapshot`，程式內容已確認正確）。
+
 ## Codex 查驗點
 
 1. 複合鍵 `getDoc/createIfAbsent/setQuests` 正確;條件式 `attribute_not_exists(discordId)` 能擋併發重抽。
