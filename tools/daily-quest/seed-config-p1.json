@@ -1,0 +1,69 @@
+{
+  "sweetbot-quest-config": [
+    { "PutRequest": { "Item": {
+      "key": {"S": "q_checkin"}, "title": {"S": "簽到小尖兵"}, "desc": {"S": "今天完成一次每日簽到"},
+      "event": {"S": "checkin"}, "target": {"N": "1"}, "difficulty": {"S": "簡單"}, "weight": {"N": "10"},
+      "rewardType": {"S": "point"}, "rewardPoint": {"N": "150"}, "rewardExp": {"N": "30"}, "enabled": {"BOOL": true}
+    }}},
+    { "PutRequest": { "Item": {
+      "key": {"S": "q_play1"}, "title": {"S": "動動手指"}, "desc": {"S": "玩任意小遊戲 1 次"},
+      "event": {"S": "game_play:any"}, "target": {"N": "1"}, "difficulty": {"S": "簡單"}, "weight": {"N": "10"},
+      "rewardType": {"S": "point"}, "rewardPoint": {"N": "150"}, "rewardExp": {"N": "30"}, "enabled": {"BOOL": true}
+    }}},
+    { "PutRequest": { "Item": {
+      "key": {"S": "q_play3"}, "title": {"S": "遊戲咖"}, "desc": {"S": "玩任意小遊戲 3 次"},
+      "event": {"S": "game_play:any"}, "target": {"N": "3"}, "difficulty": {"S": "普通"}, "weight": {"N": "8"},
+      "rewardType": {"S": "point"}, "rewardPoint": {"N": "150"}, "rewardExp": {"N": "30"}, "enabled": {"BOOL": true}
+    }}},
+    { "PutRequest": { "Item": {
+      "key": {"S": "q_play5"}, "title": {"S": "遊戲狂人"}, "desc": {"S": "玩任意小遊戲 5 次"},
+      "event": {"S": "game_play:any"}, "target": {"N": "5"}, "difficulty": {"S": "挑戰"}, "weight": {"N": "4"},
+      "rewardType": {"S": "point"}, "rewardPoint": {"N": "250"}, "rewardExp": {"N": "50"}, "enabled": {"BOOL": true}
+    }}},
+    { "PutRequest": { "Item": {
+      "key": {"S": "q_win1"}, "title": {"S": "旗開得勝"}, "desc": {"S": "贏得任意遊戲 1 次"},
+      "event": {"S": "game_win:any"}, "target": {"N": "1"}, "difficulty": {"S": "普通"}, "weight": {"N": "8"},
+      "rewardType": {"S": "point"}, "rewardPoint": {"N": "150"}, "rewardExp": {"N": "30"}, "enabled": {"BOOL": true}
+    }}},
+    { "PutRequest": { "Item": {
+      "key": {"S": "q_win2"}, "title": {"S": "常勝軍"}, "desc": {"S": "贏得任意遊戲 2 次"},
+      "event": {"S": "game_win:any"}, "target": {"N": "2"}, "difficulty": {"S": "挑戰"}, "weight": {"N": "4"},
+      "rewardType": {"S": "point"}, "rewardPoint": {"N": "250"}, "rewardExp": {"N": "50"}, "enabled": {"BOOL": true}
+    }}},
+    { "PutRequest": { "Item": {
+      "key": {"S": "q_msg1"}, "title": {"S": "打個招呼"}, "desc": {"S": "在頻道發言 1 則"},
+      "event": {"S": "post_message"}, "target": {"N": "1"}, "difficulty": {"S": "簡單"}, "weight": {"N": "10"},
+      "rewardType": {"S": "point"}, "rewardPoint": {"N": "150"}, "rewardExp": {"N": "30"}, "enabled": {"BOOL": true}
+    }}},
+    { "PutRequest": { "Item": {
+      "key": {"S": "q_msg3"}, "title": {"S": "話匣子"}, "desc": {"S": "在頻道發言 3 則"},
+      "event": {"S": "post_message"}, "target": {"N": "3"}, "difficulty": {"S": "普通"}, "weight": {"N": "6"},
+      "rewardType": {"S": "point"}, "rewardPoint": {"N": "150"}, "rewardExp": {"N": "30"}, "enabled": {"BOOL": true}
+    }}},
+    { "PutRequest": { "Item": {
+      "key": {"S": "q_upw"}, "title": {"S": "密碼高手"}, "desc": {"S": "玩達文西猜數字(upw)1 次"},
+      "event": {"S": "game_play:upw"}, "target": {"N": "1"}, "difficulty": {"S": "普通"}, "weight": {"N": "6"},
+      "rewardType": {"S": "point"}, "rewardPoint": {"N": "150"}, "rewardExp": {"N": "30"}, "enabled": {"BOOL": true}
+    }}},
+    { "PutRequest": { "Item": {
+      "key": {"S": "q_sicbo"}, "title": {"S": "骰運亨通"}, "desc": {"S": "玩骰寶(sicbo)3 次"},
+      "event": {"S": "game_play:sicbo"}, "target": {"N": "3"}, "difficulty": {"S": "普通"}, "weight": {"N": "6"},
+      "rewardType": {"S": "point"}, "rewardPoint": {"N": "150"}, "rewardExp": {"N": "30"}, "enabled": {"BOOL": true}
+    }}},
+    { "PutRequest": { "Item": {
+      "key": {"S": "q_bjm"}, "title": {"S": "21點賭神"}, "desc": {"S": "贏得 21 點(bjm)1 次"},
+      "event": {"S": "game_win:bjm"}, "target": {"N": "1"}, "difficulty": {"S": "挑戰"}, "weight": {"N": "4"},
+      "rewardType": {"S": "point"}, "rewardPoint": {"N": "250"}, "rewardExp": {"N": "50"}, "enabled": {"BOOL": true}
+    }}},
+    { "PutRequest": { "Item": {
+      "key": {"S": "q_cross"}, "title": {"S": "過馬路達人"}, "desc": {"S": "玩過馬路(crossroad)1 次"},
+      "event": {"S": "game_play:crossroad"}, "target": {"N": "1"}, "difficulty": {"S": "普通"}, "weight": {"N": "6"},
+      "rewardType": {"S": "point"}, "rewardPoint": {"N": "150"}, "rewardExp": {"N": "30"}, "enabled": {"BOOL": true}
+    }}},
+    { "PutRequest": { "Item": {
+      "key": {"S": "q_poke"}, "title": {"S": "戳戳樂"}, "desc": {"S": "玩戳戳樂(pokingfun)2 次"},
+      "event": {"S": "game_play:pokingfun"}, "target": {"N": "2"}, "difficulty": {"S": "普通"}, "weight": {"N": "6"},
+      "rewardType": {"S": "point"}, "rewardPoint": {"N": "150"}, "rewardExp": {"N": "30"}, "enabled": {"BOOL": true}
+    }}}
+  ]
+}
