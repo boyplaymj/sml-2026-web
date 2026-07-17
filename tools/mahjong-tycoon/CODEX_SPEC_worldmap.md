@@ -107,6 +107,7 @@ balance.worldmap = {
 - `opts.myParlorPos`:玩家已開館的區 → 疊 🏠(一眼看到自己在哪)。
 - `opts.rivals`(Phase 2):對手 NPC/玩家館密度 → 疊標記或熱度色階(emoji 無底色 → 用強度 emoji 如 🔴🟠🟡 或數字)。
 - **天氣不畫在格子上**(一格一 emoji 塞不下)→ 走 §6 status list。
+- 🔴 **尺寸泛化(Codex 提醒)**:引擎現固定 `MAP_W=MAP_H=5`;支援 `balance.worldmap.size` 時要把 `MAP_W/MAP_H` 改讀 config(`inBounds/clampCursor/layout/render` 一併泛化),但**保持舊呼叫 `render(districts, cursor)` 簽名不變**、缺 size 時預設 5×5(既有 Phase 0 不迴歸)。
 
 ### 5.1 地圖下方 status list(embed 一欄,取代格上塞資訊)
 grid 之下附每區一行,把選點要看的資訊攤開:
@@ -131,7 +132,8 @@ grid 之下附每區一行,把選點要看的資訊攤開:
 
 ## 7. 互動
 
-- **Phase 0(已上線)選點開館**:方向鍵移 📍 游標(`canMove` 邊界 disable)→ 落在空區 → 確認開館(`districtAt` 取該區 terrain/clientMix/租金寫進 parlor)。customId 前綴 `mjt:map:`,末段放 ownerId 守門(仿既有面板)。
+- **Phase 0(已上線)選點開館**:方向鍵移 📍 游標(`canMove` 邊界 disable)→ 落在空區 → 確認開館(`districtAt` 取該區 terrain/clientMix/租金寫進 parlor)。末段放 ownerId 守門(仿既有面板)。
+- 🔴 **customId 沿用既有、勿硬換 prefix(Codex 提醒)**:Phase 0 已上線的 button key 是 `mjt:move / mjt:confirmOpen / mjt:map / mjt:back / mjt:refresh / mjt:withdraw / mjt:reopen`——**不可為了規格美觀改成 `mjt:map:*` 破壞舊面板**。新增互動要嘛沿用既有 key、要嘛加 alias/過渡期雙認,舊 customId 一律保持可用。
 - **已開館後看地圖**:游標可自由逛,自己的區疊 🏠;選點面板變「看戰況」(唯讀)。
 - **Phase 2 戰況板**:同區多間館 → 顯示對手密度/熱度、可作為削價/踢館目標入口(接 §J 對抗);地圖從「選點器」升級成「動態戰況板」。
 
@@ -180,10 +182,12 @@ grid 之下附每區一行,把選點要看的資訊攤開:
 ### 10.3 ⏸️ 停用區(`enabled:false`,安全下架的預設手段)
 - **新玩家不可選**(選點面板/`districtAt` 開館流程過濾 `enabled:false`)。
 - **既有館照常營運**(不動 parlor);地圖仍渲染該區但**淡化顯示**(如加註 🚫/灰底 legend),讓該區館主看得到自己的 🏠。
+- 🔴 **讀取分兩路(Codex 提醒)**:**選點/開館端 excludeDisabled**(新人選不到)、**既有館顯示/結算端 includeDisabled**(照樣讀得到該區資料)→ 用 `districtById(id, {includeDisabled})` 之類分流,勿一刀過濾掉害既有館讀不到自己的區。
 - 這是「想收掉一區」的**首選**——零資料破壞、可隨時再 `enabled:true` 復活。
 
 ### 10.4 🗑️ 硬刪區 + 孤兒館政策(**需拍板的唯一子項**)
 - **預設鐵律:該區有 active parlor 時，後台刪除鈕擋下**(先查綁定館數 > 0 → 不准硬刪,提示改用 §10.3 停用 / §10.4 封存)。避免 parlor `districtId` 指向不存在的區變孤兒。
+- 🔴 **查綁定館的資料模型約束(Codex 提醒)**:`mahjong-tycoon-parlors` PK=`userId`,**無 `districtId`/`status` GSI** → 「該區有幾間 active 館」目前只能 **scan**。MVP 區數少、刪除是低頻後台操作,scan 可接受;**長期加 `districtId-index` GSI**(或另建計數)再讓防呆/封存搬遷查詢走 index,免全表掃變慢。
 - 真要徹底下架 → 走**「封存搬遷」流程**(推薦預設,數值 seed 可調):
   1. 區標 `retiring:true` + 寬限窗 `balance.worldmap.retireGraceDays`(seed,如 7 天,真實 1:1)。
   2. 期間該區館主收通知,二選一:**遷館**(保留 等級/金庫/stats/成就,換 `districtId` + 重置 floorplan 綁定與 terrain 體質,類似軟性「搬家」非破產)/ **領補償關店**(退等值牙齒到個人錢包)。
@@ -192,6 +196,7 @@ grid 之下附每區一行,把選點要看的資訊攤開:
 
 ### 10.5 孤兒館防呆(遊戲端 fallback,硬要求)
 - 遊戲端讀 parlor 時 `districtId` **不在 config**(被刪/改名/資料異常)→ **不可崩**:terrain 視為全 med、clientMix/租金用**通用預設或該 parlor 快照的最後已知值**、地圖標記回退,面板提示「此區已調整」。
+- 🔴 **快照需開館時就存(Codex 提醒)**:若 fallback 要用「最後已知 district 值」,**開館時要把 `districtSnapshot`(terrain/rentLevel/clientMix 等當下值)寫進 parlor**;Phase 0 現只存 `districtId` → **Phase 1 補 `parlor.districtSnapshot`**。沒有快照時 fallback 退更保守的通用預設(全 med / 系統租金),仍不崩。
 - 呼應 §9:缺 `terrain`/`mapPos` 一律有 fallback(med / AUTO),讀取端永不因區資料變動而掛。
 
 ---
@@ -208,17 +213,17 @@ grid 之下附每區一行,把選點要看的資訊攤開:
 
 ## 12. 驗收點(給 Codex)
 
-1. **向後相容**:`render(districts, cursor)` 不傳 `opts` 時輸出與現況一致(既有 Phase 0 選點不迴歸)。
+1. **向後相容**:`render(districts, cursor)` 不傳 `opts` 時輸出與現況一致(既有 Phase 0 選點不迴歸);`MAP_W/H` 泛化後缺 `balance.worldmap.size` 仍預設 5×5。
 2. **正典地理**:6 區依 `mapPos` 落在天王里正確相對位置(§3:夜市中央/巷弄西南臨溪/重劃東/商辦北/學校西/高齡南);`terrain` 值同 §3 表、地勢極端各只一區(flood→alley/wind→redevelopment/heat→night_market)。
 3. **feature 疊層**:天王溪 🌊 tile 依 `balance.worldmap.features` 畫在游標/區之下、空地之上;river 格 `districtAt` 回 null(不可選、不參與結算)。
 4. **格子優先序**:cursor > 我的館 🏠 > 對手 > district > feature > 空地,每格仍剛好一個全形 emoji(對齊不破)。
 5. **status list**:每區一行顯示 terrain(legend icon)+ 租金 +(Phase 3)天氣 icon + activeEvents 橫幅;游標區高亮。
 6. **天候單一真相源**:天氣/事件只讀 climate `effectiveWeather` + `parlor.weather.activeEvents`,worldmap 不自算。
 7. **資料驅動**:size/features/legend/mapPos/terrain 全讀 config,無寫死;缺 `balance.worldmap` 時退化成純 5×5 無河流(不報錯)。
-8. **互動守門**:選點/看地圖 customId 帶 ownerId,非 owner 點 → ephemeral 擋;開館重讀 DDB 不信畫面。
+8. **互動守門**:選點/看地圖 customId 帶 ownerId,非 owner 點 → ephemeral 擋;開館重讀 DDB 不信畫面。**既有 `mjt:` button key(move/confirmOpen/map/back/refresh/withdraw/reopen)不被破壞**(不硬換 prefix)。
 9. **§9 身分統一(🅱)**:6 區 clientMix 維持不動、只加 mapPos+terrain;引擎 `DEFAULT_POSITIONS` 更新成 6 區真 id 正典座標;無孤兒 id;缺 terrain/mapPos 時 fallback(med/AUTO)不報錯。
 10. **加/調/停用(§10.1–10.3)**:後台新增區草稿→發佈後遊戲端讀到新區(引擎無改動);`enabled:false` 區新玩家選不到但既有館照跑、地圖淡顯示;數值調整下次結算生效。
-11. **下架防呆(§10.4–10.5)**:有 active parlor 的區硬刪被擋(改走停用/封存);孤兒館(districtId 不在 config)遊戲端**不崩**、terrain 退 med、面板提示;封存搬遷寬限/補償走 seed。
+11. **下架防呆(§10.4–10.5)**:有 active parlor 的區硬刪被擋(改走停用/封存);查綁定館 MVP 可 scan、長期加 `districtId-index` GSI;孤兒館(districtId 不在 config)遊戲端**不崩**、terrain 退 med、面板提示;`parlor.districtSnapshot`(Phase 1 開館時存)供 fallback;封存搬遷寬限/補償走 seed。
 
 ---
 
