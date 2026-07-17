@@ -162,16 +162,51 @@ grid 之下附每區一行,把選點要看的資訊攤開:
 
 ---
 
-## 10. Phase 歸屬
+## 10. 區域生命週期(加 / 調 / 停用 / 下架 + 孤兒館防呆)
+
+地圖**資料驅動 → 加區、調區是後台常態操作,引擎零改動**。四種變更 × 安全等級 × 對「已在該區開館的玩家」的處理:
+
+### 10.1 ➕ 加區(安全,後台現成)
+- 後台「地圖區域」有**新增區域鈕**(push 一筆 district 草稿)。填 `id/name/emoji/clientMix(10鍵)/rentLevel/riskLevel/baseFlow/terrain/location`;`mapPos` 不填 → 引擎 `AUTO_POSITIONS` 自動落位。
+- 天候/客流/風水**自動套用新區**(全資料驅動,無需改遊戲端公式)。
+- 可綁**解鎖 gate**(`unlockLevel` 老闆等級 / `season` 賽季)→ 高階或檔期才開的新區(CONTENT §A 擴充池 車站/溫泉同理)。
+- 盤面不夠 → 調 `balance.worldmap.size`(5×5→6×6…),引擎讀 config 尺寸。
+
+### 10.2 🔧 調區(數值即時生效,重大改動要公告)
+- 任何欄位後台可編、草稿→發佈兩段式;發佈後 bot 讀取(30–60s 快取 or 重啟保證,見 [[reference_change_effect_cheatsheet]])。
+- `clientMix/rentLevel/riskLevel/baseFlow/location/surroundings` 調整 → 下次結算即套用,安全。
+- 🔴 **`terrain` / 大幅租金 屬「玩家選址時的承諾」**:玩家開館時是衝著「這區的天氣體質/租金」來的,中途暗改觀感差 → 建議**重大地勢/租金變更走公告 + 生效緩衝**(非硬性,但列為運營守則)。
+
+### 10.3 ⏸️ 停用區(`enabled:false`,安全下架的預設手段)
+- **新玩家不可選**(選點面板/`districtAt` 開館流程過濾 `enabled:false`)。
+- **既有館照常營運**(不動 parlor);地圖仍渲染該區但**淡化顯示**(如加註 🚫/灰底 legend),讓該區館主看得到自己的 🏠。
+- 這是「想收掉一區」的**首選**——零資料破壞、可隨時再 `enabled:true` 復活。
+
+### 10.4 🗑️ 硬刪區 + 孤兒館政策(**需拍板的唯一子項**)
+- **預設鐵律:該區有 active parlor 時，後台刪除鈕擋下**(先查綁定館數 > 0 → 不准硬刪,提示改用 §10.3 停用 / §10.4 封存)。避免 parlor `districtId` 指向不存在的區變孤兒。
+- 真要徹底下架 → 走**「封存搬遷」流程**(推薦預設,數值 seed 可調):
+  1. 區標 `retiring:true` + 寬限窗 `balance.worldmap.retireGraceDays`(seed,如 7 天,真實 1:1)。
+  2. 期間該區館主收通知,二選一:**遷館**(保留 等級/金庫/stats/成就,換 `districtId` + 重置 floorplan 綁定與 terrain 體質,類似軟性「搬家」非破產)/ **領補償關店**(退等值牙齒到個人錢包)。
+  3. 寬限結束仍未處理 → 系統**自動補償關店**(退 seed 比例牙齒),再從 config 移除該區。
+- 🅰 遷館 / 🅱 補償關店 的**補償公式與寬限天數 = seed 待定**(唯一開放旋鈕);流程骨架如上先定。
+
+### 10.5 孤兒館防呆(遊戲端 fallback,硬要求)
+- 遊戲端讀 parlor 時 `districtId` **不在 config**(被刪/改名/資料異常)→ **不可崩**:terrain 視為全 med、clientMix/租金用**通用預設或該 parlor 快照的最後已知值**、地圖標記回退,面板提示「此區已調整」。
+- 呼應 §9:缺 `terrain`/`mapPos` 一律有 fallback(med / AUTO),讀取端永不因區資料變動而掛。
+
+---
+
+## 11. Phase 歸屬
 
 - **Phase 0(已上線)**:選點引擎 `MahjongMap.js` + 方向鍵選區開館。
 - **Phase 1**:正典地理落 config(§3 mapPos/terrain)+ 天王溪 feature 疊層(§4/§5)+ 我的館 🏠 標記 + status list(terrain 先顯示,天氣欄留空)。**先把 §9 身分統一拍板**再灌。
 - **Phase 2**:戰況板(對手密度/熱度色階)+ 選點→對抗入口。
 - **Phase 3**:天候 overlay 接上(§6,隨 climate 本體)——天氣 icon/災害橫幅/颱風全服橫幅。
+- **生命週期(§10)**:加區/調數值/停用 = 後台能力,**Phase 1 隨資料層即可用**;🗑️封存搬遷 + 遷館/補償(§10.4)較重,排 **Phase 3+**(牽動 parlor 搬遷與補償結算);孤兒館 fallback(§10.5)**Phase 1 就要有**(讀取端防呆是硬要求)。
 
 ---
 
-## 11. 驗收點(給 Codex)
+## 12. 驗收點(給 Codex)
 
 1. **向後相容**:`render(districts, cursor)` 不傳 `opts` 時輸出與現況一致(既有 Phase 0 選點不迴歸)。
 2. **正典地理**:6 區依 `mapPos` 落在天王里正確相對位置(§3:夜市中央/巷弄西南臨溪/重劃東/商辦北/學校西/高齡南);`terrain` 值同 §3 表、地勢極端各只一區(flood→alley/wind→redevelopment/heat→night_market)。
@@ -182,6 +217,8 @@ grid 之下附每區一行,把選點要看的資訊攤開:
 7. **資料驅動**:size/features/legend/mapPos/terrain 全讀 config,無寫死;缺 `balance.worldmap` 時退化成純 5×5 無河流(不報錯)。
 8. **互動守門**:選點/看地圖 customId 帶 ownerId,非 owner 點 → ephemeral 擋;開館重讀 DDB 不信畫面。
 9. **§9 身分統一(🅱)**:6 區 clientMix 維持不動、只加 mapPos+terrain;引擎 `DEFAULT_POSITIONS` 更新成 6 區真 id 正典座標;無孤兒 id;缺 terrain/mapPos 時 fallback(med/AUTO)不報錯。
+10. **加/調/停用(§10.1–10.3)**:後台新增區草稿→發佈後遊戲端讀到新區(引擎無改動);`enabled:false` 區新玩家選不到但既有館照跑、地圖淡顯示;數值調整下次結算生效。
+11. **下架防呆(§10.4–10.5)**:有 active parlor 的區硬刪被擋(改走停用/封存);孤兒館(districtId 不在 config)遊戲端**不崩**、terrain 退 med、面板提示;封存搬遷寬限/補償走 seed。
 
 ---
 
