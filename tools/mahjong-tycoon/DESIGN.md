@@ -34,8 +34,9 @@
 
 ## 2. 世界與客源(Lv1 連續世界)
 
-### 2.1 地圖
+### 2.1 地圖 → **完整規格 `CODEX_SPEC_worldmap.md`**(選點圖引擎/天王溪 feature/天候 overlay/戰況板;≠ 店面平面圖)
 - 地圖 = 數個**行政區**(MVP 先 3 區),之後可擴。
+- 🔴 **行政區身分待統一**(worldmap §9):CONTENT 6 區(便利商店味)vs §2.1.1 天候 3 區(地勢味)vs 引擎舊 3 區 id 三套並存,MVP 前需拍板收斂(建議以 §2.1.1 正典為準收斂 3 區,動到已上線 config 故待使用者選)。
 - 每區屬性:
   - `baseFlow`:每小時基準客流量(客人單位/hr)
   - `clientMix`:客層分布(**10 客群**:散客/雀友/大戶/觀光客/學生/👴高齡/👩‍👧媽媽/🚸翹課學生/🎲游擊中年人/🌱麻將新手 佔比;canonical key=`casual/regular/whale/tourist/student/elderly/mama/truant/roamer/novice`;皆正式客群、都進 clientMix)
