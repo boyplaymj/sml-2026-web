@@ -14,7 +14,7 @@
 1. **mood(心情)是否永不落庫**:STAGE3 定義 mood 為「多為 lazy 算不落庫,但保留欄位供快取/覆寫」。草稿主張 **mood 走純讀時算(A 型),永不主動落庫**——由 satiety/last_interaction/戰鬥近況/成長感即時合成。存疑:是否有「管理員覆寫心情」或「心情事件快取」需求要落庫?若無,mood 欄可長期為空(只當覆寫用)。**待拍板**:mood 是否從 schema 移除純算,或保留為可選快取。
 2. **satiety(飽食度)純讀時算 vs 消費時落庫的邊界**:satiety 隨時間 lazy 下降(基準 `last_fed_at`)。爭議:飽食度**唯一寫入點是餵食**(重置為新值 + 更新 `last_fed_at`),自然下降**永不落庫**(讀時算)。但「飽食見底 → 觸發飢餓生病 `sick_type=starve`」是**狀態轉換需落庫**。草稿主張:satiety 值本身純讀時算(A 型),但**跨越生病閾值時**才落庫寫 `sick_type`/`sick_since`(C 型消費落庫)。**待確認**:生病判定是否要「讀到就落庫」還是「只在互動時落庫」。
 3. **friendship 每日 −1 的落庫時機**:friendship 是**狀態型有下限(0)**,不能純讀時算不落庫(否則裸值永遠停在上次寫入值,衰退看不見)。草稿主張 **C 型:讀時算應扣天數,但只在「有其他寫入(照顧/開面板結算)」或「跨越歸零邊界」時才把衰退落庫**,避免每次讀面板都寫一次。存疑:若玩家只讀不互動,衰退何時真正落庫?建議「開面板讀 = 觸發一次 lazy 結算落庫」(見樣板 §2 C 型),但要防高頻讀放大寫。**待拍板落庫觸發點**。
-4. **khui(菌氣)確定純讀時算(A 型)**:STAGE1 1-3 明寫「零週期寫入」,只存 `khui_last_ts`,回復永不落庫,只在**消費(移動 −1/戰鬥 −2)時**才寫 `khui_last_ts` + 落庫當下算出的現值基準。此條**低存疑**,列此供對照 A vs C 邊界。
+4. **khui(菌氣)確定純讀時算(A 型)**:STAGE1 1-3 明寫「零週期寫入」,存 `khui` 值+`khui_last_ts`(Codex 階段5 P0-1:只存 ts 不夠、公式需 base),回復永不落庫,只在**消費(移動 −1/戰鬥 −2)時**才寫 `khui=現值−n, khui_last_ts=now`。列此供對照 A vs C 邊界。
 5. **soul 6軸 EWMA 的落庫**:STAGE4 已定 **RMW + soul.version 樂觀鎖**(非純讀時算)。EWMA 每次互動事件都要落庫(否則事件丟失)。這是 **B 型(需落庫的樂觀鎖寫回)**的範本,與 khui/satiety 的「純讀時算」正交。存疑:讀 soul 產生**個性標籤(soul.tag)結晶**是否落庫——草稿主張標籤純 lazy 算(A 型),只在管理員蓋章(tag_locked)時落庫。
 6. **daily 計數重置的時區與落庫**:`daily_reset_date`(YYYYMMDD UTC)跨日 → 清 `daily_counts`。爭議:跨日「歸零」是純讀時算(讀到就當 0)還是要落庫清空?草稿主張 **C 型**:讀時比對 `daily_reset_date`,若跨日則**下次照顧寫入時**順帶 `SET daily_counts={}, daily_reset_date=今日`(照顧本來就要寫,搭便車零額外寫);純讀不落庫。
 7. **各系統「間隔/rate」是存欄還是設定表常數**:khui 間隔(20分/新手10分)、satiety 下降率、菌圃成熟時間、群感軟上限——這些 rate **草稿主張全走設定表常數(不落 item)**,item 只存時間戳。存疑:是否有 per-player 個化 rate(活動加速/天賦改 rate)需求?若有(如天賦「菌氣回復加速」),則需在讀時把天賦 modifier 疊上設定表 base rate,**rate 仍不存 item,由 build 派生**。
@@ -98,7 +98,7 @@ lazyResolve(field, item, now):
 ## 🔒 三、鐵律重申
 
 1. **零背景 job**:全站無任何週期性掃全表結算的 worker。所有回復/衰退/成熟/產能一律**讀時靠時間戳重算**(STAGE1 全站鐵律)。B 情境呼喚等「掃描」類走低頻 worker 讀不週期寫。
-2. **高頻計數一律時間戳**:khui/satiety/friendship 衰退/菌圃成熟/堡壘產能——存 `*_last_ts`/`plantedAt`/`resTickAt`,不存「當前值 + 定時遞增」。時間戳 lazy = 寫入預算最大省點(STAGE1 1-3)。
+2. **高頻計數一律時間戳**:satiety/friendship 衰退/菌圃成熟/堡壘產能——存 `*_last_ts`/`plantedAt`/`resTickAt`,不存「當前值 + 定時遞增」;**khui 例外存 `khui` 值+`khui_last_ts`**(base 值非定時遞增,只消費時寫,Codex P0-1)。時間戳 lazy = 寫入預算最大省點(STAGE1 1-3)。
 3. **讀路徑經 DTO(玻璃箱)**:所有 lazy 算出的裸值(mood/satiety/friendship/soul.axes/qs_marks/khui/成熟時間)**絕不直出 API**,一律 DTO 轉帶名狀態(emoji/分帶/體態名/模糊暗示)。lazy 計算在 DAO 讀層完成、DTO 層過濾。
 4. **與樂觀鎖的關係**:
    - **A 型無鎖**(不寫,無競爭);消費寫用條件防超支(khui `khui≥消費量`)。
@@ -129,8 +129,8 @@ lazyResolve(field, item, now):
 ## ✅ Claude(Opus)覆核 — 2026-07-17
 
 整體:A/B/C 落庫模式分類清楚、決策樹好用、DDB 表達式限制根因對齊前四階段。**無 bug**。
-- **解存疑③(friendship 讀放大)**:釐清 = **顯示一律讀時算**(`max(0, stored−days)`,DTO 用,**純讀面板永不寫**);只有「跨越 0 → 寫 `zero_friendship_since`」這一狀態轉換需落庫,且**由互動或低頻 worker(B 情境呼喚那顆)觸發、非每次 GetItem**。故 friendship = **A-顯示 + C-僅跨界持久**。→ 純讀熱路徑零寫入保住。
-- **解存疑②(satiety 生病)**:同理,satiety 值讀時算(A);`sick_type=starve` 生病旗標由互動/worker 落庫、非每讀就寫。
+- **解存疑③(friendship 讀放大)**:顯示一律讀時算(`max(0, stored−days)`,純讀面板永不寫)。⚠️ **此處「由互動/worker 落庫」為歷史舊解;後續 Codex P0-2 升級為 virtual-state 純推導判定、不依賴 persisted 欄**(見下「Codex 階段5 二驗處置」),以 P0-2 為準。
+- **解存疑②(satiety 生病)**:satiety 值讀時算(A);生病判定同走 virtual-state(P0-2),persisted `sick_type` 僅快取。
 - **mood(存疑①)**:保留欄位當「管理員覆寫/快取」可選、預設純算(A);不必從 schema 移除。
 - 背書 soul=B(`soul.version`)、堡壘=B(`resTickAt`)、khui=A、daily/群感浮現/任務刷新=C 搭便車。
 - 交 Codex 二驗:對抗式查 C 型跨界持久的觸發點(worker vs 互動)有無漏、`zero_*_since`/`sick_type` 由誰負責寫、C 型「開面板結算」的寫放大上限。

@@ -151,6 +151,6 @@
 
 ## ➡️ 交給下一步
 
-1. 存疑①(事件列+資源列雙軌 vs QUEST# 單軌)、②(戰鬥 xp)、④(反哺雙表雙帳)= 需 Claude 覆核 + Codex 二驗拍板的三個主題。
+1. ~~存疑①②④~~ ✅ 已定稿(Codex 二驗合流):①雙軌(`entryClass` 分類)、②戰鬥 xp v1 不記、④反哺雙表雙帳(refId 互指、重放只認 FRAGMENT#)。
 2. 定稿後回頭把 STAGE2 決策①表格的 ledger SK 描述補上 v1 型別全集與「牙齒/堡壘不進本表」界線一句。
 3. 建表指令(PAY_PER_REQUEST、無 GSI)排實作階段;階段5b(若有,如 battle 租約表 schema)另檔。

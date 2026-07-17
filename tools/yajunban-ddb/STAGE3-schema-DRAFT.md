@@ -66,7 +66,7 @@
 | `last_fed_at` | N | `null` | 最後餵食(epoch ms)。satiety lazy 下降基準。**(決策⑥補欄)** | — |
 | `daily_counts` | M | `{}` | 每日照顧次數計數(跨日 lazy 歸零)。摸頭≤3/玩耍≤1/整理≤1/鼓勵≤3(餵食不計,用 satiety 當閥)。**(決策⑥補欄)** | `{ headpat:N, play:N, groom:N, cheer:N }`(缺鍵視為 0) |
 | `daily_reset_date` | S | (今日) | 每日計數重置基準日 `YYYYMMDD`(UTC,DTO 轉時區)。讀時比對→跨日清 daily_counts。見存疑⑦ | — |
-| `zero_friendship_since` | N | `null` | 友好度降到 0 的時間(epoch ms);非 0 時清 null。=0 持續 7 天→逃跑判定。**(決策⑥點名)** | — |
+| `zero_friendship_since` | N | (未歸零時不寫) | 友好度降到 0 的時間(epoch ms);**快取/通知用,非唯一真相**(逃跑判定由 friendship 值+last_interaction 虛擬推導,見 5b P0-2 virtual-state)。=0 持續 7 天→逃跑。**(決策⑥點名)** | — |
 | `zero_reputation_since` | N | (未歸零時不寫) | 聲望降到 0 的時間(epoch ms);**快取/通知用,非唯一真相**(可由 reputation 值+時間戳虛擬推導,見 5b P0-2 virtual-state)。=0 持續 7 天→逃跑。**(決策⑥點名)** | — |
 | `rate_mods` | M | `{}` | **lazy rate 修正快取**(Codex 階段5 P1-6):從 M#BUILD 天賦/職業/道具去正規化的 compact 修正,讓 `getStatusCore`(只讀 CORE)能算 khui/satiety/菌圃 lazy 值免讀 BUILD。天賦/職業變更時同步(低頻);缺鍵=用設定表 base rate | `{ khui_regen:N, satiety_decay:N, garden_mature:N, ... }` |
 | `createdAt` | N | `Date.now()` | item 建立時間(epoch ms) | — |
@@ -105,7 +105,7 @@
 |---|---|---|
 | 摸頭/玩耍/整理/鼓勵(每日計數+friendship/charm/mood) | M#CORE | UpdateItem,ADD+上限條件,~2 WRU |
 | 餵食(satiety/hp/xp/obesity+扣背包) | M#CORE(+背包表) | **TransactWrite**(結算+扣道具原子) |
-| 移動(pos/khui_last_ts) | M#CORE | UpdateItem,防菌氣超支條件 |
+| 移動(pos/khui/khui_last_ts) | M#CORE | UpdateItem,`SET khui=現值−1, khui_last_ts=now`,防菌氣超支條件 |
 | A 層被動吸收(survival_hours/xp,絕不寫 friendship) | M#CORE | UpdateItem ADD,節流 |
 | lazy 衰退(friendship −1 / satiety / mood / khui) | M#CORE(多為讀時算,必要才寫) | 時間戳差計算 |
 | 配點(talent_points −1 + talent_nodes ADD 節點) | M#BUILD | **TransactWrite**(點數≥1+前置) |
