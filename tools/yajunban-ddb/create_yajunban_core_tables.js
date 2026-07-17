@@ -6,10 +6,12 @@
 // BillingMode 一律 PAY_PER_REQUEST。堡壘 5 表不在此腳本(見 STAGE9a 文末,另立 9b)。
 //
 // 設計依據:STAGE2/3/4/5a/6/7b/8(全定稿)。TTL 慣例對齊 migration/create_earthquake_tables.js,
-// 但強化為「每次跑都 DescribeTimeToLive 驗證/補正」(落實 STAGE8 §2 P2-a:TTL attr 打錯=靜默不清殭屍)。
+// 強化(STAGE8 §2 P2-a + Codex S9a 二驗):
+//   - 既有表也「驗 key schema/BillingMode/GSI 數」,不符即 throw(P1-1:key 建錯不是可自動補的小事)。
+//   - TTL/schema 任一錯累積成 error,結尾 process.exit(1),不讓部署誤判成功(P1-2)。
+//   - 不該開 TTL 的表 ENABLED/ENABLING 都算錯(P1-3);表非 ACTIVE 先 wait 再驗(P1-4)。
 //
-// 用法(冪等,可重跑):
-//   複製到 sweetbot-next/migration/ 後 → node migration/create_yajunban_core_tables.js
+// 用法(冪等,可重跑):複製到 sweetbot-next/migration/ 後 → node migration/create_yajunban_core_tables.js
 const {
   DynamoDBClient,
   DescribeTableCommand,
@@ -71,21 +73,59 @@ const TABLES = [
   }
 ];
 
-async function tableExists (client, name) {
+// 累積本次執行結果與致命錯誤(P1-2:結尾一次退出碼)。
+const summary = []; // { table, create, schema, ttl }
+const fatals = [];  // string[]
+
+function normPairs (arr, a, b) {
+  return arr.map((x) => `${x[a]}:${x[b]}`).sort();
+}
+function sameSet (actual, expected, a, b) {
+  const x = normPairs(actual, a, b);
+  const y = normPairs(expected, a, b);
+  return x.length === y.length && x.every((v, i) => v === y[i]);
+}
+
+async function describe (client, name) {
   try {
     const res = await client.send(new DescribeTableCommand({ TableName: name }));
-    return res.Table.TableStatus;
+    return res.Table;
   } catch (err) {
     if (err.name === 'ResourceNotFoundException') return null;
     throw err;
   }
 }
 
+// P1-1:既有表驗 key schema / AttributeDefinitions / BillingMode / GSI 數。錯了累積 fatal。
+function verifySchema (def, table) {
+  const problems = [];
+  if (!sameSet(table.KeySchema || [], def.keys, 'AttributeName', 'KeyType')) {
+    problems.push(`KeySchema 不符(實際 ${JSON.stringify(table.KeySchema)} vs 期望 ${JSON.stringify(def.keys)})`);
+  }
+  // 本批表都無 GSI,故 AttributeDefinitions 應恰等於 key 屬性。
+  if (!sameSet(table.AttributeDefinitions || [], def.attrs, 'AttributeName', 'AttributeType')) {
+    problems.push(`AttributeDefinitions 不符(實際 ${JSON.stringify(table.AttributeDefinitions)} vs 期望 ${JSON.stringify(def.attrs)})`);
+  }
+  const billing = table.BillingModeSummary && table.BillingModeSummary.BillingMode;
+  if (billing !== 'PAY_PER_REQUEST') {
+    problems.push(`BillingMode 應為 PAY_PER_REQUEST,實際「${billing || '未知'}」`);
+  }
+  const gsiCount = (table.GlobalSecondaryIndexes || []).length;
+  if (gsiCount !== 0) {
+    problems.push(`GSI 數應為 0,實際 ${gsiCount}`);
+  }
+  if (problems.length) {
+    for (const p of problems) fatals.push(`[${def.name}] schema 驗證失敗:${p}`);
+    return 'MISMATCH';
+  }
+  return 'OK';
+}
+
 async function ensureTable (client, def) {
-  const status = await tableExists(client, def.name);
-  if (status) {
-    console.log(`表 ${def.name} 已存在(狀態: ${status}),跳過建表。`);
-  } else {
+  const row = { table: def.name, create: '', schema: '-', ttl: '' };
+  let table = await describe(client, def.name);
+
+  if (!table) {
     console.log(`表 ${def.name} 不存在,開始建立...`);
     await client.send(new CreateTableCommand({
       TableName: def.name,
@@ -95,10 +135,24 @@ async function ensureTable (client, def) {
     }));
     await waitUntilTableExists({ client, maxWaitTime: 120 }, { TableName: def.name });
     console.log(`表 ${def.name} 建立完成。`);
+    row.create = 'created';
+    row.schema = 'OK';
+    table = await describe(client, def.name);
+  } else {
+    row.create = 'existed';
+    // P1-4:非 ACTIVE 先等到 ACTIVE 再驗,避免 CREATING/UPDATING 時查 TTL 不穩。
+    if (table.TableStatus !== 'ACTIVE') {
+      console.log(`表 ${def.name} 狀態 ${table.TableStatus},等待 ACTIVE...`);
+      await waitUntilTableExists({ client, maxWaitTime: 120 }, { TableName: def.name });
+      table = await describe(client, def.name);
+    }
+    // P1-1:驗既有表 schema。
+    row.schema = verifySchema(def, table);
+    console.log(`表 ${def.name} 已存在,schema 驗證:${row.schema}`);
   }
 
-  // TTL 冪等驗證/補正(即使表已存在也檢查;落實 STAGE8 §2 P2-a)。
-  await ensureTtl(client, def);
+  row.ttl = await ensureTtl(client, def);
+  summary.push(row);
 }
 
 async function ensureTtl (client, def) {
@@ -108,27 +162,35 @@ async function ensureTtl (client, def) {
   const curAttr = cur.AttributeName || null;
 
   if (!def.ttlAttr) {
-    // 此表不該開 TTL(永久資料表)。若發現被誤開,警示(不自動關,避免誤動)。
-    if (curStatus === 'ENABLED') {
-      console.warn(`⚠️ 表 ${def.name} 不應開 TTL,卻偵測到 TTL ENABLED(attr=${curAttr})!請人工確認。`);
-    } else {
-      console.log(`表 ${def.name} 無 TTL(符合預期)。`);
+    // 永久資料表:不該有 TTL。ENABLED/ENABLING 都算錯(P1-3),累積 fatal,不自動關(避免誤動)。
+    if (curStatus === 'ENABLED' || curStatus === 'ENABLING') {
+      fatals.push(`[${def.name}] 不應開 TTL,卻偵測到 TTL ${curStatus}(attr=${curAttr})。請人工確認並關閉。`);
+      return `ERR(${curStatus})`;
     }
-    return;
+    if (curStatus === 'DISABLING') {
+      console.log(`表 ${def.name} TTL 正在關閉(DISABLING),符合最終無 TTL 目標。`);
+      return 'disabling';
+    }
+    return 'none';
   }
 
-  // 應開 TTL 的表:已用正確 attr 啟用 → 略過;否則啟用/補正。
+  // 應開 TTL 的表:
   if (curStatus === 'ENABLED' && curAttr === def.ttlAttr) {
-    console.log(`表 ${def.name} TTL 已正確啟用(${def.ttlAttr}),跳過。`);
-    return;
+    console.log(`表 ${def.name} TTL 已正確啟用(${def.ttlAttr})。`);
+    return 'ok';
   }
-  if (curStatus === 'ENABLED' && curAttr !== def.ttlAttr) {
-    console.warn(`⚠️ 表 ${def.name} TTL 啟用在錯誤 attr「${curAttr}」(應為「${def.ttlAttr}」)!需人工先關再開,腳本不自動改。`);
-    return;
+  if (curStatus === 'ENABLING' && curAttr === def.ttlAttr) {
+    // 正確 attr、轉換中 → 視同成功(P2-6:不強迫重跑)。
+    console.log(`表 ${def.name} TTL 啟用轉換中(ENABLING, ${def.ttlAttr}),稍後自動生效。`);
+    return 'enabling';
   }
-  if (curStatus === 'ENABLING' || curStatus === 'DISABLING') {
-    console.warn(`⚠️ 表 ${def.name} TTL 狀態轉換中(${curStatus}),稍後重跑本腳本補正。`);
-    return;
+  if ((curStatus === 'ENABLED' || curStatus === 'ENABLING') && curAttr !== def.ttlAttr) {
+    fatals.push(`[${def.name}] TTL 啟用在錯誤 attr「${curAttr}」(應為「${def.ttlAttr}」)。需人工先關再開,腳本不自動改。`);
+    return `ERR(wrong-attr:${curAttr})`;
+  }
+  if (curStatus === 'DISABLING') {
+    fatals.push(`[${def.name}] TTL 正在 DISABLING,無法立即啟用。待其完成後重跑本腳本。`);
+    return 'ERR(disabling)';
   }
   // DISABLED / 未設 → 啟用
   await client.send(new UpdateTimeToLiveCommand({
@@ -136,13 +198,27 @@ async function ensureTtl (client, def) {
     TimeToLiveSpecification: { Enabled: true, AttributeName: def.ttlAttr }
   }));
   console.log(`表 ${def.name} 已啟用 TTL(${def.ttlAttr})。`);
+  return 'enabled';
+}
+
+function printSummary () {
+  console.log('\n=== 結果彙總 ===');
+  for (const r of summary) {
+    console.log(`  ${r.table.padEnd(30)} create=${r.create.padEnd(8)} schema=${String(r.schema).padEnd(9)} ttl=${r.ttl}`);
+  }
 }
 
 async function main () {
   const client = new DynamoDBClient({ region: REGION });
   console.log(`=== 牙菌斑核心 4 表建表 @ ${REGION} ===`);
   for (const def of TABLES) await ensureTable(client, def);
-  console.log('=== 全部完成 ===');
+  printSummary();
+  if (fatals.length) {
+    console.error('\n❌ 偵測到問題,建表未完全成功:');
+    for (const f of fatals) console.error('  - ' + f);
+    process.exit(1);
+  }
+  console.log('\n✅ 全部完成。');
 }
 
 main().catch((err) => {

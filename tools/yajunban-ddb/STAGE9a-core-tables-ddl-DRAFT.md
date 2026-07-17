@@ -35,12 +35,28 @@
 
 ---
 
-## ⚙️ 腳本設計要點(比既有樣板更嚴,落實 S8 P2-a)
+## ⚙️ 腳本設計要點(比既有樣板更嚴,落實 S8 P2-a + Codex S9a 二驗)
 1. **冪等 CreateTable**:`DescribeTableCommand` 先探,存在則跳過(不重建)。沿用 livevote 樣板。
-2. **TTL 冪等且可修**:**不照 earthquake 樣板「表存在就整個 return」**——那會漏掉「表已建但 TTL 沒開/開錯 attr」。改為:建表後開 TTL;**且每次跑都 `DescribeTimeToLiveCommand` 驗現況**,未啟用/attr 不符才 `UpdateTimeToLive` 補正。落實 S8 §2「建表腳本驗證 TTL 已啟用且 attr 名正確」(TTL attr 打錯 = 靜默不清殭屍)。
-3. **TTL attr 不同名硬編在表定義**:battle→`leaseExpireAt`、world→`ttl`(S8 P2-a 提醒兩表不同名)。
-4. **建完 summary**:列每表狀態 + TTL 啟用結果,人可一眼核。
-5. **只建不刪**:腳本不含 DeleteTable(避免誤刪)。
+2. **既有表驗 schema**(Codex S9a P1-1):表已存在**不只檢查存在**——`DescribeTable` 後比對 `KeySchema`/`AttributeDefinitions`/`BillingMode`/GSI 數(本批應=0),不符**累積 fatal**。因 key/GSI 建錯非可自動補的小事(要刪表重建),寧可報錯不可印「成功」。
+3. **TTL 冪等且可修**:**不照 earthquake 樣板「表存在就整個 return」**。每次跑 `DescribeTimeToLiveCommand` 驗現況;應開而未開/DISABLED→`UpdateTimeToLive` 補正;正確 attr 的 ENABLING 視同成功(不強迫重跑,Codex P2-6)。
+4. **錯誤累積 → 退出碼**(Codex S9a P1-2):TTL/schema 任一問題累積進 `fatals[]`,結尾 `process.exit(1)`;**不讓部署把「有錯」誤判成功**。保留「不自動改危險項」策略,但一定讓 run 失敗。
+5. **非 ACTIVE 先等**(Codex S9a P1-4):表存在但 `CREATING/UPDATING` → `waitUntilTableExists` 等到 ACTIVE 再驗 schema/TTL,避免轉換中查詢不穩。
+6. **不該開 TTL 的表:ENABLED **與** ENABLING 都算錯**(Codex S9a P1-3):monster/ledger 被誤設 TTL(含轉換中)一律 fatal;`DISABLING` 視為朝無 TTL 收斂、放行。
+7. **TTL attr 不同名硬編**:battle→`leaseExpireAt`、world→`ttl`(S8 P2-a)。
+8. **結果彙總表**(Codex S9a P2-5):結尾 `printSummary()` 列每表 create/schema/ttl 狀態,人一眼核。
+9. **只建不刪**:腳本不含 DeleteTable(避免誤刪)。
+
+## 🔍 Codex 二驗 findings + Claude vet 處置(2026-07-17)
+Codex 二驗:**無 P0**(範圍切分/key schema/命名皆認可),4 P1 + 2 P2 全屬腳本健壯性。Claude 逐條 vet:**全採納**,已改腳本並 `node --check` + 單測 `sameSet` 比對邏輯(順序無關/抓型別不符/抓缺鍵)。
+
+| # | Codex finding | 處置 |
+|---|---|---|
+| P1-1 | 既有表只查存在+TTL,沒驗 key schema(手動建錯會印成功) | `verifySchema()` 比對 KeySchema/AttributeDefinitions/BillingMode/GSI 數,不符 fatal |
+| P1-2 | TTL 錯只 warn 仍 exit 0(部署誤判成功) | 累積 `fatals[]` → 結尾 `process.exit(1)` |
+| P1-3 | 不該開 TTL 的表漏判 ENABLING | ENABLED/ENABLING 都算 fatal;DISABLING 放行 |
+| P1-4 | 表非 ACTIVE 時不該立刻查 TTL | 非 ACTIVE 先 `waitUntilTableExists` 等 ACTIVE 再驗 |
+| P2-5 | 文件說有 summary 但腳本無 | 加 `printSummary()` 結果表 |
+| P2-6 | ENABLING+正確 attr 可視同成功不必重跑 | 已改為回 `enabling` 視同成功 |
 
 ---
 
