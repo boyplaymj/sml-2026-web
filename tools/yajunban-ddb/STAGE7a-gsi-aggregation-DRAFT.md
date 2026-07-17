@@ -42,7 +42,10 @@
 - 該後台已在跑「掃流水帳 → 聚合 → 存快照」(gen_usage.py / economy Lambda)。牙菌斑分析**掛同一條管線**,不新建成本四件套。
 - **來源分兩路**:
   - **存量指標**(種族分佈 / Stage 漏斗 / 總怪獸數 / 平均數值)→ 週期 **Scan monster 表**,`FilterExpression SK = "M#CORE"`(只數核心顆,避免一隻怪重複計 4 顆)→ 聚合。小規模(< 數千怪 × ~2KB)單次 scan < 1–2 MB,幾十 RCU,日跑一次可忽略。
-  - **活躍/留存指標**(DAU / WAU / 留存曲線 / 新增)→ 從 **ledger**(`sweetbot-yajunban-ledger`,永久流水,STAGE5a)按 ts 切窗聚合,**不掃 monster**;ledger 才有「哪天有互動」的時間軸。留存 = 註冊日 cohort × 回訪 ledger。
+  - **活躍/留存指標**(DAU / WAU / 留存曲線 / 新增)→ ⚠️ **不可靠 ledger**(Codex P1-2 修正):STAGE5a「不記名單」明文把摸頭/玩耍/整理/鼓勵/餵食零星/菌氣/移動這些**高頻互動排除在 ledger 外**,故 ledger 不是完整「哪天有互動」時間軸,直接切窗會嚴重低估 DAU。改採二選一:
+    - **MVP(快照型)**:掃 `M#CORE.last_interaction`(或 `updatedAt`)做「最近 N 日活躍」快照統計。夠算「近期活躍數」,但**單一 timestamp 無歷史 → 算不出 per-day DAU / cohort 留存曲線**。
+    - **要真 DAU/留存**:加**每日活躍標記** `ACT#<yyyymmdd>`(每玩家每日**至多一筆**,當日首次任意互動時 `Put attribute_not_exists` stable-gate 防寫爆;放 ledger 表或獨立 `PK=ACT#<date>,SK=userId` 讓「某日活躍名單」= 一次 Query)。成本 = 每活躍玩家每日 1 筆微寫,可忽略。留存 = 註冊 cohort × `ACT#` 日期集合 join。
+    - **本階段結論**:MVP 先快照型(`last_interaction`),`ACT#` 標記排入「要留存曲線時再開」(見決策⑪旋鈕表新增列)。
 - **落點**:聚合結果寫**一顆 stats 快照 item**(可放既有 config/economy 表,或 monster 表 `PK=STATS#<yyyymmdd>` 系統列)供後台直接 `GetItem` 秒開,不讓後台每次現掃。
 
 > 對齊 STAGE2 P1-7:「糖潮 pool / level-index 熱點小規模先不做 shard,記待辦」——分析同理,**小規模先 scan,不預建索引**。
@@ -60,6 +63,7 @@
 |---|---|---|---|
 | 玩家向全服排行榜(生存/聲望) | 設計冊真的要上榜 | monster 稀疏 GSI:只對「入榜資格」的怪填 `rankBucket#season` PK + 分數 SK(稀疏=沒資格不投影,省 WRU) | 不建;欄位預留 |
 | 分析 scan 變貴(彙整 > 數百 MB / > 數秒) | 怪獸數 ~上萬級 | ① Scan `Segment` 平行化 先試;② 仍不夠再上分析 GSI 或 DDB→S3 export + Athena | 不建;記門檻 |
+| per-day DAU / cohort 留存曲線 | 後台要看留存(非只「近期活躍數」) | 每日活躍標記 `ACT#<yyyymmdd>`(每人每日至多一筆,stable-gate),或獨立 `PK=ACT#<date>` | MVP 先用 `M#CORE.last_interaction` 快照(決策⑩) |
 | ledger 賽季榜/整季導出 | 季末對帳要按 season 撈 | ledger `season-index`(PK seasonId · SK ts) | STAGE2 ⑤ 已標「初期不建,需要再加」,維持 |
 
 **稀疏 GSI 要點**:GSI 只投影「有 GSI-PK 屬性」的 item。排行榜只需 top 玩家 → 只有夠格的怪寫 `rankBucket` 屬性 → GSI 稀疏、又小又便宜。這是正解,不是「全體都投影再排序」。
@@ -95,6 +99,6 @@
 
 ## ➡️ 交給 Codex 二驗的收口點
 1. **決策⑨** monster 零 GSI:確認 STAGE1 全節真的沒有玩家向非 PK 即時查詢被我漏掉(尤其任務/成就/靈魂有沒有「跨玩家找」的隱藏需求)。
-2. **決策⑩** 分析走 scan+ledger 而非 GSI:確認留存/DAU 從 ledger 切窗算得出來(ledger 是否每次「有互動」都落一筆?若非,DAU 要另找 lastActiveAt 來源=M#CORE 時間戳,則彙整改掃 M#CORE)。
+2. ~~決策⑩ DAU 從 ledger 切窗~~ → **Codex P1-2 已修正**:ledger 不記高頻互動(STAGE5a 不記名單),DAU 改 `M#CORE.last_interaction` 快照(MVP)/ `ACT#` 標記(要留存曲線)。已改。
 3. **決策⑪** 稀疏 GSI 旋鈕:確認排行榜/賽季榜觸發門檻寫法,及 ledger season-index 延後不會卡到季末對帳 MVP。
 4. GSI 清單 5 條:與堡壘既定案(STAGE1 §1-5 / 5f6e62b)逐條對齊,無新增無遺漏。

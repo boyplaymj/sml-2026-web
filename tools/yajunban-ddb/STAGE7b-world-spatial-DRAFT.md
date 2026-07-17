@@ -32,8 +32,8 @@
 ### SK 型別(同桶內三類 item)
 | SK | 別名 | 內容 | 一致性 | TTL |
 |---|---|---|---|---|
-| `OCC#<userId>` | 佔用 | 誰站在此桶哪一格(spatial 鏡射 M#CORE.pos) | 最終一致(讀時複驗) | **滾動 idle 過期**(見⑭) |
-| `LOOT#<ulid>` | 殘渣/糖晶 | 動態地圖元素,吃掉/沖刷消失 | 最終一致 | **壽命到自動消失**(見⑬) |
+| `OCC#<userId>` | 佔用 | 誰站在此桶哪一格(spatial 鏡射 M#CORE.pos) | 最終一致(讀時複驗) | **❌ 無 idle TTL**;只換季清(見⑭·Codex P0-1) |
+| `LOOT#<ulid>` | 殘渣/糖晶 | 動態地圖元素,吃掉/沖刷消失 | 最終一致 | **壽命到自動消失**(見⑮) |
 | `META#TERRAIN`(可選) | 地形快取 | 見決策⑯:預設**不存**,地形由 seed 決定式生成 | — | — |
 
 ---
@@ -48,30 +48,34 @@ attrs:
   pos        : M   { x:N, y:N }     精確格座標(桶內定位、複驗用)
   race       : S   種族(相剋/渲染,免再讀對手 monster 就能篩)
   stage      : N   階段(新手保護/聲望門檻預篩)
-  posVersion : N   移動序號(單調遞增,複驗防 stale,見⑭)
-  updatedAt  : N   ms,最後移動時間(顯示/idle 判定)
-  ttl        : N   秒,= floor(updatedAt/1000) + IDLE_TTL_SEC(滾動)
+  posVersion : N   移動序號(單調遞增;**移動交易的樂觀鎖條件**,非只複驗欄,見⑭ Codex P1-3)
+  updatedAt  : N   ms,最後移動時間(顯示/近期活躍統計)
+  ttl        : N   秒,**= 賽季結束時間**(換季 GC);active season 期間**絕不設 idle 過期**(Codex P0-1)
 ```
 
 ### 移動 = **跨表 TransactWrite**(atomic 搬桶)
-高頻(STAGE1 §1-3「移動 高頻/強一致防超支」)。一次原子完成三件事,不留半搬狀態:
-- **同桶內移動**(`oldBucket == newBucket`):`Update M#CORE`(pos/khui_last_ts、扣菌氣條件寫)+ `Put OCC#`(同 PK/SK 覆寫新 pos/posVersion+1/ttl)。
-- **跨桶移動**(`oldBucket != newBucket`):`Update M#CORE` + `Delete OCC#@oldBucket` + `Put OCC#@newBucket`。三動作、跨 monster+world 表、單一 TransactWrite。
-- **posVersion 單調遞增**:每次移動 +1,寫進 M#CORE 與 OCC# 兩邊,當複驗指紋(⑭)。
+高頻(STAGE1 §1-3「移動 高頻/強一致防超支」)。一次原子完成、不留半搬狀態。**所有路徑先 RMW 讀 `pos/posVersion`,交易內帶樂觀鎖條件**(Codex P1-3):
+- **同桶內移動**(`oldBucket == newBucket`):`Update M#CORE`(SET pos/khui_last_ts/posVersion+1、扣菌氣條件 + **`ConditionExpression posVersion = :readVersion`**)+ `Put OCC#`(同 PK/SK 覆寫新 pos/同一 posVersion/ttl)。
+- **跨桶移動**(`oldBucket != newBucket`):`Update M#CORE`(同上帶 posVersion 條件)+ `Delete OCC#@oldBucket` + `Put OCC#@newBucket`。跨 monster+world 表、單一 TransactWrite。
+- **posVersion = 樂觀鎖**(不只複驗指紋):併發改 pos 時,舊讀值不符即整筆交易失敗重試,杜絕互相覆蓋。**尤其重生/賽季重置這類不扣 Khui 的移動**——它們沒有「扣菌氣條件寫」當天然防護,`posVersion` 條件是唯一防超寫的閘。
 - 佔用 item **極小(~0.2KB)**,高頻移動 WRU 主成本仍在 M#CORE ~2,OCC# 可忽略。
 
-> 🔁 **回饋 STAGE6**:敗北**重生**在結算把 `pos` 寫進 M#CORE(STAGE6 決策)→ 重生落點也是一次「移動」,故 **STAGE6 結算的 M#CORE UpdateItem 需升級為含 world OCC 搬桶的 TransactWrite**(重生 = Update M#CORE 結算 + Delete 舊 OCC + Put 新 OCC)。STAGE6 已標「重生挑格依賴階段7」,此處把接法補明:**所有改 pos 的路徑(走一格 / 吃殘渣位移 / 重生落點 / 賽季重生)一律走同一個 DAO `moveTo()`,別讓任何路徑只改 M#CORE.pos 不同步 world**。
+> 🔁 **回饋 STAGE6(含 Codex P1-4 修正)**:敗北**重生**在結算把 `pos` 寫進 M#CORE,故重生落點也是一次「移動」。但 **DAO 不可在結算交易裡巢狀呼叫 `moveTo()` 再產生第二個 M#CORE Update**——DDB 同一 TransactWrite 禁止對同 key 重複操作。正解:**transaction builder 把「戰鬥結算(xp/reputation/battle_deaths/釋放 activeBattleId)+ pos/posVersion 搬移 + 租約釋放」合併成同一顆 M#CORE Update**,再加 `Delete 舊 OCC` / `Put 新 OCC` / `Update battle state`。這正是 STAGE2 P1-4「transaction builder 合併同 item mutation」的實例。
+>
+> **鐵律**:所有改 pos 的路徑(走一格 / 吃殘渣位移 / 重生落點 / 賽季重生)一律走同一個 DAO `moveTo()` 語義,別讓任何路徑只改 M#CORE.pos 不同步 world;但**已在改 M#CORE 的複合交易(如結算)改用「合併 mutation」而非巢狀 `moveTo()`**。
 
 ---
 
 ## ✅ 決策 ⑭:一致性模型——world 是「鏡射索引」,pos 真相在 M#CORE(lazy 複驗 + prune)
 
-world 佔用是 M#CORE.pos 的**空間鏡射**。即使移動用 TransactWrite,仍有殘影來源(崩潰於交易外的邊角、未來新增改 pos 路徑漏接、TTL 尚未刪到期的閒置佔用)。故:
+world 佔用是 M#CORE.pos 的**空間鏡射**。即使移動用 TransactWrite,仍有殘影來源(崩潰於交易外的邊角、未來新增改 pos 路徑漏接)。故:
 
 1. **真相唯一 = M#CORE.pos**。world OCC# 只用來「縮小候選集」,不當權威。
 2. **讀相鄰 = 兩段**:先 Query 桶拿候選 OCC#(便宜、粗);對**真的要互動**的候選(PvP 相遇 / 偷菜前),`GetItem` 該玩家 `M#CORE` **複驗** `pos + posVersion` 一致再動手。這與 STAGE6 `PVP#` 的 **lazy-prune 玻璃箱**同一手法(記憶 [[project_yajunban_ddb_impl]] 「lazy零背景job」)。
-3. **複驗不過 = best-effort prune**:發現 OCC# 的 posVersion < M#CORE 現值,或該怪其實已不在此格 → 標記/刪掉這顆 stale OCC(非阻斷,失敗略過)。閒置未刪的靠 TTL 收尾。
-4. **posVersion 單調**:複驗只信「OCC.posVersion == M#CORE.posVersion」,避免 ABA。
+3. **複驗只除 false positive、不製造 false negative**(Codex P0-1 核心):複驗能剔掉「OCC 說在、其實走了」的殘影;但**若 OCC 根本不存在,查詢方無從得知該去 GetItem 誰**——刪掉一顆線上玩家的 OCC = 直接漏相遇/偷菜/重生佔用,且**無法從 M#CORE 反查補回**(spatial 只能先問 world)。→ 這就是**決策⑭ 禁止 OCC idle TTL** 的根因(見決策⑫/⑬)。
+4. **OCC 只在三種情況消失**:①移動搬桶(Delete 舊 Put 新,原子)②永久死亡 permadeath(結算交易內 Delete OCC)③賽季換 zone(舊 zone 前綴 + season-end TTL 排乾)。**離線 ≠ 移除**(離線怪仍站在原地,可被偷菜/相遇,這是設計要的)。故 active 佔用集不靠 idle 過期也維持乾淨——唯一殘影源是崩潰,交給讀時 best-effort prune。
+5. **複驗不過 = best-effort prune**:OCC.posVersion < M#CORE 現值,或該怪已不在此格 → 刪掉這顆 stale OCC(非阻斷,失敗略過)。
+6. **posVersion 單調**:複驗只信「OCC.posVersion == M#CORE.posVersion」,避免 ABA。
 
 > 這套讓「移動偶發不同步」不會製造假戰鬥/假偷菜——最壞情況是候選集多一顆立刻被複驗剔除,而不是打到一個早就走掉的影子。
 
@@ -92,7 +96,7 @@ attrs:
 
 - **生成**:系統/事件驅動 `Put`(戰鬥掉落、糖潮、隨機刷新)。落點桶 = `pos` 算出。
 - **消失**:靠 **TTL 自動刪**(殘渣沖刷),不需背景 job(對齊「lazy 零背景 job」)。讀取端額外比 `ttl > now` 濾掉「到期未刪」的殘影(TTL 刪除有延遲)。
-- **拾取(恰好一次)**:`Delete OCC 目標 LOOT#` 帶 `ConditionExpression attribute_exists(SK)` + 同交易 `Update` 拾取者(背包/菌氣)。條件 Delete 保證兩人搶同一顆只有一人成功——與 STAGE6 raid `LOOTED` 恰好一次同模式。跨表(world+monster)用 TransactWrite。
+- **拾取(恰好一次)**:`Delete 目標 LOOT#` 帶 **`ConditionExpression attribute_exists(sk) AND ttl > :nowSec`**(Codex P1-5:只 `attribute_exists` 會讓「到期未刪」的殘渣還能被撿,必須同時比 `ttl > now` 排掉)+ 同交易 `Update` 拾取者(背包/菌氣)。條件 Delete 保證兩人搶同一顆只有一人成功、且過期的撿不到——與 STAGE6 raid `LOOTED` 恰好一次同模式。跨表(world+monster)用 TransactWrite。
 
 ---
 
@@ -116,7 +120,7 @@ attrs:
 ---
 
 ## ⏱️ 一表兩制時間(延續 STAGE6 鐵律)
-- `ttl`(OCC 滾動 / LOOT 壽命)= **秒級 10 位**(`Math.floor(ms/1000)+窗口`),供 DDB TTL。
+- `ttl`(OCC = season-end / LOOT = 壽命)= **秒級 10 位**(`Math.floor(ms/1000)+窗口`),供 DDB TTL。
 - `updatedAt` / `spawnAt` / `pos.snapAt` = **ms**(顯示/複驗/排序)。
 - **DAO 封裝**,呼叫端只碰 ms;單測斷言「寫進 `ttl` 的是秒級」。TTL **只做 GC 絕不當鎖/當存活判定**(存活看 M#CORE + posVersion,STAGE6 同律)。
 
@@ -124,16 +128,28 @@ attrs:
 
 ## 💰 成本控管(連回正典 [tools/COST_CONTROL.md](../COST_CONTROL.md))
 - 新增 1 張 DDB 表 `sweetbot-yajunban-world`,**PAY_PER_REQUEST**、**無 GSI**(決策7a⑨)、**無 LLM/付費 API**。
-- 主成本 = 高頻**移動**多寫一顆 ~0.2KB OCC(併入 M#CORE 的 TransactWrite,增量 WRU 極小)。殘渣/佔用靠 **TTL 自清**,**零背景 job、零排程 Lambda**。
+- 主成本 = 高頻**移動**多寫一顆 ~0.2KB OCC(併入 M#CORE 的 TransactWrite,增量 WRU 極小)。**殘渣**靠 TTL 自清;**佔用**靠移動搬桶 + permadeath + 換季 season-end TTL 清(非 idle TTL,Codex P0-1),仍**零背景 job、零排程 Lambda**。
 - 賽季換 zone + 全表 TTL → **免批次刪除**歷史地圖(否則季末大量 delete 會噴 WCU)。
 - 屬「純機制表、無外部付費來源」→ 不需帳本/月封頂四件套,但仍連回正典留痕。
 
 ---
 
-## ➡️ 交給 Codex 二驗的收口點
+## 🔍 Codex 二驗 findings + Claude vet 處置(2026-07-17)
+Codex(Neku)對 7a/7b 對抗式二驗。Claude 逐條 vet(含核對 STAGE5a:58)。**5 條全成立、全採納**(1 P0 是 decision⑭ 真錯)。
+
+| # | Codex finding | Claude vet | 處置 |
+|---|---|---|---|
+| **P0-1** | OCC# 不能 idle TTL:刪掉線上/靜止玩家的 OCC → spatial 無法反查補回 → 漏相遇/偷菜/重生;複驗只防 false positive 防不了 false negative | ✅ 成立·真錯(我漏了 false-negative 方向) | 決策⑫⑬⑭ 改:OCC **無 idle TTL、只 season-end TTL**;OCC 僅移動/permadeath/換季 消失,離線不移除 |
+| P1-2 | DAU/留存不能靠 ledger(STAGE5a:58 不記高頻互動) | ✅ 成立(已核對) | 7a 決策⑩ 改:MVP 用 `M#CORE.last_interaction` 快照;要留存曲線加 `ACT#<date>` 標記 |
+| P1-3 | `posVersion` 要當移動交易的**條件**非只複驗欄(重生/賽季不扣 Khui 無天然防護) | ✅ 成立 | 決策⑬ 改:所有改 pos 路徑 RMW + `ConditionExpression posVersion=:read`、SET +1 |
+| P1-4 | 結算不能巢狀 `moveTo()` 產生第二個 M#CORE Update(同 key 重複操作被拒) | ✅ 成立 | 決策⑬ 回饋 STAGE6 改:builder 合併「結算+pos搬移+釋放租約」成單一 M#CORE Update |
+| P1-5 | 拾取 LOOT 條件要 `ttl > now`(防到期未刪還能撿);修文字 typo | ✅ 成立 | 決策⑮ 改:`attribute_exists(sk) AND ttl > :nowSec`;「Delete LOOT#」 |
+| P2-6 | (Codex 訊息被截斷,內容未收到) | ⏳ 待補 | 已回請 Codex 重貼 #6 全文 |
+
+## ➡️ 交給 Codex 三驗的收口點(修正後)
 1. **決策⑬ 跨表移動 TransactWrite**:monster+world 兩表放同一 TransactWrite 的**分區/大小上限**(≤100 item/4MB,穩過);同桶 vs 跨桶分支判斷正確;**回饋 STAGE6**——重生結算升級成含 world 搬桶的交易,確認不破壞 STAGE6 冪等(version/action_id)。
 2. **決策⑭ 一致性**:lazy 複驗 + posVersion 防 ABA 是否夠;有沒有「不複驗就動手」的高頻路徑會被殘影咬(尤其偷菜)。
 3. **決策⑮ 恰好一次拾取**:條件 Delete + 跨表 Update 的競態(兩人同格搶同顆殘渣)確實只一人成功。
 4. **決策⑯ 地形不落庫**:決定式生成能否支撐「重生挑格偏🪨」與未來需求;要不要現在就留 `META#TERRAIN` 位。
 5. **桶邊界 R=8 覆蓋**:`B=16` 對重生 R=8 的最壞桶數(4)確認;`B` 改動只能在賽季邊界的限制寫清楚。
-6. **TTL 語義**:OCC 滾動 TTL 的 `IDLE_TTL_SEC`(建議 48h,同 STAGE6 租約 GC 級距)不會把「還在線但久沒移動」的玩家從地圖上抹掉導致他被跳過相遇——確認「讀時比 M#CORE 為準、TTL 只清殘影」這條防得住。
+6. ~~OCC 滾動 idle TTL~~ → **Codex P0-1 已修正**:改為 OCC **無 idle TTL、只 season-end TTL**;OCC 僅在 移動/permadeath/換季 消失,離線不移除。待 Codex 確認新模型下「殘影只來自崩潰、靠讀時 prune」無其他 false-negative 破口。
