@@ -37,11 +37,12 @@
 ---
 
 ## 2️⃣ 秒/毫秒 & TTL 紀律(本 repo 首批真 TTL 表,無前例格外小心)
-- **一表兩制**:`battle.leaseExpireAt` / `world.ttl(OCC/LOOT)` = **秒級 10 位**(`Math.floor(ms/1000)+窗口`);**其餘所有時間戳 = epoch ms 13 位**(`Date.now()`,對齊 sweetbot-next)。
+- **一表兩制**:`battle.leaseExpireAt` / `world.ttl(OCC/LOOT)` = **秒級 10 位**(`Math.floor(ms/1000)+窗口`);**其餘所有時間戳 = epoch ms 13 位**(`Date.now()`,對齊 sweetbot-next)。⚠️ **兩表 TTL 屬性名不同**:battle=`leaseExpireAt`、world=`ttl`。
+- **IaC/建表要求**(Codex S8 P2):**CreateTable 不會開 TTL** → battle/world 建好後**必須各跑一次 `UpdateTimeToLive`** 指定對的屬性名(battle→`leaseExpireAt`、world→`ttl`);**建表腳本/單測驗證 TTL 已啟用且 attr 名正確**(名字打錯 = TTL 靜默不生效、殭屍永不清)。
 - **DAO 封裝秒轉換**,呼叫端只碰 ms;**單測明確斷言**「寫進 TTL 欄的是秒級」(sweetbot-next 現有 DAO 全用 ms+旗標、無真 TTL 前例,無得抄)。
 - **TTL 只做 GC、絕不當鎖 / 絕不當存活判定**:
   - battle 存活 = `state=ACTIVE && now ≤ leaseExpireAt*1000`(比時間戳,不看 TTL 有沒有刪)。
-  - world 佔用真相 = `M#CORE.pos`(比 posVersion),不看 OCC 是否被 TTL 刪。
+  - **world OCC = discovery index、`M#CORE.pos` 才是真相**(Codex S8 P2 措辭收斂):讀相鄰先靠 OCC 找候選 → 再比 `M#CORE.pos/posVersion` 複驗;**OCC 缺失 = false negative(找不到就漏掉),故禁 idle TTL**(見下)。複驗只除 false positive。
 - **`monster` 表永不開 native TTL**(裝永久玩家資料,誤寫 `ttl` 會靜默刪 = foot-gun);**只 `battle`(全 ephemeral)+ `world`(佔用/殘渣)開 TTL**。
 - **`world` OCC# 禁 idle TTL**(S7b P0-1):只 season-end TTL;刪線上/靜止玩家 OCC → spatial 反查不回 = 漏相遇/偷菜/重生。
 - **PVP# 關係 item 不開 native TTL**(在 monster 表)→ 改 **lazy-prune**(讀時 `now−lastEndAt>24h+grace` 視同不存在、下次覆寫)。
@@ -196,8 +197,8 @@ Codex(Neku)二驗:**無 P0**,6 P1 全屬「補齊共用基礎設施」。Claude 
 | P1-4 | `computeVirtualState()` 統一出口,回 friendship/satiety/mood/khui/zeroAt/sickAt | ✅ 防分歧 | §5.2 強化為單一出口、四處共用 |
 | P1-5 | 堡壘 5 表只指路不夠,要 DAO checklist | ✅ 該展開 | 新增 §6.5 堡壘 checklist(四段式/RESOLVED→LOOTED/糖潮三item/guild-pool/GSI loop) |
 | P1-6 | 補 `ConditionalCheckFailed` 處理策略(no-op/重試/業務拒絕) | ✅ 真缺 | 新增 §4.6 三類錯誤分類 + 解析 CancellationReasons |
-| P2-* | (Codex 訊息被截斷,未收到) | ⏳ 待補 | 已回請 Codex 重貼 P2 全文 |
+| P2-a | TTL 段補 IaC 要求(CreateTable 不開 TTL,需 `UpdateTimeToLive`+驗 attr 名;battle=`leaseExpireAt`/world=`ttl` 不同名) | ✅ 真 gotcha | §2 加 IaC/建表要求列 |
+| P2-b | 「不看 OCC 是否被 TTL 刪」措辭收斂為「OCC=discovery index、M#CORE=複驗真相、缺失=false negative」 | ✅ 更精準 | §2 對應列改寫 |
 
-## ➡️ 定稿前 · 剩餘收口
-- **P2 待補**:Codex P2 建議被截斷,補齊後再定稿。
-- 本檔定位=**不新增決策只彙整**;上述 6 P1 皆屬「補齊實作基礎設施/分類」,無一與定稿階段衝突(未回改任何上游階段)。
+## ➡️ 定稿收口
+- Codex 兩輪(6 P1 + 2 P2)**全採納全收斂**;本檔定位=**不新增決策只彙整**,無一與定稿階段衝突(未回改任何上游階段)。可去 DRAFT。
