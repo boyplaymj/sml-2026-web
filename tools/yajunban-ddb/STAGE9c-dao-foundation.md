@@ -1,7 +1,7 @@
 # 牙菌斑怪獸 · DDB 資料模型 — 階段9c:DAO 層基礎設施 + 逐表 DAO 計畫
 
 > 交接文件 · 產出日期 2026-07-17 · 承接 [STAGE8](./STAGE8-dao-engineering.md)(DAO checklist)+ 9a/9b(9 表已建)
-> 狀態:**基礎設施 + A MonsterDAO + B LedgerDAO + C BattleDAO 已完成上線**(sweetbot-next `b1878e6`→`caee569`→`9a2e129`→`b215667`,均兩輪 Codex 二驗收斂);D–E 待做。
+> 狀態:**基礎設施 + A MonsterDAO + B LedgerDAO + C BattleDAO + D WorldDAO 已完成上線**(sweetbot-next `b1878e6`→`caee569`→`9a2e129`→`b215667`→`46332ac`,均兩輪 Codex 二驗收斂);E 堡壘 5 表待做。
 > **程式位置**:`sweetbot-next/DAO/DDB/yajunban/`(獨立資料夾,不動共用薄 `DDBBaseDAO`)。
 
 ---
@@ -31,7 +31,7 @@
 | A | ✅ **MonsterDAO**(`caee569`) | 已做:讀分層 getStatusCore/getStatus(帶 virtual)/getFullMonster;`computeVirtualState()` 統一出口(virtualState.js,24 測試);孵化 4 顆 TransactWrite;bindAppAccount claim 唯一鎖(首綁 `conditionNotExists(appAccountId)`)/resolveAppAccount(ConsistentRead);INV# 條件扣減 consumeItem/addItem(guard n/cap)。**待補**:rebirth 5 顆(橫跨 C/D)、rebindAppAccount(Delete 舊 claim)、PVP# lazy-prune、talent SS ADD、soul EWMA RMW | builder |
 | B | ✅ **LedgerDAO**(`9a2e129`) | 已做:`buildEntry` SK=`<TYPE>#ts13#uuid`(randomUUID,ulid 未裝)+ 型別分軌硬驗(RESOURCE 強制 asset+finite delta、gen 需整數、EVENT 禁 asset/delta)、`season` 必帶退 S_UNKNOWN、updatedAt=createdAt;`append`/`putTxnItem` 帶 `attribute_not_exists(userId)` 防呆;查詢 queryByType/queryByDateRange(驗 type/finite/t1≤t2)/recentByType 全走 queryAll 分頁;**`replayResources()`/`aggregateResources()`**=只認 `entryClass=RESOURCE`、EXP# 依 gen 切段、FRAGMENT# 跨代累計、忽略 QUEST#.rewards 免雙計(39 測試)。**待補**:跨表反哺 refId 互指的 fortress EX# 由 FortressDAO 發、season config 單一來源接線 | queryAll |
 | C | ✅ **BattleDAO**(`b215667`) | 已做:秒/ms TTL 封裝(leaseFromNow/isBattleAlive=state==ACTIVE && now≤leaseExpireAt*1000,首個真 TTL 表)、buildBattleItem(不快照 build)、**startBattle**(單一 TransactWrite=開戰鎖+Khui RMW 扣+Put 租約;開戰鎖 OR/< 條件推應用層 pin 觀測值避 builder 限制)、**resolveBattle**(state=ACTIVE 冪等+釋放鎖 pin activeBattleId 防 stale resolve 誤刪新場+過期 expired 不結算+PvP 雙方 CORE)、**PVP# 關係**(CD 60s/24hr 首戰閘/lazy-prune/雙向寫,getPvpRelation ConsistentRead)。**Codex 兩輪二驗收斂**(4 P1:強讀/CD 反擊/過期檢查/pin expireAt;二輪背書「強讀+序列化+CD 已足不需硬條件閘」)。檔頭釘死三不變式(PvP 必走 startBattle/PVP# 強讀/PVP# 與解鎖同交易)。**待補**:敗方 pos 重生+world OCC 搬桶、INV# 掉落 cap-in-txn、isConditionalOnlyCancellation 抽共用 —— 皆依賴 D WorldDAO | builder |
-| D | **WorldDAO**(world 表) | `moveTo()` 跨表搬桶(唯一改 pos 出口)+ posVersion 樂觀鎖;相鄰 Query 桶 + M#CORE 複驗;LOOT 條件拾取;OCC 無 idle TTL | builder, queryAll |
+| D | ✅ **WorldDAO**(`46332ac`) | 已做:B=16 分桶數學(pkFor/bucketPksForRange 笛卡兒積 + Chebyshev 過濾,R=1/R=8 邊界)、秒/ms TTL 封裝、buildOcc(驗整數 cell + **ttlSec>nowSec** 防在線玩家被 TTL 抹掉)/buildLoot、**moveTo**(跨表原子搬桶,同桶覆寫/跨桶 Delete舊+Put新,**posVersion 樂觀鎖**=重生/賽季不扣 Khui 路徑唯一防超寫閘,khui 扣沿用 RMW pin)、**verifyOccupant**(強讀 M#CORE 複驗 pos+posVersion,**只除 false positive**:prune Delete 條件 pin posVersion=occ 值不刪並發新 OCC,非阻斷)、**LOOT**(spawnLoot attribute_not_exists / pickLoot 恰好一次:條件 Delete `attribute_exists AND ttl>nowSec`[conditionGte nowSec+1]+ 同交易 INV# 獎勵,兩人搶只一人成功)、**appendOccMove**(OCC 搬桶疊進已含 M#CORE Update 的複合交易,不巢狀 moveTo,STAGE7b P1-4;moveTo 自己也走這條 DRY)。**Codex 兩輪二驗收斂**(1輪 2 P1[ttl 過期/itemN 正整數]+1 P2[R 驗證];2輪無新 finding)。builder 補 `DeleteOp.conditionGte`(19 測試無回歸)。**待補**:接回 C 敗方 pos 重生(helper 就緒待 rebirth 組裝)、INV#/LOOT reward cap-in-txn | builder, queryAll |
 | E | **FortressDAO ×5** | 建堡四段式;內政 resTickAt 樂觀鎖;`matchableBucket` 稀疏維護(只狀態轉換,不看 shield);raid RESOLVED→LOOTED;糖潮 claim 跨2表3item;season-index 導出 | builder, queryAll |
 
 > 每個 DAO 一塊小交付(<25 分),各自 test + Codex 二驗。**重生結算**橫跨 A+C+D(結算合併同 M#CORE Update + world 搬桶)是最需要 builder 的地方。
