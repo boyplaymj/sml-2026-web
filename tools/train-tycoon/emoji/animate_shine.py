@@ -31,9 +31,19 @@ alpha = arr[:, :, 3]
 lum = rgb @ np.array([0.3, 0.6, 0.1], dtype=np.float32)
 opaque = alpha > 8
 ys, xs = np.mgrid[0:H, 0:W]
-region = ys < (H * GLASS_YMAX)                 # 窗戶在上半部
-glass = opaque & (lum < GLASS_LUM) & region
-weight = np.where(glass, 1.0, np.where(opaque, BODY_W, 0.0)).astype(np.float32)
+WIN = os.environ.get("WIN", "")
+if WIN:
+    # 精準模式:吃使用者手摳的「窗戶圖層」(同尺寸、只有窗戶不透明)當光澤遮罩
+    wimg = Image.open(WIN).convert("RGBA")
+    if wimg.size != (W, H):
+        wimg = wimg.resize((W, H), Image.NEAREST)
+    wa = np.array(wimg)[:, :, 3] > 8
+    weight = np.where(wa, 1.0, np.where(opaque, BODY_W, 0.0)).astype(np.float32)
+else:
+    # 自動模式:上半部暗像素當玻璃(fallback,沒圖層時用)
+    region = ys < (H * GLASS_YMAX)
+    glass = opaque & (lum < GLASS_LUM) & region
+    weight = np.where(glass, 1.0, np.where(opaque, BODY_W, 0.0)).astype(np.float32)
 diag = xs.astype(np.float32) - (H - ys).astype(np.float32) * SLOPE
 sigma = max(2.0, W * SIGMA_F)
 smoke_src = parse(SMOKE)
