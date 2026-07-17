@@ -1,13 +1,13 @@
 # 牙菌斑怪獸 · DDB 資料模型 — 階段4:`M#PROGRESS` / `PLAYER#PERMANENT` / `INV#<itemId>` / `APP#<appAccountId>` 欄位 schema
 
-> **草稿 · 先不定稿(Codex #6:碰轉生保留邊界 / appAccountId,待再一輪二驗)**
+> **定稿 · Codex 二驗已合流(2026-07-17)**:2 P0 修正(appAccountId 不寫 NULL、加 soul.version)+ 5 P1(轉生強讀快照+generation condition / 孵化建 PERMANENT+ACHIEVE / 繼承冪等 / INV upsert 補 metadata)。存疑①拍板 A、②④⑤收口、⑦⑧延階段5 不阻斷。
 > 交接文件 · 產出日期 2026-07-17 · 承接 [STAGE3-schema-DRAFT.md](./STAGE3-schema-DRAFT.md)(M#CORE/M#BUILD 定稿 + 慣例)+ [STAGE2-schema-decision.md](./STAGE2-schema-decision.md)(決策③④⑦⑧ 權威)+ [STAGE1-access-patterns.md](./STAGE1-access-patterns.md)(1-4/1-5 存取模式)
 > 語義來源:設計冊 `score-repo/yajunban_design.html`(section-quest / -soul / -garden / -achievement / -items / -growth,canonical)。型別慣例:`sweetbot-next/DAO/DDB/*`(TrainTycoonStationDAO / PuzzleRoundDAO / DDBBaseDAO)。
-> **本檔僅為草稿**:轉生保留邊界的顆粒度、繼承通道落哪顆、群感閾值是否進 item 尚未拍板;Stage3 的 Codex #6 明言 Stage4 可草稿但先不定稿,待二驗確認 `PERMANENT.appAccountId` / 轉生保留邊界後才去 DRAFT。
+> **狀態:定稿**(見上行,Codex 二驗已合流)。歷史備註:曾為草稿待二驗;成就邊界拍板 A、2 P0 修正、5 P1 併入後定稿。信物 `RELIC#` / appAccountId 換綁延階段5(不阻斷)。
 
 ---
 
-## ⚠️ 待確認/存疑點(設計時不確定,交 Codex/使用者拍板)
+## ⚠️ 待確認/存疑點(★ 多數已於下方「Codex 二驗處置」收口,本節保留設計脈絡)
 
 1. ~~轉生保留邊界(成就)~~ ✅ **已拍板(2026-07-17,使用者選 A)**:成就/圖鑑/稱號=跨世代永久 → **搬出 M#PROGRESS,獨立 `PLAYER#ACHIEVE` item**(轉生走 Update 保留、不讓 PERMANENT 膨脹)。轉生 TransactWrite 由 4 顆 → **5 顆**(Put CORE/BUILD/PROGRESS + Update PERMANENT + Update ACHIEVE)。詳見新增 PLAYER#ACHIEVE 節 + 轉生保留邊界表。
 2. **繼承通道(section-quest「特殊支線 → 繼承通道」)寫哪顆**:群感湧現的特殊支線完成 → 寫「祖傳天賦節點 / 世代印記 / 芽孢機率傾向 / 靈魂深記」(STAGE1 1-4「繼承通道寫入」)。這四項全是**跨世代永久遺產** → 語義上屬 `PLAYER#PERMANENT`。但觸發點在任務(M#PROGRESS 的 quests)。草稿把「觸發判定讀 M#PROGRESS.quests、實際落庫寫 PLAYER#PERMANENT」→ 特殊支線完成 = **TransactWrite(Update M#PROGRESS 標記支線已領 + Update PLAYER#PERMANENT 寫遺產)**。存疑:芽孢機率傾向(下一代性狀軟傾向)要不要獨立欄 `bud_bias`,還是併入 soul_legacy。
@@ -49,7 +49,8 @@
 | `soul.axes` | M(內嵌) | `{}` | **6 行為軸**(長期滑動累積、近期加權):`aggression`(⚔️侵略)/`attachment`(🤗依附)/`social`(🗣️社交)/`caution`(🛡️謹慎)/`exploration`(🧪探索)/`greed`(🍬貪婪)。🔒裸值。**EWMA 更新走 read-modify-write**(⚠️ DDB SET 不支援乘法,不能原子算 `舊值×衰減`;讀舊值→app 端算 EWMA→寫回+version 樂觀鎖;見 Claude 覆核) | `{ aggression:N, attachment:N, social:N, caution:N, exploration:N, greed:N }` |
 | `soul.tag` | S(內嵌) | `null` | **當前結晶個性標籤**(玩家可見風味,如「莽夫菌/暖心菌/孤僻菌/饕客探險家/苦行僧菌」)。lazy 結晶自 axes,漂移有慣性(老靈魂難改)。存當前值供快取/展示 | — |
 | `soul.tag_locked` | BOOL(內嵌) | `false` | 管理員蓋章「傳奇人格」旗標(true=鎖定不隨漂移;後台覆寫/劇情/客訴用)。存疑⑤ | — |
-| `soul.lore` | S(內嵌) | `null` | 管理員注入的劇情記憶/傳奇人格文本(後台覆寫,低頻)。可選 | — |
+| `soul.lore` | S(內嵌) | (不寫) | 管理員注入的劇情記憶/傳奇人格文本(後台覆寫,低頻)。可選 | — |
+| `soul.version` | N(內嵌) | `0` | **soul RMW 樂觀鎖版本**(Codex P0-2)。EWMA read-modify-write 用 `ConditionExpression soul.version = :old`、寫回 `+1`;衝突重讀重試,防 last-write-wins 丟互動事件 | — |
 | `garden` | M | `{}` | **背部菌圃**(section-garden;back 插槽 Stage4 解鎖)。key=畦位 index(`"0"`–`"4"`)。畦數由 stage 派生(S4=2/S5=3/S6=4/傳說5,不另存 max)。離線生長 = lazy(讀時比 `plantedAt`+成熟時間+pH)。收成清畦位。**畦位計數/狀態型**,收成/偷菜條件寫 | `{ <plotIdx>: { crop:S(礦物/材料/孢子/糖蜜/橋者菌 或 null), plantedAt:N, ph:S(acid/neutral/alkaline), level:N, defense:M{ type:S, expireAt:N } } }`(存疑⑥⑨) |
 | ~~achievements~~ | — | — | **已搬至 `PLAYER#ACHIEVE`**(存疑①拍板 A,成就永久保留不隨轉生清) | 見 PLAYER#ACHIEVE 節 |
 | `createdAt` | N | `Date.now()` | item 建立時間(epoch ms) | — |
@@ -75,7 +76,7 @@
 | `ancestral_talents` | SS | **(不寫·缺省=空集)** | **祖傳天賦**(section-growth「每次芽孢輪迴挑 1 個已習得天賦帶到下世」+繼承通道點亮的轉生流隱藏節點)。轉生 +1(累積受控、一次只帶 1)。⚠️ 空 SS 不寫、缺省視空、首次 `ADD ancestral_talents :nodeSet` 建立(冪等原子單節點) | 元素=天賦節點 id 字串,如 `"acid_A_5"`, `"center_reborn_3"` |
 | `soul_legacy` | M | `{}` | **靈魂深記**(section-soul「越輪迴越深=老靈魂」+繼承通道「世代印記/塑造下代個性親和」)。存下一代個性起始傾向 + 分支軟親和 + 世代印記(精通式微加成、邊際遞減)。**累計型·跨世代加深**;世代印記計數 `SET soul_legacy.marks.<theme> = if_not_exists(...,:0)+:1` | `{ start_bias:M{<axis>:N 個性起始傾向}, affinity:M{<branch>:N 分支親和}, marks:M{<theme>:N 世代印記}, bud_bias:M(存疑②,下代芽孢性狀軟傾向) }` |
 | `generation` | N | `0` | **世代數**(section-growth「每代小幅永久加成、遞減」)。完成轉生 +1(純養老拿不到,平衡鎖②)。累計型;`ADD generation :1`(頂層屬性,可用 ADD) | — |
-| `appAccountId` | S | `null` | **綁定的 APP 帳號 id**(STAGE2 決策④)。綁定後填。配合 `APP#<appAccountId>` claim item 唯一鎖。未綁=null。**綁定 = TransactWrite(Put `APP#<id>` attribute_not_exists + Update 此欄)**(見下 APP# item + 寫入路徑) | — |
+| `appAccountId` | S | **(未綁時不寫此屬性)** | **綁定的 APP 帳號 id**(STAGE2 決策④)。⚠️ **未綁=屬性不存在,絕不存 DDB NULL**(Codex P0-1:綁定條件 `attribute_not_exists(appAccountId)`,若存 NULL 則 false→首綁被拒)。配合 `APP#<id>` claim 唯一鎖。綁定 = TransactWrite | — |
 | ~~codex_titles~~ | — | — | **移至 `PLAYER#ACHIEVE`**(存疑①拍板 A:圖鑑/稱號與成就同屬永久檔案,集中一顆) | 見 PLAYER#ACHIEVE 節 |
 | `createdAt` | N | `Date.now()` | 首次建立(玩家首孵化,永不重置) | — |
 | `updatedAt` | N | `Date.now()` | 最後寫入(轉生/兌換/綁定) | — |
@@ -87,7 +88,7 @@
 
 ## 🏅 PLAYER#ACHIEVE(成就永久檔案 · 轉生不重置) — PK=userId · SK=`PLAYER#ACHIEVE`
 
-成就 + 圖鑑 + 稱號(存疑①拍板 A)。跨世代 meta 進度,**轉生走 Update 保留**(與 PLAYER#PERMANENT 同保留,但分顆:成就寫頻中、避免撐大 PERMANENT)。中低寫頻,目標 ~1.5 KB。lazy-create(首次解鎖成就時建)。
+成就 + 圖鑑 + 稱號(存疑①拍板 A)。跨世代 meta 進度,**轉生走 Update 保留**(與 PLAYER#PERMANENT 同保留,但分顆:成就寫頻中、避免撐大 PERMANENT)。中低寫頻,目標 ~1.5 KB。**孵化 TransactWrite 時建空檔**(Codex P1-4,保證轉生 Update 有 item;轉生另用 `createdAt=if_not_exists` 保險)。⚠️ 故孵化交易 = M#CORE+M#BUILD+PLAYER#PERMANENT+PLAYER#ACHIEVE **4 顆**(更新 STAGE3 原寫的 2 顆)。
 
 | 屬性名 | 型別 | 預設值 | 語義說明 | 巢狀結構 |
 |---|---|---|---|---|
@@ -113,7 +114,7 @@
 |---|---|---|---|---|
 | `userId` | S | (必填) | PK,同上 | — |
 | `sk` | S | `INV#<itemId>` | SK,`itemId` = 道具靜態 id(如 `INV#saliva_nourish`) | — |
-| `qty` | N | `0`(不存則視 0) | **持有數量**。原子扣:`SET qty = qty - :n` + `ConditionExpression qty >= :n`(section-items 堆疊上限預設 999、唯一性道具 1);原子加(拾取/獎勵)`SET qty = if_not_exists(qty,:0) + :n` | — |
+| `qty` | N | `0`(不存則視 0) | **持有數量**。原子扣:`SET qty = qty - :n` + `ConditionExpression qty >= :n`(堆疊上限 999、唯一性道具 1);原子加(拾取/獎勵,**含首次 upsert 補 metadata**,Codex P1-7):`SET qty=if_not_exists(qty,:0)+:n, category=if_not_exists(category,:cat), source=if_not_exists(source,:src), acquiredAt=if_not_exists(acquiredAt,:now)`(避免 upsert 只留 key+qty 缺 metadata) | — |
 | `category` | S | (必填) | 大分類(section-items):`consumable`(消耗品)/`equipment`(裝備)/`material`(材料)/`skillbook`(技能道具)/`special`(特殊)。⚠️ 道具**靜態屬性**(稀有度/科學/施加狀態/教哪招/插槽)= **設定表不冗存**(存疑⑧) | — |
 | `source` | S | `null` | 取得來源(採集/商店/BOSS/公會任務/菌圃/成就/PvP/賽季…),稽核用 | — |
 | `season_bound` | BOOL | `false` | 換季旗標(section-items):`false`=保留;`true`=賽季擴充/一般道具換季轉食物資源。DTO/換季 worker 依此清算 | — |
@@ -197,7 +198,7 @@ TransactWrite {
 | 群感印記累積 | M#PROGRESS.qs_marks | UpdateItem(SET+if_not_exists,巢狀,軟上限) |
 | 群感支線浮現 | M#PROGRESS.qs_triggered | UpdateItem(`ADD` 建立 SS) |
 | 任務完成發獎 | M#PROGRESS + INV# + ledger QUEST# | **TransactWrite** |
-| 繼承通道(特殊支線完成) | M#PROGRESS(標領) + PLAYER#PERMANENT(祖傳/世代印記/soul_legacy/bud_bias) | **TransactWrite**(存疑②) |
+| 繼承通道(特殊支線完成) | M#PROGRESS(標 claimedAt/rewardId) + PLAYER#PERMANENT(祖傳/世代印記/`soul_legacy.bud_bias`) | **TransactWrite + 冪等條件**(Codex P1-5:檢查「完成且未領」防重複加遺產) |
 | 靈魂6軸滑動 | M#PROGRESS.soul.axes | UpdateItem(EWMA,巢狀 SET,多為互動時併寫) |
 | 個性標籤結晶 | M#PROGRESS.soul.tag | 讀時 lazy 算,必要才寫快取 |
 | 菌圃種植/收成 | M#PROGRESS.garden(+INV# 產出) | UpdateItem / 收成 TransactWrite |
@@ -236,9 +237,35 @@ TransactWrite {
 
 **驗收方式**:逐欄對照設計冊 section-quest/soul/garden/achievement/items 語義 + DynamoDB update expression 規則(揪出 EWMA 乘法)+ 轉生保留邊界一致性。
 
+## 🔍 Codex 階段4 二驗 findings + Claude vet 處置(2026-07-17)
+
+Codex 二驗,7 findings。Claude 逐條 vet:**全部採納**(2 P0 是覆核漏的真問題)。
+
+| # | Codex finding | Claude vet | 處置 |
+|---|---|---|---|
+| P0-1 | `appAccountId=null` 存 DDB NULL 使 `attribute_not_exists` false→首綁被拒 | ✅ 真問題 | 已改:未綁**不寫此屬性**(非 DDB NULL);全檔 null 預設一律=屬性不存在 |
+| P0-2 | soul EWMA 說要 version 樂觀鎖但 schema 無 version 欄 | ✅ 真漏 | 已加 `soul.version`,RMW `ConditionExpression soul.version=:old` 寫回+1 |
+| P1-3 | 5顆轉生安全,但祖傳回填要強讀快照+generation condition | ✅ 成立 | 見下轉生流程約束 |
+| P1-4 | ACHIEVE/PERMANENT lazy-create 與轉生固定 Update 衝突(upsert stub 或 fail) | ✅ 成立 | **改:孵化 TransactWrite 一併建空 PERMANENT+ACHIEVE**(保證存在);轉生 Update 另加 `SET createdAt=if_not_exists(createdAt,:now)` 保險 |
+| P1-5 | 繼承通道要冪等條件(否則重按重複加遺產);bud_bias 併 soul_legacy | ✅ 成立 | 已改寫入路徑:標 claimedAt/rewardId+「完成且未領」條件;bud_bias 確認在 `soul_legacy.bud_bias` |
+| P1-6 | soul 當代 vs legacy 轉生要同一份強讀快照一次算完、不補 job | ✅ 成立 | 見下轉生流程約束 |
+| P1-7 | INV# upsert 只留 key+qty 缺 metadata | ✅ 成立 | 已改 qty 原子加=`if_not_exists` 補 category/source/acquiredAt |
+
+### 🔄 轉生流程約束(P1-3/4/6,給階段9 DAO)
+轉生 = **單一 TransactWrite**,但前置一步**強讀(`ConsistentRead`)`PLAYER#PERMANENT`** 拿當前遺產快照:
+1. 用同一份快照:舊 `M#PROGRESS.soul.axes` 加深 → `PERMANENT.soul_legacy`,再用**更新後** legacy 回填新 `M#PROGRESS.soul.axes` 起始值(一次算完,**不補後續 job**,防雙寫/漏回填)。
+2. 祖傳天賦回填新 `M#BUILD` 用快照的 `ancestral_talents`。
+3. 交易帶 **`generation` condition**(`PERMANENT.generation = :readGen`)防讀後遺產被別的交易改掉(lost update)。
+4. PERMANENT/ACHIEVE 因孵化已建=Update 保留;`createdAt=if_not_exists` 雙保險。
+
+### 存疑收口
+- **存疑②(繼承通道落點/soul 邊界/bud_bias)** → ✅ 收口:繼承通道 TransactWrite 跨 M#PROGRESS+PERMANENT+冪等條件;soul 當代 vs legacy 走上述轉生快照;`bud_bias` 定在 `soul_legacy.bud_bias`(非獨立頂層)。
+- **存疑④⑤(soul EWMA/標籤顆粒度)** → EWMA=RMW+soul.version(P0-2);個性標籤存 `soul.tag`+管理員 `tag_locked`,慣性靠 axes 滑動。
+- **存疑⑦⑧(換綁/信物 RELIC#)** → 換綁=Delete舊APP#+Put新+Update同交易(冷卻屬產品決策);信物 RELIC# 延階段5。**此兩項不阻斷階段4 定稿。**
+
 ## ➡️ 交給下一輪(定稿條件)
 
-**本檔為草稿,定稿前須 Codex 二驗 + 使用者拍板下列:**
+**✅ 本檔已定稿**(Codex 二驗合流)。以下為當初定稿條件的收口狀態:
 1. ~~存疑① achievements 轉生保留邊界~~ ✅ **已拍板 A**(獨立 `PLAYER#ACHIEVE` 永久),schema 已更新。
 2. **存疑② 繼承通道落點 + soul 當代 vs soul_legacy 邊界**(bud_bias 是否獨立欄)。
 3. **存疑④⑤ soul EWMA 是否夠表達「近期加權滑動」+ 個性標籤存/lazy 顆粒度**。
