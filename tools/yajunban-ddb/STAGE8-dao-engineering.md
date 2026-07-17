@@ -1,7 +1,7 @@
 # 牙菌斑怪獸 · DDB 資料模型 — 階段8:DAO 層工程注意事項總彙整
 
 > 交接文件 · 產出日期 2026-07-17 · 承接 STAGE1–7(全定稿)
-> 狀態:**草稿**(Claude 彙整,待 signoff / Codex 二驗)。
+> 狀態:**已定稿**(Claude 彙整 → Codex 二驗 6 P1+2 P2 全採納 → 使用者 signoff,2026-07-17)。
 > **性質**:本階段**不新增資料模型決策**,只把散在階段1–7 的 DDB 工程地雷/慣例/樂觀鎖/冪等收斂成**一份給階段9(DAO 實作)照做的 checklist**。每條標來源階段供回溯。
 > 對齊 repo 慣例:`sweetbot-next/DAO/DDB/*`(`DDBBaseDAO`、`TransactWriteCommand`、PuzzleRoundDAO 的 epoch ms `createdAt`)。
 
