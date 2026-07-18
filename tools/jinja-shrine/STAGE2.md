@@ -125,6 +125,11 @@ S2 用到既有欄 + 新增：
 ```
 > config 缺欄 → 引擎/service fallback DEFAULT（比照 S1 鐵律，config 掛掉不阻斷）。
 
+### 6.1 config 上線契約（Codex S2-1 preflight）
+線上 `config#main` 於 S0 已建，`seed_shrine_config.js` 用 `attribute_not_exists(key)` → **重跑會整列跳過、不會補 S2 新欄**。故：
+- **① patch migration**：`migration/patch_shrine_config_s2.js`（冪等）—— 用 `UpdateExpression SET #f = if_not_exists(#f, :f)` 逐欄補 `omamoriTypes`/`yakuHaraiMode`/`yakuHaraiRechargeable`，**只補缺欄、不覆蓋後台已調值**，`ConditionExpression attribute_exists(key)` 防對空列寫，跑完 GetItem 讀回驗證（6 型別 + 六軸合法）。**S2-2 上線前需對 live 跑一次。**
+- **② service 第二層防護**：S2-2/S2-4 讀 config 時，對 `omamoriTypes` 等 S2 區塊 **deep-merge `DEFAULT_SHRINE_CONFIG`**（缺區塊→用 DEFAULT），即使 live 漏欄也不炸。兩層並存＝live 有值可供後台編輯 + 程式永不因缺欄失敗。
+
 ---
 
 ## 7. DAO 契約（比照 S1）
