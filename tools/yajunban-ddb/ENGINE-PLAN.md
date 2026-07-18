@@ -30,7 +30,7 @@ DynamoDB 9 表                 ← ✅ 完成
 |---|---|---|---|
 | 孵化 | 4 因子種族判定 + 心測抽籤 → 組 items | ✅ `hatch` | engine 算 items |
 | **餵食**(首片 ✅ 定稿) | 選食物→結算 satiety/friendship/obesity/xp(mood=derived 不落庫)+ 扣背包 | ✅ `feedTxn`(白名單 + careVersion 鎖) | 已完成(範本) |
-| 清潔/走格子/發酵 | obesity 收支結算 | 🔴 無 | 新 DAO 寫法(單筆 Update)+ engine |
+| 清潔/摸頭(G1/G2 ✅ 定稿) | obesity/friendship/xp 收支 + 每日次數閘門 | ✅ `careTxn`(通用照顧範本:白名單 + careVersion 鎖 + `daily` 當日計數整包覆寫) | 已完成(clean/pet engine 走 `_doCare`;走格子/發酵 obesity 收支待 pH 模型) |
 | 移動 | 走一格(扣 khui + 搬桶) | ✅ `WorldDAO.moveTo` | engine 接 |
 | 相鄰/偷菜/殘渣 | 找目標 + 複驗 + 拾取 | ✅ `neighbors`/`verifyOccupant`/`pickLoot` | engine 接 + 偷菜寫法 |
 | 配點/碎片兌換/技能/轉職 | 消耗+授予(TransactWrite) | 🔶 `consumeItem` 有,**各自 TransactWrite 未做** | 新 DAO 寫法數個 + engine |
