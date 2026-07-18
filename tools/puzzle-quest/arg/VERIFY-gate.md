@@ -27,17 +27,24 @@ B1/B3/B4/B5 一如既往 ✅
 - [ ] `--dev` 版全靜態（供預覽）、正式版 gated——兩者行為如標示。
 - [ ] 殼的 `<title>`／麵包屑不洩露節點身分（避免從標題猜內容）。
 
-## 2a-2（待做）：閘門 Lambda `sml-puzzle-arg` + HTTP API
-**合約（給實作＋Codex 驗）**：
+## 2a-2（已完成，待 Codex 複驗）：閘門 Lambda `sml-puzzle-arg`
+**原始碼**：`gate-lambda/`（`index.js`／`cases.json`／`bundles/<case>.json`／`package.sh`／`test.js`）。零 npm 依賴（Node 內建 `https`/`fs`/`path`）。本階段**只寫程式、未建 AWS**（建 Lambda/HTTP API/接線＝2a-3）。
 - **端點**：`GET /arg?case=<case>&node=<檔名>`
 - **邏輯**：
-  1. 讀全服 stage：Firestore `sml_config/puzzle_stage`（REST＋public key，快取 30–60s）；`puzzleId` 需等於該 case 的 puzzleId，否則視為 stage 1。
-  2. 查 `bundle[node].minStage`；`currentStage >= minStage` → 回 `bundle[node].html`（200, `text/html; charset=utf-8`）；否則 **403**（不回內文）。
-  3. `node` 不在 bundle → 404。
-- **CORS**：`Access-Control-Allow-Origin: https://image.boyplaymj.link`。
-- **內文來源**：`_secret_bundle.json` bundle 進 Lambda 部署包（build.py 產）；**更新內文＝重新 build＋重部署 Lambda**。
-- **回填**：Lambda 上線後把 HTTP API URL 填進 `mingyan-world.json` config `gateUrl`，重 build（殼才知道去哪 fetch）。
-- **驗收**：直打 `?node=_ca9558ea.html` 帶低 stage→403；stage 到→200 且內容正確；跨 origin CORS 對；無 node→404。
+  1. 讀全服 stage：Firestore `sml_config/puzzle_stage`（REST＋public key，45s 快取）；`puzzleId` 需等於 `cases.json[case].puzzleId`，否則一律鎖。
+  2. 查 `bundles/<case>.json` 的 `[node].minStage`；`currentStage >= minStage` → 回 `[node].html`（200, `text/html; charset=utf-8`）；否則 **403**（不回內文）。
+  3. `node`/`case` 走白名單 regex（擋路徑穿越）；**未知 node／未知 case → 403（非 404）** — 刻意不區分「不存在」與「未解鎖」，避免用狀態碼列舉哪些節點存在。
+  4. stage 讀失敗/逾時/解析錯 → **保守鎖**（沿用上一筆快取或回 stage 1），絕不因讀失敗放行。
+- **CORS**：`Access-Control-Allow-Origin` 只給 `https://image.boyplaymj.link`（非白名單 Origin 回退此預設）；`OPTIONS`→204。
+- **內文來源**：`bundles/<case>.json`＝build 的 `_secret_bundle.json`，`package.sh` 打包時同步進部署包；**更新內文＝重 build＋重跑 package.sh＋重部署 Lambda**。
+- **回填（2a-3）**：Lambda 上線後把端點 URL 填進 `mingyan-world.json` config `gateUrl`，重 build（殼才知道去哪 fetch）。現況 `gateUrl:""` → 殼顯示「尚未接上伺服器」鎖頁（預期）。
+- **本地驗收**：`node gate-lambda/test.js` → 9 項全綠（到階 200／未到階 403 不洩內文／跨案 403／未知 node+case 403／路徑穿越 403／缺參數 403／OPTIONS 204／非白名單 Origin 回退）。
+
+### Codex 複驗 2a-2（詳見 gate-lambda 內同名段落＋此清單）
+- [ ] `fetchStage()` 每條失敗分支都落「鎖」不放行（安全命門）。
+- [ ] 低 stage／跨案／未知節點回應 body 不含任何 keystone 字（鈦白/贗品/接地/洗錢）。
+- [ ] `bundleCache[caseId]=null` 記憶未知 case 有無 map 無上限風險（現況：`CASE_RE` 限字元、未知 case 早 403，但仍寫一筆 null）→ 評估是否收斂成只認 `cases.json` 的 key。
+- [ ] `node test.js` 全綠、`./package.sh` 產 zip 內含 index.js/cases.json/bundles。
 
 ## 💰 成本（同 PHASE2-DESIGN §G）
 Lambda＋HTTP API，讀 stage 可快取，無 LLM、無新 DDB（內文 bundle 進部署包）→ 免費額度內、<$1/月。

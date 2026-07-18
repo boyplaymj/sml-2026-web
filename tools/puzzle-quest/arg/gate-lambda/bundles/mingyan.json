@@ -1,0 +1,30 @@
+{
+  "del-electrical.html": {
+    "minStage": 4,
+    "html": "<div class=\"crumbs\">文件 ＞ 鑑識（已移除）</div><h1>電路鑑識報告（此文件已被刪除）</h1>\n<div class=\"card\"><div class=\"deleted-box\"><div class=\"big\">🗑</div><div style=\"font-weight:700\">此文件已被刪除</div><div class=\"r\">本文件屬偵查中證物，經檢舉已自前台移除，違者送辦。</div></div></div>\n<div class=\"card\" style=\"padding:14px\"><div class=\"note-warn\">這份就是把『意外』兩個字劃掉的鐵證。前台連結沒了，但站務系統的備份紀錄還躺在頁面原始碼裡——右下角「⟨/⟩ 檢視原始檔」，把備份位置貼回網址列。</div></div>\n\n<!-- ================= 站務系統備份紀錄（勿刪） ================= -->\n<!-- 偵查證物已自前台下架，站務系統備份位置如下（僅供調閱） -->\n<!-- 備份位置： ./_ca9558ea.html -->\n<!-- 需具權限並直接輸入上列位置存取，前台已不提供連結。 -->\n<!-- ============================================================ -->\n"
+  },
+  "_ca9558ea.html": {
+    "minStage": 4,
+    "html": "<div class=\"crumbs\">站務備份 ＞ 鑑識</div><h1>電路鑑識報告（站務備份 · 偵查證物）</h1>\n<div class=\"doc\">\n<div class=\"org\">刑事鑑識 · 電氣工程</div>\n<h1>現場檢視燈具 電路鑑識報告</h1>\n<table class=\"kv\"><tr><td>標的</td><td>修復室 金屬檢視檯燈</td></tr><tr><td>送驗</td><td>檢方</td></tr><tr><td>結論</td><td>非自然故障 · 人為破壞致外殼帶電</td></tr></table>\n<div class=\"sec\">\n<h3>發現一：接地線遭剪斷</h3>\n<div>燈具接地（地線）於近期遭人剪斷，切口亮銅無氧化、屬新痕。正常時漏電會經地線導走並使保護裝置跳脫；接地被移除後，此保護完全失效。</div></div>\n<div class=\"sec\">\n<h3>發現二：火線被接上金屬外殼</h3>\n<div>另有一段火線被刻意搭接至燈具金屬外殼，使整盞燈外殼長時間帶電，形同一塊通電的鐵。</div></div>\n<div class=\"sec\">\n<h3>發現三：時間鎖</h3>\n<div>本燈於 8/20 例行電氣安全檢查時接地與絕緣均正常（見安檢合格紀錄）。上述致命故障係『檢查合格之後』才出現，排除自然老化，判定為近日人為破壞。</div></div>\n<div class=\"sec\">\n<h3>結論</h3>\n<div>被害人伸手觸及帶電外殼，電流通過身體致死。此為人為破壞電路、偽裝成觸電意外之他殺，非設備老舊之工安事故。</div></div>\n<div class=\"stamp\">鑑識證物</div>\n</div>"
+  },
+  "d-pigment.html": {
+    "minStage": 4,
+    "html": "<div class=\"crumbs\">文件 ＞ 鑑識</div><h1>顏料材料檢測報告</h1>\n<div class=\"doc\">\n<div class=\"org\">文物科學檢測 · 實驗室</div>\n<h1>谿山行旅圖 顏料成分檢測報告</h1>\n<table class=\"kv\"><tr><td>標的</td><td>拍品 MY-2026-017 谿山行旅圖</td></tr><tr><td>方法</td><td>顯微取樣 · 成分分析</td></tr><tr><td>結論</td><td>含鈦白 · 與託名時代不符 · 判定非真跡（贗品）</td></tr></table>\n<div class=\"sec\">\n<h3>檢測發現</h3>\n<div>畫面白色顏料檢出『鈦白』（二氧化鈦白）。鈦白為 1920 年代才開始工業量產之現代顏料。</div></div>\n<div class=\"sec\">\n<h3>時代矛盾</h3>\n<div>本幅託名之名家約於 1917 年前已過世，畫上卻用了他身後才問世的顏料——時代對不上，此畫不可能為其真跡，係託名偽作（贗品）。</div></div>\n<div class=\"sec\">\n<h3>與命案的連結</h3>\n<div>沈維鈞已看出此矛盾、草擬『非真跡』意見卻遲遲不敢簽署（見未完成工作單）。一旦此意見書出具，本幅及同類拍品的價值與交易將全面崩解。</div></div>\n<div class=\"stamp\">檢測報告</div>\n</div><div class=\"card\" style=\"margin-top:14px\"><div class=\"board-h\">相 關 連 結</div><div class=\"tlist\" style=\"padding:6px 16px\"><span class=\"linkwrap\" data-cstage=\"2\" style=\"display:block\"><a href=\"d-appraisal-draft.html\">沈維鈞未簽的鑑定工作單</a></span><span class=\"linkwrap\" data-cstage=\"4\" style=\"display:block\"><a href=\"d-timeline.html\">檢方偵查時序彙整</a></span></div></div>"
+  },
+  "del-ledger.html": {
+    "minStage": 4,
+    "html": "<div class=\"crumbs\">文件 ＞ 財務（已移除）</div><h1>藝廊交易對帳（此文件已被刪除）</h1>\n<div class=\"card\"><div class=\"deleted-box\"><div class=\"big\">🗑</div><div style=\"font-weight:700\">此文件已被刪除</div><div class=\"r\">本文件涉及第三人財務個資且屬偵查證物，經檢舉已自前台移除。</div></div></div>\n<div class=\"card\" style=\"padding:14px\"><div class=\"note-warn\">動機的最後一塊。這份對帳解釋了『為什麼有人非讓那份報告出不來不可』。備份位置一樣藏在原始碼裡——檢視原始檔，貼回網址列。</div></div>\n\n<!-- ================= 站務系統備份紀錄（勿刪） ================= -->\n<!-- 涉個資之偵查證物已下架，站務備份位置如下（僅供調閱） -->\n<!-- 備份位置： ./_624caea4.html -->\n<!-- 需具權限並直接輸入上列位置存取，前台已不提供連結。 -->\n<!-- ============================================================ -->\n"
+  },
+  "_624caea4.html": {
+    "minStage": 4,
+    "html": "<div class=\"crumbs\">站務備份 ＞ 財務</div><h1>藝廊交易對帳（站務備份 · 偵查證物）</h1>\n<div class=\"doc\">\n<div class=\"org\">檢方 · 財務清查</div>\n<h1>明硯藝廊 藝術品交易 資金往來清查</h1>\n<table class=\"kv\"><tr><td>對象</td><td>谿山行旅圖 及同類拍品</td></tr><tr><td>清查</td><td>檢方會計師</td></tr><tr><td>結論</td><td>藉藝術品交易洗錢 · 高博彥主導</td></tr></table>\n<div class=\"sec\">\n<h3>對敲交易</h3>\n<div>同一幅（及同類）畫作，數年間在多名『人頭買家』與數家『海外空殼公司』之間反覆高價對敲買賣，每次價格墊高，製造合法藝術品獲利的假象。</div></div>\n<div class=\"sec\">\n<h3>資金來源</h3>\n<div>投入資金來路不明。經此循環後，來路不明的髒錢被『洗』成看似合法的藝術品交易所得。</div></div>\n<div class=\"sec\">\n<h3>關鍵人</h3>\n<div>整條金流由藝廊負責人高博彥主導調度。大藏家郭崇德為其中一名人頭買家，以為買到真跡、資金卡在局中，才在拍場公開向沈維鈞施壓——他是被利用者，非主謀。</div></div>\n<div class=\"sec\">\n<h3>與命案的連結</h3>\n<div>沈維鈞的『非真跡』鑑定一旦出具，此畫即成贗品、整條洗錢金流當場崩解、並須負刑責。故有人必須讓這份報告永遠出不來。</div></div>\n<div class=\"stamp\">偵查證物</div>\n</div>"
+  },
+  "d-access-named.html": {
+    "minStage": 4,
+    "html": "<div class=\"crumbs\">文件 ＞ 門禁</div><h1>門禁持卡人實名對照（檢方調取）</h1>\n<div class=\"doc\">\n<div class=\"org\">檢方 · 調取</div>\n<h1>門禁卡權限 實名對照表（節錄）</h1>\n<table class=\"kv\"><tr><td>調取</td><td>檢方</td></tr><tr><td>對照</td><td>卡號 → 持卡人</td></tr></table>\n<div class=\"sec\">\n<h3>對照結果</h3>\n<div>卡片［M-001 · 董事長級］持卡人＝高博彥（藝廊負責人）。\n全館僅此卡具修復室最高權限；9/16 22:51 進入、23:20 離開修復室者即為本人。</div></div>\n<div class=\"sec\">\n<h3>機會鎖</h3>\n<div>案發時段：助理卓文瀚 19:40 已離館且無修復室權限；藏家郭崇德人在外縣市拍賣會（有簽到人證）。當晚唯一同時具備『修復室門禁 ＋ 接觸燈具電路 ＋ 掌握保全代碼』者，只有高博彥。</div></div>\n<div class=\"stamp\">調取存卷</div>\n</div>"
+  },
+  "d-timeline.html": {
+    "minStage": 4,
+    "html": "<div class=\"crumbs\">文件 ＞ 偵查</div><h1>檢方偵查時序（彙整）</h1>\n<div class=\"doc\">\n<div class=\"org\">檢方</div>\n<h1>本案 事實時序 彙整</h1>\n<table class=\"kv\"><tr><td>案由</td><td>偽裝觸電意外之他殺</td></tr><tr><td>狀態</td><td>偵查中</td></tr></table>\n<div class=\"sec\">\n<h3>時序</h3>\n<div>8/20　電氣安檢：燈具接地／絕緣正常、合格。\n9/上旬　沈維鈞驗出畫作顏料矛盾、草擬『非真跡』意見，遲不簽。\n9/16 19:40　助理卓文瀚離館（無修復室權限）。\n9/16 20:05　沈維鈞進修復室加班。\n9/16 22:51　［M-001＝高博彥］進修復室。\n9/16 23:20　［M-001］離開。\n9/16 深夜　沈維鈞觸帶電外殼身亡。\n事後　電路鑑識：接地被剪＋火線接外殼＝人為破壞。財務清查：贗品洗錢金流由高博彥主導。</div></div>\n<div class=\"sec\">\n<h3>結論</h3>\n<div>非工安意外。負責人高博彥為掩蓋贗品／洗錢、阻止沈維鈞出具鑑定報告，破壞燈具電路使其外殼帶電，將滅口偽裝成觸電意外。</div></div>\n<div class=\"stamp\">偵查中</div>\n</div>"
+  }
+}
