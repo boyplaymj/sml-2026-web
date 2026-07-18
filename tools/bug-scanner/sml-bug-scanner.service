@@ -11,8 +11,12 @@ Environment=HOME=/home/smlbot
 Environment=AWS_REGION=ap-southeast-1
 # kill switch:改 0 即停用(記得 daemon-reload 不需要,env 每次啟動讀取)
 Environment=BUG_SCANNER_ENABLED=1
-# 1=明確 bug 就在 bug-scan/<日期> 分支上 commit(仍永不 push/部署);0=只診斷+附 patch
-Environment=BUG_AUTO_FIX=1
+# 0=只診斷+附 patch(預設,安全);1=明確 bug 就在 bug-scan/<日期> 分支 commit。
+# ⚠️ 暫關:多數 SML bug 在別的 repo(sweetbot-next/score-repo),本 worktree 動不到,
+# 開了 claude 反而會在本 repo 亂刪無關檔。需更嚴的圍欄才重開。
+Environment=BUG_AUTO_FIX=0
+# 診斷報告貼到「私人頻道」(客戶看不到);入口頻道 BUG_CHANNEL_ID 保持乾淨給客戶回報。
+Environment=BUG_POST_CHANNEL=903327108451950692
 ExecStart=/usr/bin/python3 /opt/sml/repo/tools/bug-scanner/scan.py
 TimeoutStartSec=1800
 Nice=10
