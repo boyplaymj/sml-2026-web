@@ -110,6 +110,7 @@
       <div class="freshness"><span id="pulse" class="pulse"></span><span id="ago">—</span></div>
       <div class="ctrl">
         <button id="pin" class="on" title="永遠最上層">📌</button>
+        <button id="min" title="最小化到工作列">—</button>
         <button id="close" title="關閉">✕</button>
       </div>
     </header>
@@ -120,6 +121,7 @@
 <script>
 const { ipcRenderer } = require('electron');
 document.getElementById('close').onclick = () => ipcRenderer.send('app-quit');
+document.getElementById('min').onclick = () => ipcRenderer.send('minimize');
 let pinned = true;
 document.getElementById('pin').onclick = (e) => {
   pinned = !pinned;

@@ -69,6 +69,7 @@ function createWindow() {
 }
 
 ipcMain.on('app-quit', () => app.quit());
+ipcMain.on('minimize', () => { if (win && !win.isDestroyed()) win.minimize(); });
 ipcMain.on('toggle-top', (_e, on) => { if (win) win.setAlwaysOnTop(!!on, 'screen-saver'); });
 
 // 背景工作完成 → 桌面原生通知(這就是「主動叫你」)。點通知把掛件叫到最前。
