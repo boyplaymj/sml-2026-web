@@ -51,14 +51,22 @@ DynamoDB 9 表                 ← ✅ 完成
 ### 首片建議 = **餵食(feed)**
 理由:核心、頻繁、麻雀雖小五臟俱全——踩到 config(食物效果表)、DAO 寫法(CORE+INV# TransactWrite)、computeVirtualState(讀飽食度決定可餵食物)、玻璃箱 DTO(回心情 emoji 不回裸值)、UI 面板(下拉選食物+結果 embed)。打通它=整條分層驗證完畢。
 
-**首片切片內容**
-1. config:`food` 表(每食物 satiety/mood/friendship/obesity 機率/pH 效果)——最小 seed。
-2. DAO:`MonsterDAO.feedTxn(userId, foodId, effects, now)` = 單一 TransactWrite(Update CORE 結算 + `INV#food` qty−1 條件≥1);沿用既有 builder + 分類。
-3. engine:`game/yajunban/care.js` `feed()` = 讀 getStatus 判可餵→查 config→呼叫 feedTxn→回 DTO。
-4. DTO:`toStatusDTO(core, virtual)` 帶名標籤(心情 emoji/飽食度描述,不露裸值)。
-5. UI:一個指令 + 面板(下拉選食物→結果 embed)。
+**首片切片內容(✅ 已實作定稿,Codex 二輪收斂)**
+1. config:`food` 分區(每食物 satiety/friendship/obesityChance/obesityInc/xp/pH;**無 mood** — derived)+ caps。走 `ConfigStore`(DDB 後台可調 + baked 預設 + 60s 快取 + save 樂觀鎖)。
+2. DAO:`MonsterDAO.feedTxn(userId, foodId, effects, pinCareVersion, now)` = 單一 TransactWrite(Update CORE + `INV#food` qty−1)。
+3. engine:`game/yajunban/care.js` `feed()`。
+4. DTO:`toStatusDTO(core, virtual)` 玻璃箱。
+5. UI:指令 + 面板(**未做**,先後端)。
 
-做完首片 → Codex 二驗 → 當範本,再依序複製到 清潔/成長/世界/任務/堡壘/戰鬥。
+### ⭐ engine 範本鐵律(照顧子系統一律照抄,Codex P1-5)
+下一片(清潔/摸頭/玩耍/…)複製時**必須**遵守,否則漏鎖/破語義:
+- **`careVersion` 照顧樂觀鎖**:**所有**改 CORE stored 欄(satiety/friendship/obesity…)的照顧操作,DAO 交易內都要 `setArith('careVersion','+',1)` + `condition careVersion=pinCareVersion`(首次 `attribute_not_exists`);engine 從 `getStatus` 讀 `core.careVersion` 當 pin。像 world 的 posVersion —— 序列化所有照顧操作,防互相覆蓋 RMW 欄。**簽名帶 `pinCareVersion`,不是舊的 `(…, now)`**。
+- **`last_interaction=now`**:任何照顧互動(餵食/摸頭/玩耍/清潔)都要同交易 SET,否則 computeVirtualState 仍算 friendship 衰退/孤單/逃跑倒數。
+- **DAO 白名單**:每個照顧 DAO 寫法限定可寫欄位集合(如 feed 限 satiety/friendship/obesity_level + xp),防 engine/config bug 污染 schema;**derived 欄(mood 等)絕不落庫**。
+- **clamp 在 engine**、**數值全來自 config**、**對外只回玻璃箱 DTO**、**只透過 DAO 讀寫**。
+- ⚠️ **已知缺口(Codex P1-6)**:virtual 衰退率(khui/satiety decay…)尚未接 config,仍用 `virtualState.js DEFAULT_RATES`(PLACEHOLDER);`config.DEFAULTS.rates` 已預留分區,完整 wiring 待專案(需鏡射 DEFAULT_RATES 全形狀)。
+
+做完首片 → Codex 二輪收斂 → 當範本,再依序複製到 清潔/成長/世界/任務/堡壘/戰鬥。
 
 ---
 
@@ -77,11 +85,11 @@ DynamoDB 9 表                 ← ✅ 完成
 
 ---
 
-## ⚠️ 待拍板決策(開工前)
-1. **engine 落點**:`sweetbot-next/game/yajunban/`?與現有甜甜遊戲(如 CrossingRoad.js)風格對齊?
-2. **config 落哪**:DDB 設定表 vs JSON 檔 vs 遊戲館後台可調?(影響⑤設計)
-3. **首片範圍**:只後端(DAO+engine+DTO,單測)先,還是含 Discord UI 一路到面板?
-4. **數值來源**:食物效果等平衡值誰定?(需使用者/設計提供,engine 不編造)
+## ✅ 拍板決策(2026-07-18 使用者定案)
+1. **engine 落點**:`sweetbot-next/game/yajunban/`,與現有甜甜遊戲風格對齊。
+2. **config**:**走 DDB 設定表(`sweetbot-yajunban-config`,後台可調)**;engine 讀時 merge 到 baked PLACEHOLDER 預設 + 記憶體快取(admin 改動 TTL 內生效)。
+3. **首片範圍**:**先後端**(config + DAO 寫法 + engine + DTO + 單測不打 AWS);**未規劃完的系統預留欄位**(結構先在、值先空/placeholder)。UI 等後端範本穩了再接。
+4. **數值**:**先放 PLACEHOLDER 佔位**,平衡最後統一調(engine 不編造,值全集中在 config 便於後台改)。
 
 ---
 
