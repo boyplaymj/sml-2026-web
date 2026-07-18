@@ -173,6 +173,25 @@ S2 用到既有欄 + 新增：
 - 完成 → `node --test` 全綠 → commit（只 shrine 相關）→ 同步 review 副本到 `tools/jinja-shrine/impl-s2/` → 交 **Codex 驗**（重點：引擎 delta 不破壞 S1、原子/冪等、退款路徑、除厄當年語義）。
 - **S2 不接其他遊戲、不做全設施 UI**（S3/S4）。
 
+## 12. 執行切分（小任務 · 每階段 Codex 查驗）
+
+> 原則：每個子任務**小到能一次做完 + 一次 Codex 驗**，避免單次過長。做完 → 同步 review 副本到 `tools/jinja-shrine/impl-s2/` → 交 Codex 驗 → **過了才進下一個**（不平行推疊）。依賴順序如下。
+
+| 子任務 | 內容 | 主手 | Codex 驗點 |
+|---|---|---|---|
+| **S2-1 引擎擴充 A+B** | `computeLuck` 加「活御守 boost」+「除厄減免」；`defaults.js` + `seed_shrine_config` 加 `omamoriTypes`/`yakuHaraiMode`；`shrineLuck.test` +7 測 | **Opus**（動已簽核 S1 引擎） | delta 不破壞 S1（原 12 測仍綠）、boost/clamp、除厄當年 clear/half、去年不減 |
+| **S2-2 御守 DAO + 請御守** | `ShrineOmamoriDAO.grant`/`getBySk`；`ShrineOmamoriService.grant`（先扣牙齒後 Put、失敗退款）；`shrineOmamori.test` | **Fable 5** → Opus 覆核 | 先扣後寫/退款路徑、correct-key、`expireAt=now+ttl`、餘額不足不寫 |
+| **S2-3 回收 + 功德值** | `ShrineOmamoriDAO.recycle`（Cond `recycled=false`）；`ShrineFortuneDAO.addMerit`（`ADD`）；`service.recycle`；test | **Fable 5** → Opus 覆核 | 條件寫冪等、重複回收只給一次 merit |
+| **S2-4 御祈禱除厄** | `ShrineFortuneDAO.setGender`/`setYakuHarai`；`ShrineHaraiService`（收 gender+收費+記除厄年+同年冪等）；test | **Fable 5** → Opus 覆核 | 同年冪等、寫 gender/yakuHaraiYear、接引擎 B 當年語義 |
+| **S2-5 生日厄年鉤子** | 既有生日祝賀流程附「今年○厄，要不要除厄」提示 | **Opus**（動既有生日流程） | 不破壞既有生日祝賀、gender 缺不附、數え年算對 |
+
+**需要 Fable 5 的**：S2-2、S2-3、S2-4（DAO/service 樣板，Opus 覆核）。
+**Opus 親做的**：S2-1（引擎命門、動 S1）、S2-5（動既有生日流程，風險控管）。
+
+**依賴**：S2-1 先（引擎+config，其餘讀 config）→ S2-2 → S2-3 → S2-4（除厄需引擎 B）→ S2-5。每格皆獨立可驗、可分次做。
+
+---
+
 ## 11. 待補（往後階段）
 - 生肖本命年 fallback（無出生年時）。
 - 功德值折抵消費（可 S2 尾或 S3）。
