@@ -29,7 +29,7 @@ DynamoDB 9 表                 ← ✅ 完成
 | 子系統 | engine 職責 | DAO 現況 | 缺口 |
 |---|---|---|---|
 | 孵化 | 4 因子種族判定 + 心測抽籤 → 組 items | ✅ `hatch` | engine 算 items |
-| **餵食**(建議首片) | 選食物→結算 satiety/mood/friendship/obesity/xp/pH + 扣背包 | 🔶 `consumeItem`/`addItem` 有,**組合 feed TransactWrite 未做** | **新 DAO 寫法 `feedTxn`** + engine |
+| **餵食**(首片 ✅ 定稿) | 選食物→結算 satiety/friendship/obesity/xp(mood=derived 不落庫)+ 扣背包 | ✅ `feedTxn`(白名單 + careVersion 鎖) | 已完成(範本) |
 | 清潔/走格子/發酵 | obesity 收支結算 | 🔴 無 | 新 DAO 寫法(單筆 Update)+ engine |
 | 移動 | 走一格(扣 khui + 搬桶) | ✅ `WorldDAO.moveTo` | engine 接 |
 | 相鄰/偷菜/殘渣 | 找目標 + 複驗 + 拾取 | ✅ `neighbors`/`verifyOccupant`/`pickLoot` | engine 接 + 偷菜寫法 |
