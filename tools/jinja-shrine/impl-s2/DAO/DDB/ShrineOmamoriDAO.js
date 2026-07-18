@@ -1,7 +1,7 @@
 // 甜甜神社 — 御守持有 DAO(sweetbot-shrine-omamori, PK=discordId, SK=sk)。
 // hot-path 用 Query(非 scan);必分頁(對齊全站鐵律)。
 const BaseDAO = require('./DDBCompatibleBaseDAO.js');
-const { QueryCommand, PutCommand, GetCommand } = require('@aws-sdk/lib-dynamodb');
+const { QueryCommand, PutCommand, GetCommand, UpdateCommand } = require('@aws-sdk/lib-dynamodb');
 
 class ShrineOmamoriDAO extends BaseDAO {
   constructor () {
@@ -38,6 +38,25 @@ class ShrineOmamoriDAO extends BaseDAO {
   async put (item) {
     await this.ddb.send(new PutCommand({ TableName: this.tableName, Item: item }));
     return item;
+  }
+
+  // 條件寫:唯有「存在且尚未回收」才標記 recycled=true。原子擋並發重領。
+  // 回傳 true=這次成功回收；false=已回收/不存在(冪等,呼叫端不再給功德)。
+  // Key 用複合鍵 {discordId, sk} → 天然只能回收「自己的」御守(非 scan、非 base.get)。
+  async recycle (discordId, sk) {
+    try {
+      await this.ddb.send(new UpdateCommand({
+        TableName: this.tableName,
+        Key: { discordId: String(discordId), sk },
+        UpdateExpression: 'SET recycled = :true',
+        ConditionExpression: 'attribute_exists(sk) AND recycled = :false',
+        ExpressionAttributeValues: { ':true': true, ':false': false }
+      }));
+      return true;
+    } catch (err) {
+      if (err.name === 'ConditionalCheckFailedException') return false; // 已回收/不存在 → 冪等
+      throw err; // 其他錯誤往上拋,service 包成 {ok:false,reason:'error'}
+    }
   }
 }
 

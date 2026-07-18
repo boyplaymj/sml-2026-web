@@ -6,7 +6,7 @@ const crypto = require('crypto');
 const { DEFAULT_SHRINE_CONFIG } = require('./defaults');
 
 class ShrineOmamoriService {
-  // deps 可注入:{ viewerDetailDAO, omamoriDAO, configDAO }(測試用 stub)
+  // deps 可注入:{ viewerDetailDAO, omamoriDAO, configDAO, fortuneDAO }(測試用 stub)
   constructor (deps = {}) {
     this._deps = deps;
   }
@@ -17,10 +17,12 @@ class ShrineOmamoriService {
     const OmamoriDAO = require('../../DAO/DDB/ShrineOmamoriDAO.js');
     const ConfigDAO = require('../../DAO/DDB/ShrineConfigDAO.js');
     const ViewerDetailDAO = require('../../DAO/DDB/ViewerDetailDAO.js');
+    const FortuneDAO = require('../../DAO/DDB/ShrineFortuneDAO.js');
     this._resolved = {
       viewerDetailDAO: d.viewerDetailDAO || new ViewerDetailDAO(),
       omamoriDAO: d.omamoriDAO || new OmamoriDAO(),
-      configDAO: d.configDAO || new ConfigDAO()
+      configDAO: d.configDAO || new ConfigDAO(),
+      fortuneDAO: d.fortuneDAO || new FortuneDAO()
     };
     return this._resolved;
   }
@@ -89,6 +91,32 @@ class ShrineOmamoriService {
       return { ok: true, omamori: item };
     } catch (err) {
       console.warn(`[ShrineOmamori] grant unexpected error for ${discordId}:`, err && err.message);
+      return { ok: false, reason: 'error' };
+    }
+  }
+
+  // recycle(discordId, sk) → { ok:true, merit } | { ok:false, reason }
+  // 古札納所回收:御守標 recycled=true(引擎即不再算穢れ)→ 給功德值。
+  // 🛡️ 鐵律:先條件寫回收成功、才給功德(冪等,功德只給一次);絕不 throw。
+  async recycle (discordId, sk) {
+    try {
+      const { omamoriDAO, fortuneDAO, configDAO } = this._daos();
+      // 1) config deep-merge → meritOnRecycle(缺→DEFAULT.meritOnRecycle=50)
+      let cfg = null;
+      try { cfg = await configDAO.getMain(); } catch (_) { cfg = null; }
+      cfg = cfg || {};
+      const merit = (cfg.meritOnRecycle != null) ? cfg.meritOnRecycle : DEFAULT_SHRINE_CONFIG.meritOnRecycle;
+
+      // 2) 條件寫回收(原子);false=已回收/不存在 → 冪等不給功德
+      const done = await omamoriDAO.recycle(discordId, sk);
+      if (!done) return { ok: false, reason: 'already_recycled_or_missing' };
+
+      // 3) 成功回收才給功德(原子累加)。若 addMerit 罕見失敗:御守已回收但功德沒入
+      //    → 落 catch 記 warn(S3 可補償;本格不做補償交易)。
+      await fortuneDAO.addMerit(discordId, merit);
+      return { ok: true, merit };
+    } catch (err) {
+      console.warn(`[ShrineOmamori] recycle error for ${discordId} sk=${sk}:`, err && err.message);
       return { ok: false, reason: 'error' };
     }
   }
