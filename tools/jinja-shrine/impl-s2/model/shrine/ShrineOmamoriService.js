@@ -34,7 +34,9 @@ class ShrineOmamoriService {
       let cfg = null;
       try { cfg = await configDAO.getMain(); } catch (_) { cfg = null; }
       cfg = cfg || {};
-      const omamoriTypes = cfg.omamoriTypes || DEFAULT_SHRINE_CONFIG.omamoriTypes;
+      // 真正 deep-merge:後台若只留部分 type(partial map),其餘 type 仍由 DEFAULT 補齊
+      // (原淺 fallback「整包取代」會讓後台刪一種→其餘變 unknown_type;Codex S2-2 Non-blocking)。
+      const omamoriTypes = { ...DEFAULT_SHRINE_CONFIG.omamoriTypes, ...(cfg.omamoriTypes || {}) };
       const ttlDays = (cfg.omamoriTtlDays != null) ? cfg.omamoriTtlDays : DEFAULT_SHRINE_CONFIG.omamoriTtlDays;
 
       // 驗 type 合法

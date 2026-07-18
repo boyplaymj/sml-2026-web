@@ -129,6 +129,18 @@ test('grant: 連請兩次 → sk 不同', async () => {
   assert.strictEqual(calls.put.length, 2);
 });
 
+// 8. config.omamoriTypes 為 partial map(後台只留 kinunmori)→ 其餘 type 仍由 DEFAULT 補齊(Codex Non-blocking 修正)
+test('grant: partial omamoriTypes(只留1種)→ 請其他 type 仍成功(deep-merge)', async () => {
+  const partial = { ...DEFAULT_SHRINE_CONFIG, omamoriTypes: { kinunmori: DEFAULT_SHRINE_CONFIG.omamoriTypes.kinunmori } };
+  const { calls, deps } = makeStubs({ balance: 100000, config: partial });
+  const svc = new ShrineOmamoriService(deps);
+  const r = await svc.grant('789', 'shoumori', NOW); // 後台沒留 shoumori,但 DEFAULT 有
+  assert.strictEqual(r.ok, true);
+  assert.strictEqual(r.omamori.axis, DEFAULT_SHRINE_CONFIG.omamoriTypes.shoumori.axis);
+  assert.strictEqual(r.omamori.boost, DEFAULT_SHRINE_CONFIG.omamoriTypes.shoumori.boost);
+  assert.strictEqual(calls.put.length, 1);
+});
+
 // 7. getBySk:stub doc client 驗 correct-key {discordId, sk};存在回 item、不存在回 null
 test('DAO.getBySk: correct-key GetItem,存在回 item、不存在回 null', async () => {
   const dao = new ShrineOmamoriDAO();
