@@ -289,22 +289,42 @@ function renderCalendar(){
 }
 
 /* ---------- 對戰展開 ---------- */
+/* 逐場結果(後台 Cloud Function 重播寫入 sml_public.games)：
+   key = `${grp}|${四位選手名排序}`，value = {grp, results:[{name,rank,score,w,p,raw,protected}]} */
+let GAME_RESULTS = {};
+let _openGame = null;                                       // 記住目前展開的場次，資料更新時可重繪
+const gameKey = (grp,players) => grp + '|' + players.slice().sort().join(',');
+const RANK_MEDAL = ['①','②','③','④'];
+const RANK_LABEL = ['冠軍','亞軍','季軍','殿軍'];
+
 function openGame(grp,i,scroll){
   const gm = SCHEDULE[grp][i];
   const gc = grp==='men' ? '#38bdf8' : '#f472b6';
   const el = document.getElementById('gameDetail');
   el.hidden=false;
+  _openGame = {grp,i};
+  // 該場是否已播並結算 → 有逐場結果就顯示「當時名次+得分」，否則顯示目前積分
+  const res = GAME_RESULTS[gameKey(grp,gm.players)];
+  const rmap = {};
+  if(res && Array.isArray(res.results)) res.results.forEach(r=>{ if(r&&r.name) rmap[r.name]=r; });
+  const played = Object.keys(rmap).length>0;
   el.innerHTML = `
     <div class="gd-head">
       <div><span class="gd-grp" style="color:${gc}">${grpName(grp)} ・ Game ${gm.g}</span>
+        ${played?'<span class="gd-done">已完成</span>':''}
         <div class="gd-date">${gm.date}　・　主播 ${gm.host||DEFAULT_HOST}　|　賽評 ${gm.cast}</div></div>
       <button class="gd-close" onclick="document.getElementById('gameDetail').hidden=true" aria-label="關閉">✕</button>
     </div>
-    <div class="gd-players">${gm.players.map((n)=>{const pl=PLAYERS[n];return `
-      <button class="gd-card" style="--c:${pl.color}" onclick="openPlayer('${n}')">
+    <div class="gd-players">${gm.players.map((n)=>{const pl=PLAYERS[n];const r=rmap[n];return `
+      <button class="gd-card${r?' ranked':''}${r&&r.rank===1?' champ':''}" style="--c:${pl.color}" onclick="openPlayer('${n}')">
+        ${r?`<span class="gd-medal r${r.rank}">${RANK_MEDAL[r.rank-1]||r.rank}</span>`:''}
         <div class="gd-photo"><img ${imgAttrs(n,'calendar')}>${n[0]}</div>
         <div class="gd-name">${n}</div>
-        <div class="gd-pts">積分 ${fmtPts(pl.pts)}</div></button>`;}).join('')}</div>`;
+        ${r
+          ? `<div class="gd-rank">${RANK_LABEL[r.rank-1]||(r.rank+'位')}</div>
+             <div class="gd-pts gd-game ${r.score>0?'up':r.score<0?'down':''}">本場 ${fmtPts(r.score)}</div>`
+          : `<div class="gd-pts">積分 ${fmtPts(pl.pts)}</div>`}
+      </button>`;}).join('')}</div>`;
   if(scroll!==false) el.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 // 首頁本週對戰卡 → 捲到月曆並展開該場
@@ -521,7 +541,12 @@ function applyLiveData(live){
     firebase.firestore().collection("sml_public").doc("season_2026")
       .onSnapshot(snap=>{                          // 即時:後台一按更新,官網自動跟著變
         const data = snap.data();
+        GAME_RESULTS = (data && data.games) ? data.games : {};   // 逐場結果(已播場次名次+得分)
         if(data && data.players) applyLiveData(data.players);
+        if(_openGame){                              // 若正展開某場,套用最新逐場結果
+          const g=document.getElementById('gameDetail');
+          if(g && !g.hidden) openGame(_openGame.grp,_openGame.i,false);
+        }
         applyLiveStream(data && data.liveStream ? data.liveStream : LIVE_STREAM_DEFAULT);
         renderReels(data && data.reels);            // 賽事精華:後台一存,官網即時重繪
       }, err=>console.warn('官網數據讀取失敗(可能是 Firestore 讀取權限):', err));
