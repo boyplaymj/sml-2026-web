@@ -15,10 +15,10 @@
   /* 整個掛件 = 一塊圓角浮動玻璃 */
   .shell{
     position:fixed;inset:6px;border-radius:18px;
-    background:linear-gradient(160deg,rgba(18,28,48,.82),rgba(9,14,24,.86));
+    background:linear-gradient(160deg,rgba(18,28,48,.96),rgba(9,14,24,.97));
     border:1px solid rgba(140,175,230,.16);
     box-shadow:0 18px 50px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.05);
-    backdrop-filter:blur(14px) saturate(1.1);
+    /* 拿掉 backdrop-filter:blur 省 GPU 合成(改用高不透明底色,不再毛玻璃) */
     display:flex;flex-direction:column;padding:10px 12px 10px;gap:9px;overflow:hidden;
   }
   header{display:flex;align-items:center;gap:9px;-webkit-app-region:drag}
@@ -152,7 +152,7 @@ class Tank{
     ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=1.3;ctx.beginPath();
     for(let x=0;x<=w;x+=step){const y=level+Math.sin(x/34+this.phase)*amp+Math.sin(x/15-this.phase*1.6)*amp*0.4;x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
     ctx.stroke();
-    ctx.save();ctx.globalAlpha=.5;ctx.shadowColor=g.glow;ctx.shadowBlur=14;ctx.strokeStyle=g.a;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,level);ctx.lineTo(w,level);ctx.stroke();ctx.restore();
+    ctx.save();ctx.globalAlpha=.55;ctx.strokeStyle=g.a;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,level);ctx.lineTo(w,level);ctx.stroke();ctx.restore();
     if(this.cur>0.06&&Math.random()<dt*3)this.bubbles.push({x:Math.random()*w,y:h-2,r:1+Math.random()*2,v:14+Math.random()*20});
     ctx.fillStyle='rgba(255,255,255,.35)';
     this.bubbles=this.bubbles.filter(b=>{b.y-=b.v*dt;const surf=level+Math.sin(b.x/34+this.phase)*amp;if(b.y<surf+1)return false;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,7);ctx.fill();return true;});
@@ -272,7 +272,24 @@ async function poll(){
   catch(e){if(!apply._sig)apply({accounts:[{slot:'main',label:'Main',ok:false,error:'連線中…'},{slot:'backup1',label:'Backup1',ok:false,error:'連線中…'}]});}
 }
 let last=performance.now();
-function frame(t){const dt=Math.min(.05,(t-last)/1000);last=t;tanks.forEach(o=>o.tank.step(dt));requestAnimationFrame(frame);}
+let animOn=true;              // 視窗失焦/隱藏時暫停波浪動畫,GPU 幾乎歸零
+const FRAME_MS=1000/30;       // 幀率上限 ~30fps(原為 60fps 無上限)
+function frame(t){
+  if(!animOn)return;                       // 暫停:停止遞迴,不再重畫
+  if((t-last)>=FRAME_MS){                   // 降幀:未到間隔就跳過重畫
+    const dt=Math.min(.05,(t-last)/1000);last=t;
+    tanks.forEach(o=>o.tank.step(dt));
+  }
+  requestAnimationFrame(frame);
+}
+function setAnim(on){
+  if(on===animOn)return;
+  animOn=on;
+  if(on){last=performance.now();requestAnimationFrame(frame);}  // 復焦:重啟迴圈
+}
+window.addEventListener('focus',()=>setAnim(true));
+window.addEventListener('blur',()=>setAnim(false));
+document.addEventListener('visibilitychange',()=>setAnim(!document.hidden));
 window.addEventListener('resize',()=>tanks.forEach(o=>o.tank.resize()));
 poll();setInterval(poll,POLL_MS);setInterval(tickLabels,1000);requestAnimationFrame(frame);
 </script>

@@ -205,8 +205,8 @@ class Tank{
     }
     ctx.stroke();
 
-    // 頂部輝光
-    ctx.save(); ctx.globalAlpha=.5; ctx.shadowColor=g.glow; ctx.shadowBlur=16;
+    // 頂部輝光(移除 shadowBlur:每幀陰影模糊是 canvas 最貴操作)
+    ctx.save(); ctx.globalAlpha=.55;
     ctx.strokeStyle=g.a; ctx.lineWidth=2; ctx.beginPath();
     ctx.moveTo(0,level); ctx.lineTo(w,level); ctx.stroke(); ctx.restore();
 
@@ -378,11 +378,24 @@ async function poll(){
   }catch(e){ if(!apply._sig) apply(DEMO); }
 }
 let last=performance.now();
+let animOn=true;              // 分頁隱藏/視窗失焦時暫停波浪動畫,省 GPU
+const FRAME_MS=1000/30;       // 幀率上限 ~30fps(原為 60fps 無上限)
 function frame(t){
-  const dt=Math.min(.05,(t-last)/1000); last=t;
-  tanks.forEach(o=>o.tank.step(dt));
+  if(!animOn) return;                         // 暫停:停止遞迴,不再重畫
+  if((t-last)>=FRAME_MS){                      // 降幀:未到間隔就跳過重畫
+    const dt=Math.min(.05,(t-last)/1000); last=t;
+    tanks.forEach(o=>o.tank.step(dt));
+  }
   requestAnimationFrame(frame);
 }
+function setAnim(on){
+  if(on===animOn) return;
+  animOn=on;
+  if(on){ last=performance.now(); requestAnimationFrame(frame); }  // 復焦:重啟迴圈
+}
+window.addEventListener('focus',()=>setAnim(true));
+window.addEventListener('blur',()=>setAnim(false));
+document.addEventListener('visibilitychange',()=>setAnim(!document.hidden));
 window.addEventListener('resize',()=>tanks.forEach(o=>o.tank.resize()));
 apply(DEMO);                 // 先畫示範,避免白屏
 poll();                      // 立刻抓真資料
