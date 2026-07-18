@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>拍賣會入場簽到（9/16）｜城中大小事</title>
+<style>
+:root{--bg:#12151a;--card:#1b1f27;--ink:#dbe1e8;--sub:#8790a0;--line:#2a3140;--accent:#5aa6b8;--warn:#c98f9f;--paper:#f3efe6;--paperink:#2a2620}
+*{box-sizing:border-box}
+body{margin:0;font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.7}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{background:linear-gradient(120deg,#171b22,#1f2530);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50}
+.bar{max-width:780px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:12px}
+.logo{width:32px;height:32px;border-radius:9px;background:var(--accent);color:#0e1216;font-weight:900;display:grid;place-items:center;font-size:16px}
+.brand{font-weight:800;letter-spacing:.5px}.brand small{display:block;font-weight:400;color:var(--sub);font-size:11px;letter-spacing:2px}
+.bar nav{margin-left:auto;display:flex;gap:14px;font-size:13px;color:var(--sub)}
+.wrap{max-width:780px;margin:16px auto 90px;padding:0 18px}
+.crumbs{font-size:12px;color:var(--sub);margin:6px 0 12px}
+h1{font-size:21px;margin:0 0 12px;line-height:1.45}h2{font-size:16px;margin:22px 0 8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.card+.card{margin-top:14px}
+.op{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;padding:13px 15px;color:#c2cad4;font-size:14px}
+.who{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.who .a{width:30px;height:30px;border-radius:50%;background:#3a4453;display:grid;place-items:center;font-size:13px;color:#cfd6df;font-weight:700}
+.who b{font-size:14px}.who span{color:var(--sub);font-size:12px}
+.bhead{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line);font-weight:700}
+.bhead .cnt{margin-left:auto;font-weight:400;color:var(--sub);font-size:13px}
+.acc{display:inline-block;width:4px;height:15px;background:var(--accent);border-radius:2px;margin-right:6px;vertical-align:-2px}
+.cmt{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}.cmt:last-child{border-bottom:0}
+.ava{flex:0 0 auto;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:#0e1216;font-weight:700;font-size:13px}
+.cbody{flex:1;min-width:0}.crow{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.cname{font-weight:700;font-size:14px}.ctime{color:var(--sub);font-size:12px}
+.ctext{margin:5px 0 6px;font-size:14.5px;word-break:break-word;color:#d3dae2}
+.cfoot{font-size:12px;color:var(--sub);display:flex;gap:16px}
+.removed .ava{background:#39414d!important;color:#7a8494}
+.removed .ctext{color:#79828f;font-style:italic;background:#191d24;border:1px dashed #313a48;border-radius:8px;padding:9px 12px;display:inline-block}
+.tlist a{display:flex;gap:10px;align-items:baseline;padding:12px 16px;border-bottom:1px solid var(--line);color:var(--ink)}
+.tlist a:hover{background:#20252f;text-decoration:none}.tlist a:last-child{border-bottom:0}
+.tlist .tt{flex:1;font-size:14.5px}.tlist .rc{color:var(--sub);font-size:12px}.hot{color:#c98f6a;font-size:12px;margin-left:6px}
+.board-h{padding:10px 16px;background:#161a21;border-bottom:1px solid var(--line);color:var(--sub);font-size:12px;letter-spacing:2px}
+.kv{width:100%;border-collapse:collapse;font-size:14px}
+.kv td{padding:9px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+.kv td:first-child{color:var(--sub);width:34%;white-space:nowrap}
+.doc{background:var(--paper);color:var(--paperink);border-radius:10px;padding:22px 24px;font-family:"Noto Serif TC","PingFang TC",serif}
+.doc h1{font-size:19px;border-bottom:2px solid #c9bfa8;padding-bottom:8px}
+.doc .org{color:#6b6355;font-size:12px;letter-spacing:2px;margin-bottom:4px}
+.doc .kv td{border-bottom:1px solid #ddd3bd}.doc .kv td:first-child{color:#7a715c}
+.doc .sec{margin:14px 0}.doc .sec h3{font-size:14px;margin:0 0 4px;color:#4a4436}
+.doc .stamp{display:inline-block;margin-top:14px;color:#a2432f;border:2px solid #a2432f;border-radius:6px;padding:4px 12px;font-weight:800;transform:rotate(-6deg);letter-spacing:2px;opacity:.82}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;padding:14px}
+.thumbs a{display:block;text-decoration:none}
+.thumbs .th{aspect-ratio:1;border-radius:8px;background:#252b35 center/cover no-repeat;border:1px solid var(--line);display:grid;place-items:center;color:#4c5563;font-size:11px}
+.thumbs .lb{font-size:12px;color:var(--sub);margin-top:4px;text-align:center}
+.imgview img{width:100%;border-radius:10px;display:block}
+.cap{color:var(--sub);font-size:13px;margin-top:8px}
+.deleted-box{text-align:center;padding:40px 20px;color:#79828f}
+.deleted-box .big{font-size:40px;margin-bottom:10px;opacity:.5}
+.deleted-box .r{font-style:italic;background:#191d24;border:1px dashed #313a48;border-radius:8px;padding:12px 16px;display:inline-block;margin-top:8px;font-size:13.5px}
+.para{font-size:14.5px;margin:10px 0;color:#d3dae2}
+.foot{max-width:780px;margin:0 auto;padding:18px;color:#4c5563;font-size:11.5px;line-height:1.9;border-top:1px solid var(--line)}
+.lock{text-align:center;padding:60px 20px;color:#8790a0}
+.lock .ic{font-size:44px}.lock .t{margin-top:12px;font-size:15px}
+/* 檢視原始檔 */
+#vs-btn{position:fixed;right:14px;bottom:14px;z-index:200;background:#232935;color:#9fb4c4;border:1px solid #38424f;border-radius:20px;padding:8px 14px;font-size:12.5px;cursor:pointer;font-family:ui-monospace,Menlo,monospace;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+#vs-btn:hover{background:#2b3340;color:#cfe0ec}
+#vs-modal{position:fixed;inset:0;z-index:300;background:rgba(6,8,11,.86);display:none;padding:24px}
+#vs-modal.on{display:flex;flex-direction:column;max-width:920px;margin:0 auto}
+#vs-modal .h{color:#9fb4c4;font:600 13px ui-monospace,monospace;padding:6px 2px;display:flex;align-items:center;gap:12px}
+#vs-modal .h b{color:#e0e8ef}#vs-modal .h .x{margin-left:auto;cursor:pointer;color:#8790a0;font-size:20px}
+#vs-modal pre{flex:1;overflow:auto;background:#0d1015;border:1px solid #2a3140;border-radius:8px;margin:8px 0 0;padding:14px;color:#8fb7a8;font:12px/1.6 ui-monospace,Menlo,monospace;white-space:pre-wrap;word-break:break-all}
+#vs-modal pre .cm{color:#c98f6a}
+.note-warn{color:var(--warn);font-size:12.5px}
+</style>
+</head>
+<body>
+<header><div class="bar"><div class="logo">城</div><div class="brand">城中大小事<small>C H E N G C H U N G · 在地討論版</small></div><nav><span>熱門</span><span>在地</span><span>爆料</span><span>發文</span></nav></div></header>
+<div class="wrap"><div id="pagebody"><div class="crumbs">文件 ＞ 拍賣</div><h1>拍賣會入場簽到（9/16）</h1>
+<div class="doc">
+<div class="org">中部某拍賣會</div>
+<h1>貴賓入場簽到表　9/16</h1>
+<table class="kv"><tr><td>姓名</td><td>郭崇德（貴賓牌號 VIP-07，櫃檯親簽並核對證件）</td></tr><tr><td>簽到時間</td><td>9/16 18:30</td></tr><tr><td>離場</td><td>9/16 22:10（現場人證多名，含拍賣官與兩名工作人員）</td></tr><tr><td>地點</td><td>外縣市會展中心（距本市車程逾 2 小時）</td></tr></table>
+<div class="sec">
+<div>郭姓貴賓於當日 18:30 完成簽到後全程在場：晚拍期間坐於第一排固定席位，先後就三件拍品舉牌競價（其中一件落槌成交），中場休息時並與多名同業於貴賓室寒暄，至 22:10 方離場。上述行程有多名現場人證，會場出入口監視影像亦可佐證，時間紀錄完整，無中途離席情事。</div></div>
+<div class="stamp">簽到存查</div>
+</div>
+</div></div>
+<div class="foot">© 城中大小事 在地討論版｜本版內容由網友自由發表，不代表本站立場。<br><span style="color:#3f4650">（本頁為解謎遊戲虛構道具，地點／人物／情節／機構皆屬原創虛構，不影射任何真實個案。）</span></div>
+
+<button id="vs-btn" onclick="showSrc()">⟨/⟩ 檢視原始檔</button>
+<div id="vs-modal">
+  <div class="h"><b>檢視原始檔</b>｜ d-buyer-alibi.html <span style="color:#5c6675">— 本頁 HTML 原始碼</span><span class="x" onclick="hideSrc()">✕</span></div>
+  <pre id="vs-pre"></pre>
+</div>
+<script>
+/* ===== 檢視原始檔（手機也能用；等同瀏覽器 view-source，含 HTML 註解） ===== */
+function showSrc(){
+  var raw = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  var e = document.getElementById('vs-pre');
+  e.textContent = raw;
+  /* 把 HTML 註解上色，暗示玩家「這裡有東西」 */
+  e.innerHTML = e.innerHTML.replace(/(&lt;!--[\s\S]*?--&gt;)/g,'<span class="cm">$1</span>');
+  document.getElementById('vs-modal').classList.add('on');
+}
+function hideSrc(){ document.getElementById('vs-modal').classList.remove('on'); }
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') hideSrc(); });
+
+/* ===== 階段閘門：本頁屬第 3 階段，案情未到不給看（?stage 覆寫僅 --dev 版） ===== */
+(function(){
+  var NODE_STAGE = 3;
+  var PID = "mingyan-forgery-coverup";
+  var FB = "AIzaSyAZaa_yHu7gsRaj71YL8x3REHfL_V5Tq4w";
+  var CFG = 'https://firestore.googleapis.com/v1/projects/'+"sml2026newscore"+'/databases/(default)/documents/sml_config/puzzle_stage?key='+FB;
+  /* stage 覆寫僅 --dev 版提供;正式版一律以 Firestore 階段為準 */
+  var body = document.getElementById('pagebody');
+  function lock(){ if(body) body.innerHTML = '<div class="lock"><div class="ic">🔒</div><div class="t">案情還沒進展到這裡。<br>先回去把手上的線索挖透，之後再來。</div></div>'; }
+  function applyStage(cur){
+    // 整頁閘門：本頁階段未到 → 鎖
+    if(cur<NODE_STAGE){ lock(); return; }
+    // 逐則閘門：討論串留言／連結，階段未到者隱藏、不計入樓層
+    var shown=0;
+    document.querySelectorAll('[data-cstage]').forEach(function(el){
+      var s=parseInt(el.getAttribute('data-cstage'),10)||1;
+      var hide=s>cur;
+      el.style.display=hide?'none':'';
+      if(el.classList.contains('cmt')&&!hide) shown++;
+    });
+    var cnt=document.getElementById('cmt-cnt');
+    if(cnt) cnt.textContent='共 '+shown+' 則';
+  }
+  /* 正式版:不吃網址 ?stage 覆寫 */
+  applyStage(1); // 先以 S1 呈現，避免抓資料前閃出後段內容
+  fetch(CFG).then(function(r){return r.json();}).then(function(d){
+    var f=(d&&d.fields)||{};
+    var pid=(f.puzzleId&&f.puzzleId.stringValue)||'';
+    var st=parseInt((f.stage&&f.stage.integerValue)||'1',10);
+    var cur=(pid===PID)?st:1;
+    applyStage(cur);
+  }).catch(function(){});
+})();
+</script>
+
+</body>
+</html>

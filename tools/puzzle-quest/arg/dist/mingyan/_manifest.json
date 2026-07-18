@@ -1,0 +1,402 @@
+[
+  {
+    "id": "forum",
+    "file": "forum.html",
+    "type": "forum",
+    "stage": 1,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "t-main",
+    "file": "t-main.html",
+    "type": "thread",
+    "stage": 1,
+    "hidden": false,
+    "clue": true
+  },
+  {
+    "id": "t-memorial",
+    "file": "t-memorial.html",
+    "type": "thread",
+    "stage": 1,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "t-blackout",
+    "file": "t-blackout.html",
+    "type": "thread",
+    "stage": 1,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "t-artgossip",
+    "file": "t-artgossip.html",
+    "type": "thread",
+    "stage": 2,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "t-collector",
+    "file": "t-collector.html",
+    "type": "thread",
+    "stage": 2,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "t-jobrant",
+    "file": "t-jobrant.html",
+    "type": "thread",
+    "stage": 2,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "t-auction",
+    "file": "t-auction.html",
+    "type": "thread",
+    "stage": 3,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "t-food",
+    "file": "t-food.html",
+    "type": "thread",
+    "stage": 1,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "t-lostcat",
+    "file": "t-lostcat.html",
+    "type": "thread",
+    "stage": 1,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "p-shen",
+    "file": "p-shen.html",
+    "type": "profile",
+    "stage": 1,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "p-zhuo",
+    "file": "p-zhuo.html",
+    "type": "profile",
+    "stage": 2,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "p-gao",
+    "file": "p-gao.html",
+    "type": "profile",
+    "stage": 3,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "p-guo",
+    "file": "p-guo.html",
+    "type": "profile",
+    "stage": 2,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "p-insider",
+    "file": "p-insider.html",
+    "type": "profile",
+    "stage": 3,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "p-guard",
+    "file": "p-guard.html",
+    "type": "profile",
+    "stage": 3,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "al-zhuo",
+    "file": "al-zhuo.html",
+    "type": "album",
+    "stage": 2,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "img-notebook-a",
+    "file": "img-notebook-a.html",
+    "type": "image",
+    "stage": 2,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "img-scene",
+    "file": "img-scene.html",
+    "type": "image",
+    "stage": 1,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "al-auction",
+    "file": "al-auction.html",
+    "type": "album",
+    "stage": 3,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "img-painting",
+    "file": "img-painting.html",
+    "type": "image",
+    "stage": 3,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "img-painting-detail",
+    "file": "img-painting-detail.html",
+    "type": "image",
+    "stage": 3,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "d-obituary",
+    "file": "d-obituary.html",
+    "type": "doc",
+    "stage": 1,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "d-news",
+    "file": "d-news.html",
+    "type": "doc",
+    "stage": 1,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "d-hr",
+    "file": "d-hr.html",
+    "type": "doc",
+    "stage": 2,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "d-appraisal-draft",
+    "file": "d-appraisal-draft.html",
+    "type": "doc",
+    "stage": 2,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "d-access-log",
+    "file": "d-access-log.html",
+    "type": "doc",
+    "stage": 3,
+    "hidden": false,
+    "clue": true
+  },
+  {
+    "id": "d-catalog",
+    "file": "d-catalog.html",
+    "type": "doc",
+    "stage": 3,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "d-buyer-alibi",
+    "file": "d-buyer-alibi.html",
+    "type": "doc",
+    "stage": 3,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "d-gaostatement",
+    "file": "d-gaostatement.html",
+    "type": "doc",
+    "stage": 3,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "del-zhuo-comment",
+    "file": "del-zhuo-comment.html",
+    "type": "deleted",
+    "stage": 2,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "img-zhuo-notebook",
+    "file": "_dde24f5d.html",
+    "type": "image",
+    "stage": 2,
+    "hidden": true,
+    "clue": false
+  },
+  {
+    "id": "del-safety",
+    "file": "del-safety.html",
+    "type": "deleted",
+    "stage": 3,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "d-safety-check",
+    "file": "_53796fa6.html",
+    "type": "doc",
+    "stage": 3,
+    "hidden": true,
+    "clue": true
+  },
+  {
+    "id": "del-electrical",
+    "file": "del-electrical.html",
+    "type": "deleted",
+    "stage": 4,
+    "hidden": false,
+    "clue": true
+  },
+  {
+    "id": "d-electrical",
+    "file": "_ca9558ea.html",
+    "type": "doc",
+    "stage": 4,
+    "hidden": true,
+    "clue": true
+  },
+  {
+    "id": "d-pigment",
+    "file": "d-pigment.html",
+    "type": "doc",
+    "stage": 4,
+    "hidden": false,
+    "clue": true
+  },
+  {
+    "id": "del-ledger",
+    "file": "del-ledger.html",
+    "type": "deleted",
+    "stage": 4,
+    "hidden": false,
+    "clue": true
+  },
+  {
+    "id": "d-ledger",
+    "file": "_624caea4.html",
+    "type": "doc",
+    "stage": 4,
+    "hidden": true,
+    "clue": true
+  },
+  {
+    "id": "d-access-named",
+    "file": "d-access-named.html",
+    "type": "doc",
+    "stage": 4,
+    "hidden": false,
+    "clue": true
+  },
+  {
+    "id": "d-timeline",
+    "file": "d-timeline.html",
+    "type": "doc",
+    "stage": 4,
+    "hidden": false,
+    "clue": true
+  },
+  {
+    "id": "uploads-index",
+    "file": "uploads-index.html",
+    "type": "album",
+    "stage": 3,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "img-0416",
+    "file": "uploads-0416.html",
+    "type": "image",
+    "stage": 3,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "img-0418",
+    "file": "uploads-0418.html",
+    "type": "image",
+    "stage": 3,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "img-0417",
+    "file": "uploads-0417.html",
+    "type": "image",
+    "stage": 3,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "n-rules",
+    "file": "n-rules.html",
+    "type": "note",
+    "stage": 1,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "n-sitemap",
+    "file": "n-sitemap.html",
+    "type": "note",
+    "stage": 1,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "n-webmaster",
+    "file": "n-webmaster.html",
+    "type": "note",
+    "stage": 1,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "n-archive-notice",
+    "file": "n-archive-notice.html",
+    "type": "note",
+    "stage": 2,
+    "hidden": false,
+    "clue": false
+  },
+  {
+    "id": "n-404",
+    "file": "n-404.html",
+    "type": "note",
+    "stage": 1,
+    "hidden": false,
+    "clue": false
+  }
+]
