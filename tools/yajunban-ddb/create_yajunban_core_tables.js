@@ -70,6 +70,12 @@ const TABLES = [
       { AttributeName: 'sk', KeyType: 'RANGE' }
     ],
     ttlAttr: 'ttl' // OCC=season-end、LOOT=壽命(STAGE7b);OCC 禁 idle TTL 由 DAO 保證,非表層
+  },
+  {
+    name: 'sweetbot-yajunban-config', // engine 設定表(後台可調;PK configKey;缺列時 engine 退 baked 預設)
+    attrs: [{ AttributeName: 'configKey', AttributeType: 'S' }],
+    keys: [{ AttributeName: 'configKey', KeyType: 'HASH' }],
+    ttlAttr: null // 設定永久,無 TTL
   }
 ];
 
