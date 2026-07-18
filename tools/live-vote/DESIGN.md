@@ -93,8 +93,8 @@
 | `stake` | N | 單票注額🦷（預設 50，後台可調） |
 | `multiplier` | N | **固定賠率倍數**（預設 2.0，每題後台可設，範圍 1.1〜3.0）；押中每票回 `stake × multiplier` |
 | `status` | S | `open` / `closed` / `revealed` / `voided` |
-| `resolverType` | S | **開獎解析器**（前瞻欄位）：MVP 一律 `manual`（人工選正解）；Phase 2 才實作自動範本（如 `daily_top_score` / `hand_winner`）。MVP 只認 `manual`，其餘值視為未實作、退回人工。 |
-| `resolverParams` | M | 自動範本的綁定參數（前瞻欄位，MVP 留空 `{}`）：日後存 `{ matchSetId, round, kyoku, field, optionMap:{optKey→playerId} }` 之類。**MVP 不讀不驗**。 |
+| `resolverType` | S | **開獎解析器**：`manual`（人工選正解，預設）／`auto_condition`（是非題，指定選手達成條件）／`auto_winner`（選人題，冠軍/最後/第N名）。**Phase 2 已實作**（見 §7）。 |
+| `resolverParams` | M | 自動範本綁定參數（`manual` 為 `{}`）。**auto_condition**：`{matchId, playerName, metric(score\|rank\|dealerN\|win\|lose), [op(gt\|lt\|gte\|lte\|eq), value], yesKey, noKey}`；**auto_winner**：`{matchId, metric(win\|lose\|rank), [rank], optionMap:{optKey→playerName}}`。口徑＝**當場這半莊淨分**（sml_logs deltas 按選手名聚合，避半莊換座雷）。 |
 | `pool` | M | `{ <optKey>: 票數 }` 原子累加；`total` 總票數（**僅供顯示/熱度，不參與賠付計算**） |
 | `answer` | S | 開獎正解 optKey（`revealed` 後） |
 | `revealAt` | N | 開獎時戳（epoch ms），領獎窗基準 |
@@ -148,8 +148,12 @@ for 每位下注者:
 ## 7. 分期
 
 - **MVP（Phase 1）**：手動開題/截止/開獎、模型 B（固定賠率）、60s 限時領獎、多題並行、後台頁。Overlay 無。
-- **Phase 2**：**自動開獎（resolver 範本庫）** ＋自動截止時間；玩家統計榜；Overlay 即時票數/賠率。
-  - 方向（框架細節待 Phase 2 設計）：做一套「解析器範本」，**每種題型一支個別撰寫的解析邏輯**，讀計分後台賽果自動判定正解 → 自動 `reveal`+發獎。後台建題時選範本、綁參數（哪場/哪局/選項對應哪位玩家）；沒對應範本的題維持人工開獎。
+- **Phase 2（自動開獎）✅ 已實作（2026-07-18）**：觸發＝**當場這半莊完賽**（讀 `sml_matches/{matchId}.status==='finished'`）；口徑＝**當場淨分**（`sml_logs` deltas 按選手名聚合，避半莊換座雷）。
+  - **資料橋已現成**：bot（sweetbot-next）本就在讀同一 Firestore（`sml2026newscore`，範例 `service/StockMarketEngine.js`）→ 前置依賴②免補；完賽訊號＝`sml_matches.status`（前置①）；身分＝選手**名字**（非 discord_id，前置③在建題時綁定選手名解決）。
+  - **實作落點**：bot `service/LiveVoteResolver.js`（讀 Firestore 判定）＋ `model/LiveVote.js` 輪詢器（5s 輪詢、自動開獎每 15s 節流查一次；完賽→`closeIfOpen`止票→快照→`revealClosed`開領獎窗，與 Lambda 人工 reveal 同口徑）；Lambda `sml-livevote` `validateResolver()` 硬驗+存 `resolverParams`；後台 `livevote_admin.html` 開題表單「開獎方式」區（場次/選手下拉直讀 Firestore）。
+  - **兩題型**：`auto_condition`（是非題，恰 2 選項：指定選手 分數>/</=、排名、連莊數、贏、輸 → 達成→yesKey 否→noKey）／`auto_winner`（選人題：冠軍/最後一名/第N名 → 對應到 `optionMap`）。**判不出正解**（綁定選手不在場上、正解選手不在任何選項）→ **退回人工開獎**（不自動開、不亂發）。人工 `reveal`/`void` 永遠可覆蓋。
+  - 尚未做（Phase 2 續）：自動截止時間、賽季累積口徑（目前只有當場淨分）、玩家統計榜、Overlay。
+  - 原方向（保留）：日後可加更多題型範本（如指定「第N雀 X風X局」胡牌者/莊家）。
   - 首批建議範本：`daily_top_score`（當日淨分最高，**按玩家聚合**、避開 [[project_avg_rank_seat_bug]] 半莊換座位雷）、`hand_winner`（指定「第N雀 X風X局」胡牌者/莊家）。
   - **三個前置依賴**（Phase 2 要拉的線）：①**完賽訊號**（計分後台需能判定「該題綁的場次已打完」，如結束狀態或場次數達標）；②**跨系統唯讀資料橋**（甜甜 sweetbot-next 讀 score-repo/broadcast 的 `sml_matches`：給甜甜 role 加唯讀權，或 broadcast 出唯讀 API）；③**身分對應**（選項 optKey → 分數表玩家；接現有 discord_id）。
   - 前瞻相容：`resolverType`/`resolverParams` 欄位 MVP 已預留（見 §4.1），Phase 2 接自動化**免改表/免 migration**。
