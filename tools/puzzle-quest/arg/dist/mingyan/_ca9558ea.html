@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>電路鑑識報告（站務備份 · 偵查證物）｜城中大小事</title>
+<title>城中大小事</title>
 <style>
 :root{--bg:#12151a;--card:#1b1f27;--ink:#dbe1e8;--sub:#8790a0;--line:#2a3140;--accent:#5aa6b8;--warn:#c98f9f;--paper:#f3efe6;--paperink:#2a2620}
 *{box-sizing:border-box}
@@ -74,25 +74,7 @@ h1{font-size:21px;margin:0 0 12px;line-height:1.45}h2{font-size:16px;margin:22px
 </head>
 <body>
 <header><div class="bar"><div class="logo">城</div><div class="brand">城中大小事<small>C H E N G C H U N G · 在地討論版</small></div><nav><span>熱門</span><span>在地</span><span>爆料</span><span>發文</span></nav></div></header>
-<div class="wrap"><div id="pagebody"><div class="crumbs">站務備份 ＞ 鑑識</div><h1>電路鑑識報告（站務備份 · 偵查證物）</h1>
-<div class="doc">
-<div class="org">刑事鑑識 · 電氣工程</div>
-<h1>現場檢視燈具 電路鑑識報告</h1>
-<table class="kv"><tr><td>標的</td><td>修復室 金屬檢視檯燈</td></tr><tr><td>送驗</td><td>檢方</td></tr><tr><td>結論</td><td>非自然故障 · 人為破壞致外殼帶電</td></tr></table>
-<div class="sec">
-<h3>發現一：接地線遭剪斷</h3>
-<div>燈具接地（地線）於近期遭人剪斷，切口亮銅無氧化、屬新痕。正常時漏電會經地線導走並使保護裝置跳脫；接地被移除後，此保護完全失效。</div></div>
-<div class="sec">
-<h3>發現二：火線被接上金屬外殼</h3>
-<div>另有一段火線被刻意搭接至燈具金屬外殼，使整盞燈外殼長時間帶電，形同一塊通電的鐵。</div></div>
-<div class="sec">
-<h3>發現三：時間鎖</h3>
-<div>本燈於 8/20 例行電氣安全檢查時接地與絕緣均正常（見安檢合格紀錄）。上述致命故障係『檢查合格之後』才出現，排除自然老化，判定為近日人為破壞。</div></div>
-<div class="sec">
-<h3>結論</h3>
-<div>被害人伸手觸及帶電外殼，電流通過身體致死。此為人為破壞電路、偽裝成觸電意外之他殺，非設備老舊之工安事故。</div></div>
-<div class="stamp">鑑識證物</div>
-</div>
+<div class="wrap"><div id="pagebody"><div class="lock" id="gate-lock"><div class="ic">🔒</div><div class="t">載入中…（此頁內容需案情進展到本階段、由伺服器發放）</div></div>
 </div></div>
 <div class="foot">© 城中大小事 在地討論版｜本版內容由網友自由發表，不代表本站立場。<br><span style="color:#3f4650">（本頁為解謎遊戲虛構道具，地點／人物／情節／機構皆屬原創虛構，不影射任何真實個案。）</span></div>
 
@@ -102,50 +84,38 @@ h1{font-size:21px;margin:0 0 12px;line-height:1.45}h2{font-size:16px;margin:22px
   <pre id="vs-pre"></pre>
 </div>
 <script>
-/* ===== 檢視原始檔（手機也能用；等同瀏覽器 view-source，含 HTML 註解） ===== */
 function showSrc(){
-  var raw = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-  var e = document.getElementById('vs-pre');
-  e.textContent = raw;
-  /* 把 HTML 註解上色，暗示玩家「這裡有東西」 */
-  e.innerHTML = e.innerHTML.replace(/(&lt;!--[\s\S]*?--&gt;)/g,'<span class="cm">$1</span>');
+  var raw='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
+  var e=document.getElementById('vs-pre'); e.textContent=raw;
+  e.innerHTML=e.innerHTML.replace(/(&lt;!--[\s\S]*?--&gt;)/g,'<span class="cm">$1</span>');
   document.getElementById('vs-modal').classList.add('on');
 }
 function hideSrc(){ document.getElementById('vs-modal').classList.remove('on'); }
 document.addEventListener('keydown',function(e){ if(e.key==='Escape') hideSrc(); });
 
-/* ===== 階段閘門：本頁屬第 4 階段，案情未到不給看（?stage 覆寫僅 --dev 版） ===== */
+/* ===== 加固殼：本頁(第 4 階)內文不在靜態檔;到階段才向伺服器閘門索取 =====
+   view-source 這一頁只會看到這個殼、看不到內文——內文由閘門按全服階段發放。 */
 (function(){
-  var NODE_STAGE = 4;
-  var PID = "mingyan-forgery-coverup";
-  var FB = "AIzaSyAZaa_yHu7gsRaj71YL8x3REHfL_V5Tq4w";
-  var CFG = 'https://firestore.googleapis.com/v1/projects/'+"sml2026newscore"+'/databases/(default)/documents/sml_config/puzzle_stage?key='+FB;
-  /* stage 覆寫僅 --dev 版提供;正式版一律以 Firestore 階段為準 */
-  var body = document.getElementById('pagebody');
-  function lock(){ if(body) body.innerHTML = '<div class="lock"><div class="ic">🔒</div><div class="t">案情還沒進展到這裡。<br>先回去把手上的線索挖透，之後再來。</div></div>'; }
-  function applyStage(cur){
-    // 整頁閘門：本頁階段未到 → 鎖
-    if(cur<NODE_STAGE){ lock(); return; }
-    // 逐則閘門：討論串留言／連結，階段未到者隱藏、不計入樓層
-    var shown=0;
-    document.querySelectorAll('[data-cstage]').forEach(function(el){
-      var s=parseInt(el.getAttribute('data-cstage'),10)||1;
-      var hide=s>cur;
-      el.style.display=hide?'none':'';
-      if(el.classList.contains('cmt')&&!hide) shown++;
-    });
-    var cnt=document.getElementById('cmt-cnt');
-    if(cnt) cnt.textContent='共 '+shown+' 則';
+  var NODE_STAGE=4, FN="_ca9558ea.html", CASE="mingyan";
+  var GATE="";
+  var PID="mingyan-forgery-coverup", FB="AIzaSyAZaa_yHu7gsRaj71YL8x3REHfL_V5Tq4w";
+  var CFG='https://firestore.googleapis.com/v1/projects/'+"sml2026newscore"+'/databases/(default)/documents/sml_config/puzzle_stage?key='+FB;
+  var body=document.getElementById('pagebody');
+  function lock(msg){ if(body) body.innerHTML='<div class="lock"><div class="ic">🔒</div><div class="t">'+(msg||'案情還沒進展到這裡。<br>先回去把手上的線索挖透，之後再來。')+'</div></div>'; }
+  function unlock(){
+    if(!GATE){ lock('（此頁尚未接上伺服器，稍後再試）'); return; }
+    fetch(GATE+'?case='+encodeURIComponent(CASE)+'&node='+encodeURIComponent(FN))
+      .then(function(r){ if(!r.ok) throw 0; return r.text(); })
+      .then(function(html){ if(body) body.innerHTML=html; })
+      .catch(function(){ lock('（連線逾時，重整再試）'); });
   }
-  /* 正式版:不吃網址 ?stage 覆寫 */
-  applyStage(1); // 先以 S1 呈現，避免抓資料前閃出後段內容
   fetch(CFG).then(function(r){return r.json();}).then(function(d){
     var f=(d&&d.fields)||{};
     var pid=(f.puzzleId&&f.puzzleId.stringValue)||'';
     var st=parseInt((f.stage&&f.stage.integerValue)||'1',10);
     var cur=(pid===PID)?st:1;
-    applyStage(cur);
-  }).catch(function(){});
+    if(cur<NODE_STAGE) lock(); else unlock();
+  }).catch(function(){ lock(); });
 })();
 </script>
 

@@ -21,6 +21,8 @@
 import json, sys, html, hashlib, os, argparse, re
 
 DEV = False  # --dev 時 True → 頁面注入 ?stage 覆寫(僅授權/測試);正式產出為 False
+GATE_FROM = 4  # stage>=此值的節點內文「不烘進靜態檔」,改由伺服器閘門按全服階段發放(Codex:純靜態view-source會提前洩S4)
+SECRET = {}    # build 過程收集:檔名 → 機密內文HTML;寫成 _secret_bundle.json 給閘門Lambda,不部署到S3
 
 # ---------- 檔名 ----------
 def filename(node):
@@ -178,6 +180,54 @@ document.addEventListener('keydown',function(e){{ if(e.key==='Escape') hideSrc()
 </script>
 """
 
+# ---------- 加固節點(stage>=GATE_FROM)的殼腳本：內文向伺服器閘門索取,view-source 看不到 ----------
+def gated_script(cfg, node):
+    stage = node.get("stage", 1)
+    fn = filename(node)
+    gate_url = cfg.get("gateUrl", "")  # 閘門 HTTP API(2a-2 Lambda);未設則保持鎖住
+    return f"""
+<button id="vs-btn" onclick="showSrc()">⟨/⟩ 檢視原始檔</button>
+<div id="vs-modal">
+  <div class="h"><b>檢視原始檔</b>｜ {esc(fn)} <span style="color:#5c6675">— 本頁 HTML 原始碼</span><span class="x" onclick="hideSrc()">✕</span></div>
+  <pre id="vs-pre"></pre>
+</div>
+<script>
+function showSrc(){{
+  var raw='<!DOCTYPE html>\\n'+document.documentElement.outerHTML;
+  var e=document.getElementById('vs-pre'); e.textContent=raw;
+  e.innerHTML=e.innerHTML.replace(/(&lt;!--[\\s\\S]*?--&gt;)/g,'<span class="cm">$1</span>');
+  document.getElementById('vs-modal').classList.add('on');
+}}
+function hideSrc(){{ document.getElementById('vs-modal').classList.remove('on'); }}
+document.addEventListener('keydown',function(e){{ if(e.key==='Escape') hideSrc(); }});
+
+/* ===== 加固殼：本頁(第 {stage} 階)內文不在靜態檔;到階段才向伺服器閘門索取 =====
+   view-source 這一頁只會看到這個殼、看不到內文——內文由閘門按全服階段發放。 */
+(function(){{
+  var NODE_STAGE={stage}, FN={json.dumps(fn)}, CASE={json.dumps(cfg['case'])};
+  var GATE={json.dumps(gate_url)};
+  var PID={json.dumps(cfg['puzzleId'])}, FB={json.dumps(cfg['firebaseKey'])};
+  var CFG='https://firestore.googleapis.com/v1/projects/'+{json.dumps(cfg['firebaseProject'])}+'/databases/(default)/documents/sml_config/puzzle_stage?key='+FB;
+  var body=document.getElementById('pagebody');
+  function lock(msg){{ if(body) body.innerHTML='<div class="lock"><div class="ic">🔒</div><div class="t">'+(msg||'案情還沒進展到這裡。<br>先回去把手上的線索挖透，之後再來。')+'</div></div>'; }}
+  function unlock(){{
+    if(!GATE){{ lock('（此頁尚未接上伺服器，稍後再試）'); return; }}
+    fetch(GATE+'?case='+encodeURIComponent(CASE)+'&node='+encodeURIComponent(FN))
+      .then(function(r){{ if(!r.ok) throw 0; return r.text(); }})
+      .then(function(html){{ if(body) body.innerHTML=html; }})
+      .catch(function(){{ lock('（連線逾時，重整再試）'); }});
+  }}
+  fetch(CFG).then(function(r){{return r.json();}}).then(function(d){{
+    var f=(d&&d.fields)||{{}};
+    var pid=(f.puzzleId&&f.puzzleId.stringValue)||'';
+    var st=parseInt((f.stage&&f.stage.integerValue)||'1',10);
+    var cur=(pid===PID)?st:1;
+    if(cur<NODE_STAGE) lock(); else unlock();
+  }}).catch(function(){{ lock(); }});
+}})();
+</script>
+"""
+
 # ---------- 各節點類型渲染 ----------
 def r_forum(n, ix):
     out = []
@@ -311,31 +361,49 @@ def build_page(cfg, node, ix):
         body += f'<div class="card" style="margin-top:14px"><div class="board-h">相 關 連 結</div><div class="tlist" style="padding:6px 16px">{rows}</div></div>'
     crumb = f'<div class="crumbs">{esc(node.get("crumb",""))}</div>' if node.get("crumb") else ''
     title = f'<h1>{esc(node["title"])}</h1>' if node.get("showTitle",True) and node.get("title") else ''
+    inner = f"{crumb}{title}\n{body}"
+
+    # === 加固：stage>=GATE_FROM 的節點,內文不進靜態檔,收進 SECRET 交伺服器閘門按全服階段發放 ===
+    # --dev 版不 gate(全靜態供作者預覽/截圖);正式版才 gate
+    gated = (not DEV) and node.get("stage",1) >= GATE_FROM
+    if gated:
+        SECRET[filename(node)] = {"minStage": node.get("stage",1), "html": inner}  # 閘門按 minStage 發放
+        page_title = esc(cfg['siteName'])                       # 標題不洩節點名
+        pagebody   = ('<div class="lock" id="gate-lock"><div class="ic">🔒</div>'
+                      '<div class="t">載入中…（此頁內容需案情進展到本階段、由伺服器發放）</div></div>')
+        tail       = gated_script(cfg, node)
+    else:
+        page_title = f"{esc(node.get('title',''))}｜{esc(cfg['siteName'])}"
+        pagebody   = inner
+        tail       = page_script(cfg, node)
+
     return f"""<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{esc(node.get("title",""))}｜{esc(cfg['siteName'])}</title>
+<title>{page_title}</title>
 <style>{CSS}</style>
 </head>
 <body>
 <header><div class="bar"><div class="logo">{esc(cfg['siteLogo'])}</div><div class="brand">{esc(cfg['siteName'])}<small>{esc(cfg.get('siteSub',''))}</small></div><nav>{''.join(f'<span>{esc(x)}</span>' for x in cfg.get('nav',[]))}</nav></div></header>
-<div class="wrap"><div id="pagebody">{crumb}{title}
-{body}
+<div class="wrap"><div id="pagebody">{pagebody}
 </div></div>
 <div class="foot">{esc(cfg.get('footer',''))}<br><span style="color:#3f4650">（本頁為解謎遊戲虛構道具，地點／人物／情節／機構皆屬原創虛構，不影射任何真實個案。）</span></div>
-{page_script(cfg,node)}
+{tail}
 </body>
 </html>"""
 
 def main():
+    global DEV,GATE_FROM,SECRET
+    _default_gate=GATE_FROM
     ap=argparse.ArgumentParser()
     ap.add_argument("world")
     ap.add_argument("--out",default=None)
-    ap.add_argument("--dev",action="store_true",help="注入 ?stage=N 覆寫(僅授權/測試,勿部署)")
+    ap.add_argument("--dev",action="store_true",help="注入 ?stage=N 覆寫且不 gate(僅授權/測試預覽,勿部署)")
+    ap.add_argument("--gate-from",type=int,default=_default_gate,help=f"stage>=此值的節點內文改伺服器閘門發放(預設{_default_gate};0=關閉加固全靜態)")
     a=ap.parse_args()
-    global DEV; DEV=a.dev
+    DEV=a.dev; GATE_FROM=(a.gate_from if a.gate_from>0 else 999); SECRET={}
     W=json.load(open(a.world,encoding="utf-8"))
     cfg=W["config"]; nodes=W["nodes"]
     ix={n["id"]:n for n in nodes}
@@ -353,10 +421,13 @@ def main():
         open(os.path.join(out,fn),"w",encoding="utf-8").write(build_page(cfg,n,ix))
         manifest.append({"id":n["id"],"file":fn,"type":n["type"],"stage":n.get("stage",1),"hidden":bool(n.get("hidden")),"clue":bool(n.get("clue"))})
     json.dump(manifest,open(os.path.join(out,"_manifest.json"),"w",encoding="utf-8"),ensure_ascii=False,indent=2)
+    # 機密內文 bundle(stage>=GATE_FROM 的節點內文)→ 給閘門 Lambda,⚠️不部署到 S3
+    json.dump(SECRET,open(os.path.join(out,"_secret_bundle.json"),"w",encoding="utf-8"),ensure_ascii=False,indent=2)
     # 統計
     total=len(nodes); hidden=sum(1 for n in nodes if n.get("hidden")); clue=sum(1 for n in nodes if n.get("clue"))
-    print(f"✅ 產出 {total} 頁 → {out}" + ("　[--dev:含?stage覆寫,勿部署]" if DEV else "　[正式版:無?stage覆寫]"))
-    print(f"   隱藏頁(只能靠改網址/還原到達)：{hidden}　關鍵路徑節點：{clue}")
+    mode="[--dev:全靜態,勿部署]" if DEV else (f"[正式版:stage>={GATE_FROM}內文伺服器閘門發放,共{len(SECRET)}頁]" if GATE_FROM<999 else "[全靜態:未加固]")
+    print(f"✅ 產出 {total} 頁 → {out}　{mode}")
+    print(f"   隱藏頁：{hidden}　關鍵路徑節點：{clue}　機密bundle：{len(SECRET)}頁(_secret_bundle.json,勿部署)")
     print(f"   入口：{filename(ix[cfg['entry']])}")
 if __name__=="__main__":
     main()

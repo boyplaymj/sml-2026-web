@@ -26,10 +26,7 @@ python3 build.py mingyan-world.json --out /tmp/x
 ## 埋深鐵律（沿用 DESIGN_DIRECTION）
 - **keystone（人為破壞/接地被剪/外殼帶電/鈦白/贗品/洗錢/滅口…）只准出現在 stage≥4 的節點**。
   因為「檢視原始檔」會讀到源碼——早階段頁面（含隱藏頁）源碼裡 grep 這些詞必須零命中。
-  build 後用這段自檢：
-  ```bash
-  cd dist/mingyan && python3 -c "import json,glob;m={x['file']:x for x in json.load(open('_manifest.json'))};bad=['人為破壞','接地被剪','外殼帶電','鈦白','贗品','洗錢','滅口','他殺'];print([(f,w) for f in glob.glob('*.html') if m[f]['stage']<4 for w in bad if w in open(f,encoding='utf-8').read()] or '零洩漏OK')"
-  ```
+  **自檢一律跑 `python3 audit.py`**（它已改讀真 `CASE-13-mingyan.json` 的 `core.any`，勿再手寫詞表——手寫會漏詞，見 Codex round-1）。B1＝早階段零命中、B6＝全部靜態零命中（含 S4 殼）。
 - **後段留言只給異常感＋指向被刪文件**，不明講手法動機（同理，會被檢視原始檔讀到）。
 - **公平性**：要猜的網址（連號、備份位置）一定要在別的文件先埋暗示（本案：站長雜記講「檔名連號、缺一號不代表不存在」＋「站務把備份位置寫成 HTML 註解」；`n-archive-notice` 講已刪內容有備份）。不靠通靈。
 
@@ -76,7 +73,7 @@ python3 build.py mingyan-world.json --out /tmp/x
 
 ## 部署（圖床 S3 + CloudFront）
 ```bash
-aws s3 sync dist/mingyan/ s3://<圖床bucket>/pq/case13/ --exclude "_manifest.json"
+aws s3 sync dist/mingyan/ s3://<圖床bucket>/pq/case13/ --exclude "_*.json"  # ⚠️排除_manifest與_secret_bundle
 # CloudFront E2IJWN6FWT2XYG 失效 /pq/case13/*
 ```
-> ⚠️ 部署＝對外上線，先在對話頻道確認。`_manifest.json` 是 QA 用、不要上傳（含隱藏頁清單）。
+> ⚠️ 部署＝對外上線，先在對話頻道確認。`_manifest.json`（隱藏頁清單）與 **`_secret_bundle.json`（S4 keystone 內文！）絕不上傳 S3**——後者只進閘門 Lambda。已用 `--exclude "_*.json"`。

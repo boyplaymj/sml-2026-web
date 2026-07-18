@@ -14,7 +14,8 @@
     "footer": "© 城中大小事 在地討論版｜本版內容由網友自由發表，不代表本站立場。",
     "puzzleId": "mingyan-forgery-coverup",
     "firebaseKey": "AIzaSyAZaa_yHu7gsRaj71YL8x3REHfL_V5Tq4w",
-    "firebaseProject": "sml2026newscore"
+    "firebaseProject": "sml2026newscore",
+    "gateUrl": ""
   },
   "nodes": [
     {
