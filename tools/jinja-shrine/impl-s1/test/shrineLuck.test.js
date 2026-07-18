@@ -5,6 +5,7 @@ const {
   AXES, computeLuck, computeYaku, revenueMultiplier, probWeight, resistFactor, clamp
 } = require('../model/shrine/ShrineLuck');
 const ShrineLuckService = require('../model/shrine/ShrineLuckService');
+const ShrineConfigDAO = require('../DAO/DDB/ShrineConfigDAO');
 const { DEFAULT_SHRINE_CONFIG } = require('../model/shrine/defaults');
 
 // 固定 now = 2026-07-01（台北年 2026）。厄年以此年判定。
@@ -130,6 +131,41 @@ test('9) getLuck fail-safe:DAO 拋錯→50;未知 axis→50;正常 stub→正確
     viewerDAO: { getByDcID: async () => null }
   });
   assert.equal(await good.getLuck('u2', 'zaiun', 2000, NOW), 75);
+});
+
+test('10) buff 缺 expireAt / expireAt 非數字 → 一律忽略(不變永久加成)', () => {
+  const fortune = {
+    buffs: [
+      { axis: 'zaiun', delta: 9 },                                 // 缺 expireAt → 忽略
+      { axis: 'shengun', delta: 9, expireAt: null },               // null → 忽略
+      { axis: 'zhiun', delta: 9, expireAt: 'soon' },               // 字串 → 忽略
+      { axis: 'renyuan', delta: 7, expireAt: NOW + day(1) }        // 有效未來 → +7
+    ]
+  };
+  const r = computeLuck({ fortune, omamori: [], nowEpoch: NOW });
+  assert.equal(r.axes.zaiun, 50);
+  assert.equal(r.axes.shengun, 50);
+  assert.equal(r.axes.zhiun, 50);
+  assert.equal(r.axes.renyuan, 57);
+  assert.equal(r.breakdown.buffDelta.zaiun, 0);
+  assert.equal(r.breakdown.buffDelta.renyuan, 7);
+});
+
+test('11) ShrineConfigDAO.getMain 讀失敗 → 回 null(不 throw、不寫快取)', async () => {
+  const dao = new ShrineConfigDAO();
+  dao.ddb = { send: async () => { throw new Error('ddb down'); } };
+  assert.equal(await dao.getMain(1000), null);
+  assert.equal(dao._cache, null); // 未毒化快取,下次可重試
+});
+
+test('12) service:config 為 null → 仍以 DEFAULT 續算(base70→70,非掉 baseline 50)', async () => {
+  const svc = new ShrineLuckService({
+    fortuneDAO: { getByPlayer: async () => ({ base: { ...base(), zaiun: 70 } }) },
+    omamoriDAO: { listByPlayer: async () => [] },
+    configDAO: { getMain: async () => null }, // 模擬讀失敗回 null 的契約
+    viewerDAO: { getByDcID: async () => null }
+  });
+  assert.equal(await svc.getLuck('u3', 'zaiun', 3000, NOW), 70);
 });
 
 function base () {

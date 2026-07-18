@@ -14,13 +14,20 @@ class ShrineConfigDAO extends BaseDAO {
 
   async getMain (nowMs = Date.now()) {
     if (this._cache && (nowMs - this._cacheAt) < CACHE_TTL_MS) return this._cache;
-    const res = await this.ddb.send(new GetCommand({
-      TableName: this.tableName,
-      Key: { key: 'main' }
-    }));
-    this._cache = res.Item || null;
-    this._cacheAt = nowMs;
-    return this._cache;
+    try {
+      const res = await this.ddb.send(new GetCommand({
+        TableName: this.tableName,
+        Key: { key: 'main' }
+      }));
+      this._cache = res.Item || null;
+      this._cacheAt = nowMs;
+      return this._cache;
+    } catch (err) {
+      // 契約:讀失敗 → 回 null(不寫快取、下次重試),由呼叫端 fallback DEFAULT_SHRINE_CONFIG。
+      // config 非關鍵(有內建預設)→ 不可讓它把整包運氣拖到 baseline。
+      console.warn('[ShrineConfig] getMain fail → null(fallback DEFAULT):', err && err.message);
+      return null;
+    }
   }
 
   async put (item) {

@@ -74,7 +74,9 @@ function computeLuck (input) {
   const buffs = (fortune && Array.isArray(fortune.buffs)) ? fortune.buffs : [];
   for (const b of buffs) {
     if (!b || !AXES.includes(b.axis) || typeof b.delta !== 'number') continue;
-    if (typeof b.expireAt === 'number' && b.expireAt <= nowEpoch) continue; // 過期
+    // 時限祝福制:buff 必須帶「有效未來到期」才算有效。缺 expireAt / 非數字 / 已過期 → 一律忽略
+    // (否則無到期欄的髒 buff 會變永久加成)。
+    if (typeof b.expireAt !== 'number' || b.expireAt <= nowEpoch) continue;
     axes[b.axis] += b.delta;
     buffDelta[b.axis] += b.delta;
   }
