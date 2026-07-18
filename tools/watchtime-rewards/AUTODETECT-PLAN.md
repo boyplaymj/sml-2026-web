@@ -27,11 +27,12 @@
 
 ## STAGE 0 — 契約凍結（Claude，無 Fable5）
 - 本文即交付物：資料契約、Lambda 邊界、門檻、狀態機定稿。
-- **Codex 查驗**：無 search.list、無 writer race、台灣時區日切正確、kill switch 語意清楚。
+- **Codex 查驗**：無 search.list、無 writer race、**PT quota 日切 + TW report 分離**、kill switch 語意清楚。✅**四驗放行(2026-07-18)**。
 
 ## STAGE 1 — RSS 偵測純函式 🟣Fable5
 - `parseCandidatesFromRss(xml, limit=RSS_CANDIDATES)` → 前 N 筆 { videoId, title } 陣列（malformed → 安全回 []）。
 - `pickActiveCandidate(candidates, livenessMap)` → 第一個 `activeLiveChatId` 存在的候選（不必是最新片）。
+- `shouldProbe(state, nowMs)` → bool 純函式（Codex 四驗提醒）：IDLE 回「候選集變 OR `now - lastIdleProbe ≥ idleProbeInterval`」；ACTIVE 回「見 `chatCapture.ended` OR `now - lastActiveProbe ≥ activeProbeInterval`」。把「要不要打 videos.list」抽成可單測的閘，handler 只依它決定是否 `reserveUnits`。
 - `decideDetectAction(state, candidates, activeLiveness)` → `activate|deactivate|noop` **雙態狀態機**：
   - IDLE + 候選中有 live → `activate` 該支；IDLE + 候選全非 live → `noop`（記候選集）。
   - ACTIVE → **忽略 RSS**；terminal 或 backstop 判 active-id：連續 missCount≥2 → `deactivate`，否則 `noop`。
