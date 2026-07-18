@@ -187,7 +187,7 @@ module.exports = { TILE_IDS, isHu, isTenpai, waitingTiles, decompose };
 ## 9. 落地步驟
 
 1. ✅ **已做**：`sweetbot-next/Common/MahjongHand.js`（§5 純模組）＋ `test/mahjongHand.test.js`（§8 矩陣，17 綠）。差分驗證見開頭。commit `901a849`（未 push）。
-2. ⬜ 把 `Common/ReadyHandLogic.js` 的判定改成**委派**新模組（保留其出題器 `createCards`/`createBaseCards`），避免兩份邏輯漂移。⚠️ 注意：委派後 ReadyHand 遊戲的「聽牌答案」會少掉「手上滿 4 張」的幻聽（正確化）；若要與舊題庫完全相容，委派時可加參數 `allowImpossibleFourth`（預設 false）。
+2. ✅ **已做**（commit `c27f5be`）：`Common/ReadyHandLogic.js` 的 `isCanHU`→`MahjongHand.isHu`、`checkHuPai`→`MahjongHand.decompose`，移除 ~90 行重複邏輯，保留出題器 `createCards`/`createBaseCards`。介面不變，消費者 **ReadyHand 聽牌遊戲 + QuYuanBattle 龍舟對戰**無需改。行為等價（委派前差分 0 分歧 + 委派後冒煙通過）。⚠️ 未部署，重啟才生效。<br>註：`isCanHU`/`isHu` 本身**無** `>=4` 守衛（守衛只在 `waitingTiles`），故 ReadyHand 舊題庫答案不受影響、完全相容，無需 `allowImpossibleFourth` 旗標。
 3. ⬜ 奧社聽牌試煉、語音判台改用共用核心。
 4. ⬜ 若他 repo（両雀等）要用，複製 `MahjongHand.js`（純檔、零相依）或抽 npm 私包；本規格為單一真理。
 
