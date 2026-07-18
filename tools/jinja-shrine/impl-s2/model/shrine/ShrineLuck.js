@@ -160,5 +160,6 @@ module.exports = {
   revenueMultiplier,
   probWeight,
   resistFactor,
-  clamp
+  clamp,
+  taipeiYear // S2-4:除厄年份與引擎同源(只加匯出,勿改邏輯)
 };
