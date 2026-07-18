@@ -4,7 +4,9 @@
 >
 > **只判「胡/聽」結構，不算台數、不判役種**（台灣麻將免役即可胡）。台數/番種是另一層（見 §6 邊界）。
 >
-> 定稿日：2026-07-18　狀態：規格（演算法已有現成實作可 port，見 §2）
+> 定稿日：2026-07-18　狀態：**已實作 + 差分驗證通過**（`sweetbot-next/Common/MahjongHand.js` + `test/mahjongHand.test.js`，commit `901a849`，未 push）。本 §5 內嵌的程式碼＝權威實作逐字副本。
+
+> **✅ 落地驗證（2026-07-18）**：17 項單測全綠；並對地城 `ReadyHandLogic` 出題器 **6000 手差分比對**，核心判定與 `isCanHU` **100% 一致（0 分歧）** → 確認忠實重現實戰邏輯。唯一行為差異＝本模組的 **`>=4` 守衛**：手上已 4 張的牌不列入聽（地城會把「湊第 5 張」也算聽，6000 手中犯 472 次＝其潛在 bug）。此守衛為**刻意改良**、符合「一種牌最多 4 張」物理事實，預設開啟。
 
 ---
 
@@ -182,11 +184,11 @@ module.exports = { TILE_IDS, isHu, isTenpai, waitingTiles, decompose };
 
 ---
 
-## 9. 落地步驟（建議）
+## 9. 落地步驟
 
-1. 新增 `sweetbot-next/Common/MahjongHand.js`（§5 純模組）＋ `test/mahjongHand.test.js`（§8 矩陣）。Opus 親寫核心、node:test 綠。
-2. 把 `Common/ReadyHandLogic.js` 的判定改成**委派**新模組（保留其出題器 `createCards`/`createBaseCards`），避免兩份邏輯漂移。
-3. 奧社聽牌試煉、語音判台改用共用核心。
-4. 若他 repo（両雀等）要用，複製 `MahjongHand.js`（純檔、零相依）或抽 npm 私包；本規格為單一真理。
+1. ✅ **已做**：`sweetbot-next/Common/MahjongHand.js`（§5 純模組）＋ `test/mahjongHand.test.js`（§8 矩陣，17 綠）。差分驗證見開頭。commit `901a849`（未 push）。
+2. ⬜ 把 `Common/ReadyHandLogic.js` 的判定改成**委派**新模組（保留其出題器 `createCards`/`createBaseCards`），避免兩份邏輯漂移。⚠️ 注意：委派後 ReadyHand 遊戲的「聽牌答案」會少掉「手上滿 4 張」的幻聽（正確化）；若要與舊題庫完全相容，委派時可加參數 `allowImpossibleFourth`（預設 false）。
+3. ⬜ 奧社聽牌試煉、語音判台改用共用核心。
+4. ⬜ 若他 repo（両雀等）要用，複製 `MahjongHand.js`（純檔、零相依）或抽 npm 私包；本規格為單一真理。
 
 > **成本**：純邏輯、$0、無 LLM、無新表（沿用既有 `readyhand-topic` 題庫）。
