@@ -48,6 +48,7 @@
 ## STAGE 3 — 偵測 Lambda `sml-yt-live-detect` 🟣Fable5
 - handler：讀 `ytLiveDetect`(含 IDLE/ACTIVE 態) → 抓 RSS(0 額度) → 交 STAGE1 狀態機決策 → 需要 `videos.list` 時**先 `reserveUnits(1)`**、deny 就跳過 → **IDLE 用 `videos.list(id=候選逗號串)` 一次查 N 筆**取第一個 live；**ACTIVE 只在見 `chatCapture.ended` 或距 `lastActiveProbe`≥15 分才 probe active-id** → 依決策 **field-level merge** 寫 `chatCapture`/`chatBridge` 的 `{videoId, enabled}`（絕不碰 liveChatId/pageToken/telemetry）。更新 `lastCandidates/lastCheck/missCount/lastActiveProbe`。
 - **只用 RSS + videos.list**；ACTIVE 不因 RSS 清空（一驗 finding 1）；IDLE 多候選找 live（二驗 finding 1）。
+- ⚠️**接線鐵則（Claude STAGE 1 覆核發現）**：`decideDetectAction` 的 ACTIVE 分支把「livenessMap 無此片」當 miss；因此 handler **只有在 `videos.list` 呼叫成功**時才可把結果丟給 `decideDetectAction`。若 probe 因 API error/deny/逾時失敗 → **不得**當成一次 miss（否則兩次 API 故障會誤判直播結束）→ 該輪跳過決策、不動 missCount。
 - **Codex 查驗**：無 search.list、v3 全走 `reserveUnits`、updateMask 只含允許欄位、多候選 videos.list 仍 1 單位、ACTIVE probe 頻率符 `activeProbeInterval`、結束走 active-id 連 2 次確認。
 
 ## STAGE 4 — 既有 Lambda 接帳本 + kill switch（Claude，小改）
