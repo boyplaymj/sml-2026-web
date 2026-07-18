@@ -12,17 +12,16 @@
 4. **Field-level writer 分界（updateMask 逐欄 merge，禁止整 doc 覆蓋）**：偵測器只 merge 寫 `chatCapture`/`chatBridge` 的 `{videoId, enabled}`；抓取器只寫 `{liveChatId, pageToken, lastPoll, lastCount}`；兩者互不覆蓋對方欄位。（修 Codex finding 2）
 5. **停止抓取（清空/enabled=false）只能由「目前 active 的 videoId 被確認結束」觸發**，絕不因「RSS 最新片不是 live」而清掉 active capture。（修 Codex finding 1）
 
-## 偵測器狀態機（IDLE / ACTIVE 兩態，修 finding 1）
-- **IDLE**（無 active capture：`chatCapture.enabled=false` 或無 videoId）：抓 RSS(0) → 取最新 videoId → 若 ≠ lastVideoId → `reserveUnits(1)`+`videos.list` 確認 `activeLiveChatId` 存在 → **有才** merge 寫 `chatCapture{videoId,enabled:true}`(+`chatBridge{videoId,enabled:true}`) 轉 ACTIVE；無則僅記 lastVideoId、維持 IDLE。
-- **ACTIVE**（已在抓某 videoId）：**完全忽略 RSS 最新片**（避免直播中發新片誤關）。只針對**目前 active 的那支 videoId** 做 `reserveUnits(1)`+`videos.list` 確認 `activeLiveChatId`；**連續 2 次**都沒有才判定結束 → merge 寫 `enabled:false`（清 videoId）轉 IDLE。單次沒有視為暫時性（不清）。
-- ACTIVE 判定結束也可由抓取器 terminal 信號輔助（capture 連續 400 = 聊天永久結束），但**權威清空仍走上面 active-id 的 videos.list 確認**，單一判定來源。
+## 偵測器狀態機（IDLE / ACTIVE 兩態）
+- **IDLE**（無 active capture：`chatCapture.enabled=false` 或無 videoId）：抓 RSS(0) → 取**前 N 筆候選**（`RSS_CANDIDATES=5`，非只最新片）→ 若候選集 ≠ 上次 → `reserveUnits(1)`+**單一 `videos.list(id=逗號串多筆)`**（多 id 仍 **1 單位**）→ 取**第一個帶 `activeLiveChatId` 的候選**（不必是最新片）→ 有才 merge 寫 `chatCapture{videoId,enabled:true}`(+`chatBridge{videoId,enabled:true}`) 轉 ACTIVE；全非 live 則僅記候選集、維持 IDLE。（修 Codex 二驗 finding 1：重啟後直播中頻道已發更新片，仍能抓到正在直播的舊片）
+- **ACTIVE**（已在抓某 videoId）：**完全忽略 RSS**（避免直播中發新片誤關）。結束判定**以抓取器 terminal 信號為主**（capture 連續 400 = 聊天永久結束 → 寫 `chatCapture.ended=true`），偵測器見 terminal 才 `reserveUnits(1)`+`videos.list(active-id)` 確認、連 2 次無 `activeLiveChatId` 才 merge 寫 `enabled:false` 轉 IDLE。另設**低頻 backstop**：每 `activeProbeInterval=15 分` 主動 probe 一次 active-id（防抓取器卡死漏掉 terminal），非每輪都 probe。（修二驗 finding 2：ACTIVE liveness 不再每 2 分燒 1 單位）
 
 ## 資料契約（Firestore `sml_config`）
-- `ytLiveDetect` { mode: auto|off, channelId, lastVideoId, lastCheck, missCount } — 偵測器狀態（`missCount`=ACTIVE 連續無 activeLiveChatId 次數）。**只有偵測器寫**。
+- `ytLiveDetect` { mode: auto|off, channelId, lastCandidates[], lastCheck, missCount, lastActiveProbe } — 偵測器狀態（`missCount`=ACTIVE 連續無 activeLiveChatId 次數；`lastActiveProbe`=上次 backstop probe 時間）。**只有偵測器寫**。
 - `ytApiBudget` { date: "YYYY-MM-DD"(台灣), units: int, stoppedAt: int|null } — 每日用量帳本。**只透過 `reserveUnits` 原子更新**（Firestore transaction 或 `currentDocument.updateTime` precondition compare-and-swap + 有限重試），禁止裸 read-modify-write。跨台灣日期在同一原子交易內歸零。（修 finding 4）
-- `chatCapture`（沿用）{ enabled, videoId, liveChatId, pageToken, lastPoll, lastCount } — **偵測器只 merge 寫 `{videoId, enabled}`；抓取器只 merge 寫 `{liveChatId, pageToken, lastPoll, lastCount}`**。
+- `chatCapture`（沿用）{ enabled, videoId, liveChatId, pageToken, lastPoll, lastCount, ended } — **偵測器只 merge 寫 `{videoId, enabled}`；抓取器只 merge 寫 `{liveChatId, pageToken, lastPoll, lastCount, ended}`**（`ended`=抓取器連續 400 判定聊天永久結束的 terminal 信號，偵測器只讀不寫）。
 - `chatBridge`（納入契約）{ enabled, videoId, liveChatId, pageToken } — **偵測器只 merge 寫 `{videoId, enabled}`**；overlay 各層只寫自己的 `{liveChatId, pageToken, 心跳}`。
-- 門檻：kill switch = **原子預扣後 `units + cost > 9000` 即 deny**（非事後判斷）；偵測間隔 = 2 分；bridge 輪詢由 5s 放寬到 10s。
+- 常數/門檻：`RSS_CANDIDATES=5`（IDLE 一次查前 5 候選，共 1 單位）；`detectInterval=2 分`（IDLE RSS 掃描，RSS 本身 0 額度）；`activeProbeInterval=15 分`（ACTIVE backstop probe）；kill switch = **原子預扣後 `units + cost > 9000` 即 deny**（非事後判斷）；bridge 輪詢由 5s 放寬到 10s。
 
 ---
 
@@ -31,11 +30,12 @@
 - **Codex 查驗**：無 search.list、無 writer race、台灣時區日切正確、kill switch 語意清楚。
 
 ## STAGE 1 — RSS 偵測純函式 🟣Fable5
-- `parseNewestFromRss(xml)` → 最新 videoId + 標題（malformed → 安全回 null）。
-- `decideDetectAction(state, newestVideoId, activeConfirmedLive)` → `activate|deactivate|noop` **雙態狀態機**（依上文 IDLE/ACTIVE）：
-  - IDLE + 新片 + 確認 live → `activate`；IDLE + 新片但非 live → `noop`（記 lastVideoId）。
-  - ACTIVE → **忽略 RSS 最新片**；只吃 active-id 的 liveness：連續 missCount≥2 → `deactivate`，否則 `noop`。
-- 單元測試：解析最新、壞 XML 安全回 null、**直播中頻道發新片時 ACTIVE 不得 deactivate**（finding 1 迴歸測試）、active-id 連 1 次 miss 不清、連 2 次才清、同片冪等。
+- `parseCandidatesFromRss(xml, limit=RSS_CANDIDATES)` → 前 N 筆 { videoId, title } 陣列（malformed → 安全回 []）。
+- `pickActiveCandidate(candidates, livenessMap)` → 第一個 `activeLiveChatId` 存在的候選（不必是最新片）。
+- `decideDetectAction(state, candidates, activeLiveness)` → `activate|deactivate|noop` **雙態狀態機**：
+  - IDLE + 候選中有 live → `activate` 該支；IDLE + 候選全非 live → `noop`（記候選集）。
+  - ACTIVE → **忽略 RSS**；terminal 或 backstop 判 active-id：連續 missCount≥2 → `deactivate`，否則 `noop`。
+- 單元測試：解析候選、壞 XML 安全回 []、**IDLE + 最新片非 live + 第二筆是 live → activate 第二筆**（二驗 finding 1 迴歸）、**直播中頻道發新片時 ACTIVE 不得 deactivate**（一驗 finding 1 迴歸）、active-id 連 1 次 miss 不清、連 2 次才清、同候選集冪等。
 - **無網路**（純函式）。**Codex 查驗**：finding 1 迴歸測試存在且過、雙態邏輯正確。
 
 ## STAGE 2 — 用量帳本 + kill switch 🟣Fable5
@@ -45,9 +45,9 @@
 - **Codex 查驗**：預扣語意（非事後判斷）、CAS/transaction 併發不漏計、門檻精準。
 
 ## STAGE 3 — 偵測 Lambda `sml-yt-live-detect` 🟣Fable5
-- handler：讀 `ytLiveDetect`(含 IDLE/ACTIVE 態) → 抓 RSS(0 額度) → 交 STAGE1 狀態機決策 → 需要 `videos.list` 時**先 `reserveUnits(1)`**、deny 就跳過 → 依決策 **field-level merge** 寫 `chatCapture`/`chatBridge` 的 `{videoId, enabled}`（絕不碰 liveChatId/pageToken/telemetry）。更新 `lastVideoId/lastCheck/missCount`。
-- **只用 RSS + videos.list**；ACTIVE 時只查 active-id、不因 RSS 最新片清空（finding 1）。
-- **Codex 查驗**：無 search.list、v3 全走 `reserveUnits`、updateMask 只含允許欄位（finding 2）、ACTIVE 直播中發新片不誤關（finding 1）、結束走 active-id 連 2 次確認。
+- handler：讀 `ytLiveDetect`(含 IDLE/ACTIVE 態) → 抓 RSS(0 額度) → 交 STAGE1 狀態機決策 → 需要 `videos.list` 時**先 `reserveUnits(1)`**、deny 就跳過 → **IDLE 用 `videos.list(id=候選逗號串)` 一次查 N 筆**取第一個 live；**ACTIVE 只在見 `chatCapture.ended` 或距 `lastActiveProbe`≥15 分才 probe active-id** → 依決策 **field-level merge** 寫 `chatCapture`/`chatBridge` 的 `{videoId, enabled}`（絕不碰 liveChatId/pageToken/telemetry）。更新 `lastCandidates/lastCheck/missCount/lastActiveProbe`。
+- **只用 RSS + videos.list**；ACTIVE 不因 RSS 清空（一驗 finding 1）；IDLE 多候選找 live（二驗 finding 1）。
+- **Codex 查驗**：無 search.list、v3 全走 `reserveUnits`、updateMask 只含允許欄位、多候選 videos.list 仍 1 單位、ACTIVE probe 頻率符 `activeProbeInterval`、結束走 active-id 連 2 次確認。
 
 ## STAGE 4 — 既有 Lambda 接帳本 + kill switch（Claude，小改）
 - `sml-chat-capture`：每次 `yt()` 前呼叫 STAGE 2b 的 `reserveUnits(1)`；`!allowed` 則跳過該次呼叫。維持 1 次/分。抓取器寫入沿用既有 `capWrite`（已是 updateMask 逐欄，符合 finding 2）。
@@ -67,16 +67,18 @@
 - **強制 kill switch 測試**：把 `ytApiBudget.units` 設到 8999 → 下一個 cost=1 呼叫剛好到 9000 允許、再一個 cost=1 被 deny 並寫 `stoppedAt`；確認 deny 後不再打 v3、只留 RSS。
 - **finding 1 迴歸演練**：ACTIVE 中在頻道發一支新影片 → 確認偵測器不清掉正在抓的 live。
 - **併發演練**：同時觸發 detect+capture+bridge → 確認 `ytApiBudget.units` 加總不漏計（原子預扣）。
-- **Codex 終驗**：用真實遙測回推 3×3h 場景實際用量，確認 < 600 單位、94% 餘裕。
+- **Codex 終驗**：用真實遙測回推 3×3h 場景實際用量，確認 **< 900 單位**（表列 ≈588）、離 kill switch 9000 極遠。
 
 ---
 
-## 用量預算核對（3 場 × 3 小時 = 9h/天）
+## 用量預算核對（3 場 × 3 小時 = 9h/天，修二驗 finding 2 的算術）
 | 項目 | 算式 | 單位 |
 |---|---|---|
-| 抓聊天 | 540 分 × 1 | 540 |
+| 抓聊天 `liveChatMessages` | 540 分 × 1 | 540 |
 | liveChatId 解析 | 3 場 × 1 | 3 |
-| 偵測確認 | 有換片才打 | ~30 |
-| **合計** | | **≈ 573 / 10,000（5.7%）** |
+| IDLE 偵測確認（候選集有變才打，多 id 共 1 單位） | ~6 | 6 |
+| ACTIVE backstop probe | 540 分 ÷ 15 = 36 | 36 |
+| terminal 結束確認 | 3 場 × 1 | 3 |
+| **合計** | | **≈ 588 / 10,000（5.9%）** |
 
-kill switch 9000 = 永遠碰不到；抓聊天 60 單位/小時 × 24h 上限 = 1440，物理上不可能燒完。
+**終驗門檻放寬到 `< 900`**（含忙碌日餘裕；離 kill switch 9000 仍極遠）。抓聊天 60 單位/小時 × 24h 上限 = 1440，物理上不可能燒完。
