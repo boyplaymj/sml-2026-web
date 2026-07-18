@@ -64,6 +64,10 @@
 2. Discord 押幾票 → 該半莊在計分後台打到完賽（`status=finished`）。
 3. ≤15s 內 bot 自動截止+開獎，面板顯正解＝實際冠軍、開領獎窗；押中者 3 分鐘內領獎入帳、流水帳「直播應援投票中獎」。
 4. 反例：開一題 auto_condition「賊恩 分數>99999」（必不達成）→ 完賽後自動開獎正解＝「否」那個選項。
+5. **作廢退款驗收（Codex 二驗提醒）**：`void` API 只改 `status=voided`，實際退款靠 bot poll 的 `refundVoided()`。驗收「作廢」**不能只看後台 API 回 ok**，要讀回 question `voidRefundedAt`、各 bet `refundedAt`、玩家 point + point-log「直播應援投票作廢退款」進帳，確認 bot 已跑完退款（可能有數秒 poll 延遲）。
+
+## Codex 二驗結論（2026-07-18）
+首輪 4 findings 全收斂、二輪**無新 blocking**。tie policy 認可（auto_winner win/lose/rank 唯一才自動、否則退人工；auto_condition 的 score/rank/dealerN 問指定選手確定值保留自動）。已驗 node --check ×5 綠、npm test 78 pass、fixture（同分→1,1,3,3／缺 playerNames 回填）。未驗實際 AWS/DDB/Firestore（功能未部署）。
 
 ## 四、已知取捨（非 bug，供聚焦）
 - **分數單位**＝當場累積淨分（與股市盤 score 同源、螢幕上素點淨分），非賽季積分 pts。使用者已確認採當場淨分。
