@@ -1,0 +1,13 @@
+{
+  "name": "vproj-reminder",
+  "version": "1.0.0",
+  "private": true,
+  "description": "影片製作專案 — 任務前 1 小時 Web Push 推播器（主機 systemd timer 執行）",
+  "type": "commonjs",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.600.0",
+    "@aws-sdk/client-ssm": "^3.967.0",
+    "@aws-sdk/lib-dynamodb": "^3.600.0",
+    "web-push": "^3.6.7"
+  }
+}

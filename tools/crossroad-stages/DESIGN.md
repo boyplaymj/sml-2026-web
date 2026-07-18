@@ -254,8 +254,10 @@ node genTerrainTW.js --theme hell  --out assets/terrains/hell
 
 ## 10. Phase 2 路線 A：地形主題重染（正式交 Codex）
 
-> 目標：`genTerrainTW.js` 目前所有顏色寫死＝只有 day 一套。把顏色抽成「主題調色盤」，`--theme <name>` 就烤出整套同幾何、只換色的 tile；render 依 `stageCfg(i).theme` 選對應 tile。**幾何/標線/補丁/無縫邏輯一律不動**，只換色 + 疊氛圍 overlay。
+> 目標：`genTerrainTW.js` 目前所有顏色寫死＝只有 day 一套。把顏色抽成「主題調色盤」，`--theme <name>` 就烤出整套同幾何、只換色的 tile；render 依 `stageCfg(i).theme` 選對應 tile。**幾何/標線/補丁/無縫邏輯一律不動**。
 > 使用者已看預覽（測試頻道 1526446545514270760）拍板方向 OK。以下色值＝預覽用的基準，Codex 可微調但別偏離主題方向。
+>
+> **⚠️ 2026-07-14 重大修正（已否決 overlay 特徵路，見 §10.3）**：Codex 首版做了 neon/rain/ember 特徵 overlay，實測**破圖**——在「一格一格獨立 emoji」限制下，畫在格子中間的特徵到 128px 邊界被硬切、不延續到隔壁格。**結論：4 主題全走純調色（含 flat tint），砍掉所有特徵 overlay。** 唯一例外＝rain 改用**動態 GIF**（§10.7，視覺已定案），是唯一能同時滿足「動態＋無縫＋循環」的做法。
 
 ### 10.1 檔案與現況（`sweetbot-next/tools/emoji/genTerrainTW.js`）
 
@@ -278,12 +280,13 @@ const THEME_PALETTES = {
   dusk:  { asphalt:[86,74,70], W:'#e6d8c4', Y:'#d2a850', R:'#94443a',
            island:{ curb:'#9a8f80', grass:'#5c6e38', bush:'#6e7d42' }, overlay:{ tint:'#ff8a3d', alpha:0.08 } },
   night: { asphalt:[40,42,54], W:'#c6ccda', Y:'#a89050', R:'#7a3450',
-           island:{ curb:'#5a5f72', grass:'#2c4a34', bush:'#365a3e' }, overlay:{ tint:'#2a3ea0', alpha:0.10, neon:true } },
+           island:{ curb:'#5a5f72', grass:'#2c4a34', bush:'#365a3e' }, overlay:{ tint:'#2a3ea0', alpha:0.10 } },
   rain:  { asphalt:[60,62,66], W:'#b6bcc2', Y:'#9a8a58', R:'#6e3a40',
-           island:{ curb:'#6a7076', grass:'#3a5a42', bush:'#456a4c' }, overlay:{ tint:'#3a4650', alpha:0.10, rain:true } },
+           island:{ curb:'#6a7076', grass:'#3a5a42', bush:'#456a4c' }, overlay:{ tint:'#3a4650', alpha:0.10 } },
   hell:  { asphalt:[34,30,32], W:'#a89890', Y:'#c85a20', R:'#a02818',
-           island:{ curb:'#4a3a38', grass:'#3a2420', bush:'#5a2e22' }, overlay:{ tint:'#000000', alpha:0.12, ember:true } },
+           island:{ curb:'#4a3a38', grass:'#3a2420', bush:'#5a2e22' }, overlay:{ tint:'#000000', alpha:0.12 } },
 };
+// ⚠️ overlay 只保留 flat {tint,alpha}（整片均勻＝無縫）。neon/rain/ember 特徵旗標已移除（§10.3）。
 const THEME = opt('--theme', 'day');              // CLI 旗標
 const PAL = THEME_PALETTES[THEME] || THEME_PALETTES.day;
 ```
@@ -293,14 +296,13 @@ const PAL = THEME_PALETTES[THEME] || THEME_PALETTES.day;
 - `island()` 三個色改讀 `PAL.island.*`。
 - **輸出檔名加主題尾碼**（day 不加，維持現檔名＝零回歸）：`--theme dusk` → `tw_lane_plain_dusk.png`、`tw_island_dusk.png`…。變體尾碼順序：`tw_lane_plain_dusk_v3`（theme 在 v 之前）。
 
-### 10.3 氛圍 overlay（render 疊，非只換常數）
+### 10.3 氛圍 overlay ── 只准 flat tint（特徵 overlay 已否決）
 
-`renderTile()` / `island()` 產圖最後一步，依 `PAL.overlay` 疊一層（左右無縫）：
-- `tint/alpha`：整格罩半透明色（夕照橘、夜藍、雨灰、hell 黑）。**必做**，換色感主要靠這。
-- `neon`(night)：隨機 2~3 個青/粉小光斑（`radialGradient`，seed 決定位置→同格固定）。
-- `rain`(rain)：細斜雨絲線（週期整除 128→無縫）＋ 2~3 積水橢圓半透明反光。
-- `ember`(hell)：龜裂線（透出 `Y` 岩漿橘）＋ 3~5 個發光點。
-- 都吃 tile 的 seed（同格永遠同圖、不閃爍），且不跨左右邊或用滿版橫貫（維持無縫）。
+**只保留 `tint/alpha`（整格均勻色罩）**，`renderTile()`/`island()` 最後疊一層 flat 色。均勻＝天生無縫。
+
+**❌ 已刪除：neon / rain(靜態雨絲) / ember 特徵 overlay。** 原因：Discord 遊戲盤＝一格一獨立 emoji、彼此不協調；任何「畫在格子中間的特徵」（光斑/積水/火星/裂縫）到 128px 邊界被硬切，不會延續到隔壁格→**破圖**（實測證實，測試頻道 seam proof）。而且雨/霓虹本質要動態、靜態不成立。
+→ 鐵律：**能無縫的只有 ①整片均勻(調色/flat tint) ②滿版橫貫(現有標線/輪胎帶)**。其餘一律不做。
+→ 天氣氣氛改由 §10.7 的動態 GIF（rain）承擔；night/hell 就靠純調色＋flat tint。
 
 ### 10.4 render 端掛接（`CrossingRoad.js`）
 
@@ -317,17 +319,68 @@ const PAL = THEME_PALETTES[THEME] || THEME_PALETTES.day;
 
 1. **day 零回歸**：`--theme day`（或不帶）產出與現版逐檔 byte 對照無差（或視覺全等）。
 2. **無縫**：每個主題的 `tw_lane_*`／`tw_crosswalk*`／`tw_island` 橫向鋪 9 格、縱向鋪，接縫處無色塊/無斷線（斑馬線上下無縫、雙黃線端點吻合）。
-3. **主題辨識度**：dusk 暖褐、night 深藍、rain 灰、hell 焦黑+岩漿橘，四者一眼可分；overlay 有疊上。
+3. **主題辨識度**：dusk 暖褐、night 深藍、rain 灰、hell 焦黑+岩漿橘，四者一眼可分（純調色＋flat tint，**無特徵 overlay**）。
 4. **安全島換色**：檢查點島的草/路緣隨主題變（不再五主題同一片綠）。
 5. **render fallback**：某主題 key 尚未上傳時，該列自動用 day 版、不破圖。
 6. **命名**：day 檔名不變；其餘 `_<theme>` 尾碼；變體 `_<theme>_vN` 順序一致。
-7. **建議節奏**：先只做 `dusk` 一套走完「烤→upload→render 依 theme 切」全鏈、Discord 實看，OK 再補 night/rain/hell（hell 最後）。
+7. **無特徵 overlay 破圖**：任一主題橫向鋪，無「格子中間特徵被邊界硬切」的斷點。
+8. **建議節奏**：先只做 `dusk` 一套走完「烤→upload→render 依 theme 切」全鏈、Discord 實看，OK 再補 night/hell；**rain 走 §10.7 動態軌**、且以 §10.8 gating 決定上不上。
+
+---
+
+### 10.7 rain 動態雨 tile（動態 GIF，視覺已定案）
+
+rain 主題**不用靜態 tile**，改**動態 GIF**（唯一能同時滿足動態＋無縫＋循環）。POC 已做、使用者 2026-07-14 拍板定案（測試頻道 1526460933600448622）。
+
+**產生管線（本機、非 runtime）**——詳見記憶 [[reference_animated_gif_pipeline]]：
+- 底＝rain 純調色 tile（`--theme rain` 出的靜態 png，overlay flat tint）。
+- 疊兩層 SVG 後逐幀 composite：
+  - **雨絲**：斜向短虛線排成格點，左右/上下間距 `SP=32`（128 因數）→空間無縫；`F=12` 幀整體往下位移剛好一個 `SP`→首尾幀循環無縫。
+  - **水滴漣漪**：全循環約 4 個事件、出生幀平均散開；每事件生後 `L=4` 幀＝小點→擴大扁橢圓圈→淡出；年齡用 `((f-birth)%F+F)%F` 算（跨循環邊界接得回）；靠邊事件畫 `±128` 環繞位置（隔壁格補回）。
+- 編碼：**gifwrap**（純 JS，裝 /tmp、`--ignore-scripts`；本機 sharp 0.31 不能從 raw frames 編動畫、且 composite 會升 4ch→務必 `ensureAlpha` 統一）。每幀 `quantizeDekker(256)`、`delayCentisecs:7`、`loops:0`。
+- **鐵律：發布前一定 `GifUtil.read` 解回驗證幀數在動**（曾因只驗靜態幀發出壞檔）。
+- 產物參考：`tools/crossroad-stages/rain_anim.gif`（單 tile ~174KB，在 emoji 256KB 限內）。腳本 `/tmp/rain_splash.js`。
+
+### 10.8 執行面 / 上不上動態雨（🔴 待使用者拍板）
+
+動態雨視覺已定案，但**要不要真上遊戲**還沒決定，取決於成本/效能：
+- **組合成本**：遊戲一格一 emoji、無獨立雨層 → 每種 rain tile 都要動畫版。收斂法：**rain 底下每 tile 只留 1 變體**（動態會蓋掉重複感）、只做 in-game 真正 render 的 ~6~7 種（素/虛線/雙黃/紅/斑馬/島）。
+- **emoji 金庫容量**：~7 張動畫 emoji（各 ~170KB）進 14 台金庫，先估不超額。
+- **🔴 效能未知（唯一非測不可）**：一個 9欄×多列盤面塞 ~40 個動態 emoji 同時循環，Discord 會不會卡/亂。**上線前必做一次遊戲內實測**。
+- **ROI**：rain＝階段4、目前僅 ~3% 玩家到得了。
+- **保底**：若實測卡頓或不划算 → rain 退回**純調色靜態**（已完成），動態版當「驗證過、先不上」。
+
+分工建議：dusk/night/hell 純調色先走 §10.6 全鏈上線；rain 動態獨立為一個 gated 子任務，先產 7 張動畫 emoji→上金庫→遊戲內實測→再決定。
+
+---
+
+## 11. 工作階段分解（10 組，避免一次做太大卡住）
+
+> 原則：每組 <25 分、可獨立驗收、Codex 做完自驗回報→使用者驗收再續（見 [[feedback_work_chunking]]）。
+> ⚠️ 現況：Codex 已做「視覺半部」的一部分（`THEME_PALETTES`＋render 取 key＋day 零回歸），但 **overlay 未收斂**、**玩法半部（§2 旋鈕／§3 通關獎金）完全未做**、素材未上傳。以下 10 組涵蓋剩餘全部。
+> 兩個 go/no-go 關卡：**S6**（dusk 全鏈實看＝放大前）、**S10**（rain 動態效能實測）。**S3 後玩法半部即可獨立上線**（不靠新圖）。
+
+| # | 階段 | 主要動作 | 由誰 | 驗收 |
+|---|---|---|---|---|
+| **S1** | 產生器收斂＋day 零回歸複驗 | genTerrainTW.js 砍 neon/rain/ember 特徵 overlay，只留 flat tint；重跑 day golden diff | Codex | day byte 零回歸；4 主題仍可烤 |
+| **S2** | 玩法旋鈕落地（§2） | STAGES 補 densityBonus/fastBias/restRowChance/teethMul/xpMul/clearBonus（**調瘦後數值**），接進 spawnVehicles/pickVehType/ensure | Codex | stageOf 邊界對；階段1＝現行值；密度≤COLS-4 |
+| **S3** | 通關獎金＋HUD 階段感（§3-4） | clearBonus 里程碑（stageBonusPaid、踏界線落袋）＋statusLine 階段標籤＋settle/排行榜徽章 | Codex | 首踏22得+80落袋、死後保留、不重發；HUD 顯示階段 |
+| — | ↑ **玩法半部完成，可先獨立上線**（fallback day 圖，不破圖） | | 使用者實測階段2進階＋獎金 | |
+| **S4** | dusk 烤圖＋本機無縫自驗 | `--theme dusk` 烤 ~43 靜態；3×3 montage 檢查無縫/無破圖 | Codex | montage 乾淨；`_dusk` 命名對 |
+| **S5** | upload.js 多主題＋挑空金庫＋stale-hash 防呆 | upload.js 支援主題目錄迴圈、load-balance 到有空位金庫、新 key 強制重傳 | Codex | dry-run 顯示目標金庫＋哪些是新 key |
+| **S6** | dusk 上傳＋registry＋**遊戲內實看（GATE①）** | 上傳 dusk 43 靜態、寫 registry；使用者玩到階段2截圖 | Codex→使用者 | dusk 進遊戲、fallback 正常、無破圖＝放大 go |
+| **S7** | night＋hell 烤圖＋上傳＋registry | 重複 S4/S6 上傳流程（~86 靜態） | Codex | 兩主題傳齊；個別金庫未超 cap |
+| **S8** | 遊戲內 night/hell 實看 | 玩到階段3/5截圖 | 使用者 | 兩主題 render、辨識度、無破圖＝靜態三主題上線 |
+| **S9** | rain 動態 GIF 管線工具化＋產收斂集 | 把 rain POC 收成 tools/emoji 正式腳本（gifwrap、發前解回驗證），產 ~8~12 張收斂 rain 動畫（島/素/虛線/黃線/3斑馬/網格，各1變體） | Codex | 每張解回 F 幀在動、<256KB |
+| **S10** | rain 動畫上傳（動態槽）＋**效能實測（GATE②）**＋收尾 | 上傳 ~10 動畫到動態槽（挑空金庫）、registry；使用者玩到階段4看 ~40 動態 emoji 卡不卡；全主題回歸複驗＋部署 restart | Codex→使用者 | 順→rain 動態上線；卡→退純調色靜態（保底）；部署完成 |
+
+**依賴/風險排序**：S1→S2→S3 是玩法主幹（可先出成品）；S4→S8 是靜態三主題（S6 是放大前 gate）；S9→S10 是 rain 動態（S10 是效能 gate，失敗有純調色保底不阻塞其他）。金庫容量非瓶頸（靜剩~1257、動剩~676，見 §10.8/估算）。
 
 ---
 
 ## 💰 成本控管（遵循 tools/COST_CONTROL.md）
 
 - **成本來源**：唯一成本＝**Bedrock Stability SD3.5（us-west-2）生素材立繪／地磚**（§10）。這是**一次性素材製作**，非玩家 runtime 逐次呼叫——烤好即存自控圖床 `boyplaymj-image` 快取，遊戲改讀圖床貼圖，之後零 LLM 成本。
-- **無新增 DDB 欄位**（stage 全由 `crossroadBest` 距離推導，§8）；emoji 走既有 14 台金庫（guild emoji 免費）。
+- **無新增 DDB 欄位**（stage 全由 `crossroadBest` 距離推導，§8）；emoji 走既有 ~28 台金庫（guild emoji 免費；靜態剩~1257、動態剩~676 槽，容量非瓶頸）。
 - 生圖屬一次性、可控批量：**逐主題烤（dusk→night→rain→hell），每批人工檢視再續**，避免一次大量燒 Bedrock。
 - **runtime 無 LLM／無付費 API／無新表**，故免「帳本表＋月度封頂」四件套。

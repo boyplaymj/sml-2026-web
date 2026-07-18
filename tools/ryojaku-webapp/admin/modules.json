@@ -1,14 +1,17 @@
 {
   "app": "両雀 Ryōjaku",
   "tagline": "ELITE COMMUNITY · 後台中樞",
-  "updated": "2026-07-16",
+  "updated": "2026-07-17",
   "groups": [
     {
       "id": "overview",
       "title": "總覽",
       "modules": [
         { "id": "foundation", "title": "產品基石(正典)", "doc": "../modules/foundation.md", "status": "live", "icon": "🧭" },
-        { "id": "spec", "title": "現有架構還原規格", "doc": "../SPEC.md", "status": "live", "icon": "📐" },
+        { "id": "source-truth", "title": "源碼校正正典★", "doc": "../SOURCE_TRUTH.md", "status": "live", "icon": "✅" },
+        { "id": "migration", "title": "接手&遷移計畫", "doc": "../MIGRATION_PLAN.md", "status": "design", "icon": "🚚" },
+        { "id": "spec", "title": "前端還原規格(已校正)", "doc": "../SPEC.md", "status": "live", "icon": "📐" },
+        { "id": "engineer-admin", "title": "工程師後台逆向(已校正)", "doc": "../ENGINEER_ADMIN.md", "status": "live", "icon": "🗄️" },
         { "id": "arch", "title": "後台架構與治理", "doc": "../ARCHITECTURE.md", "status": "live", "icon": "🏛️" }
       ]
     },

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1a1826">
+<meta name="referrer" content="no-referrer">
+<title>🎬 專案進度</title>
+<style>
+  :root{
+    --bg:#12111c; --surface:#1c1a2b; --surface-2:#262338;
+    --ink:#eceaf6; --ink-soft:#bbb7d2; --muted:#817d9e; --line:#322e49;
+    --brand:#7d6cff; --brand-deep:#5b49da; --accent:#ff6f9c; --accent-soft:rgba(255,111,156,.16);
+    --hi:#ff6b6b; --mid:#ffb84d; --lo:#8a8fa8;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.5);
+    --r:18px; --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box}
+  /* 基準字級隨螢幕寬度流動：大螢幕 iPhone（17／Pro Max／「顯示較多內容」）字會等比放大，桌機設上限 */
+  html{-webkit-text-size-adjust:100%;font-size:clamp(17px,4.6vw,20px)}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Segoe UI",Roboto,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
+  header{background:linear-gradient(160deg,var(--brand) 0%,var(--brand-deep) 100%);color:#fff;
+    padding:calc(var(--safe-t) + 22px) 20px 22px;box-shadow:0 6px 18px rgba(58,44,166,.25)}
+  .h-inner{max-width:820px;margin:0 auto}
+  .back{color:#fff;opacity:.9;text-decoration:none;font-size:.85rem;font-weight:700;display:inline-block;margin-bottom:8px}
+  .h-title{font-size:1.4rem;font-weight:800;margin:0}
+  .h-sub{font-size:.85rem;opacity:.9;margin:5px 0 0}
+  .prog-wrap{margin-top:14px}
+  .bar{height:9px;border-radius:99px;background:rgba(255,255,255,.25);overflow:hidden}
+  .bar>i{display:block;height:100%;background:#fff;border-radius:99px;transition:width .3s}
+  .prog-wrap small{font-size:.76rem;opacity:.92;font-weight:700;display:block;margin-top:5px}
+  main{max-width:820px;margin:0 auto;padding:16px 14px calc(40px + var(--safe-b))}
+
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:3px;box-shadow:var(--shadow)}
+  .seg button{border:none;background:transparent;color:var(--ink-soft);font-size:.82rem;font-weight:800;
+    padding:7px 13px;border-radius:9px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .seg button.on{background:var(--brand);color:#fff}
+  .toggle{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:.8rem;font-weight:700;color:var(--ink-soft);cursor:pointer;user-select:none}
+  .toggle input{width:16px;height:16px;accent-color:var(--brand)}
+
+  .task{display:flex;gap:11px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);
+    border-radius:14px;box-shadow:var(--shadow);padding:12px 14px;margin-bottom:9px;position:relative;overflow:hidden}
+  .task::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px}
+  .task.i3::before{background:var(--hi)}.task.i2::before{background:var(--mid)}.task.i1::before{background:var(--lo)}
+  .chk{flex:none;width:24px;height:24px;border-radius:8px;border:2px solid var(--line);background:var(--surface-2);
+    cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:.15s;-webkit-tap-highlight-color:transparent}
+  .chk:active{transform:scale(.9)}
+  .task.done .chk{background:var(--brand);border-color:var(--brand);color:#fff}
+  .chk svg{width:14px;height:14px;opacity:0}
+  .task.done .chk svg{opacity:1}
+  .t-main{flex:1;min-width:0}
+  .t-top{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .t-ttl{font-size:.98rem;font-weight:700;line-height:1.4}
+  .task.done .t-ttl{text-decoration:line-through;color:var(--muted)}
+  .t-date{font-size:.78rem;font-weight:800;color:var(--brand-deep);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .t-date.nodate{color:var(--muted);font-weight:600}
+  .t-date.today{background:var(--accent-soft);color:var(--accent);border-radius:99px;padding:1px 8px}
+  .t-date.overdue{color:var(--hi)}
+  .t-tag{font-size:.72rem;font-weight:700;color:var(--ink-soft);background:var(--surface-2);border:1px solid var(--line);
+    border-radius:99px;padding:1px 9px}
+  .t-note{font-size:.82rem;color:var(--muted);margin-top:3px}
+  .task.done .t-note{opacity:.7}
+  .grp-h{font-size:.8rem;font-weight:800;color:var(--muted);margin:16px 4px 8px;letter-spacing:.02em}
+
+  .hint{font-size:.75rem;color:var(--muted);text-align:center;margin:14px 4px 0;line-height:1.5}
+  .state{padding:56px 24px;text-align:center;color:var(--ink-soft)}
+  .state .big{font-size:2.4rem;margin:0 0 10px}
+  .spinner{width:36px;height:36px;margin:0 auto 14px;border-radius:50%;border:4px solid var(--line);border-top-color:var(--brand);animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .refresh-fab{position:fixed;right:16px;bottom:calc(16px + var(--safe-b));z-index:60;display:inline-flex;align-items:center;gap:7px;
+    border:none;border-radius:99px;padding:12px 18px;font-size:.9rem;font-weight:800;color:#fff;cursor:pointer;
+    background:linear-gradient(160deg,var(--brand),var(--brand-deep));box-shadow:0 6px 20px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.06) inset;
+    -webkit-tap-highlight-color:transparent;transition:transform .15s}
+  .refresh-fab:active{transform:scale(.93)}
+  .refresh-fab svg{width:17px;height:17px}
+  .refresh-fab.spin svg{animation:spin .7s linear infinite}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.spinner{display:none}.refresh-fab.spin svg{animation:none}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header><div class="h-inner"><a class="back" href="index.html">‹ 全部專案</a>
+    <h1 class="h-title">載入中…</h1></div></header>
+  <main><div class="state"><div class="spinner"></div><p>載入中…</p></div></main>
+</div>
+
+<button class="refresh-fab" id="refreshFab" aria-label="強制更新" onclick="hardReload(this)">
+  <svg viewBox="0 0 24 24" fill="none"><path d="M20 11a8 8 0 1 0-.6 3M20 4v5h-5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>更新</button>
+
+<script>
+// 強制更新：加/換 cache-bust 參數重載（保留 ?id=），繞過 Safari 對 HTML 的積極快取
+function hardReload(btn){
+  if(btn) btn.classList.add("spin");
+  var base=location.href.split("#")[0].replace(/([?&])_r=\d+/,"$1").replace(/[?&]+$/,"").replace(/([?&])&/,"$1");
+  var sep=base.indexOf("?")>-1?"&":"?";
+  location.replace(base+sep+"_r="+Date.now());
+}
+const API_BASE = "https://fa87vpf8x9.execute-api.ap-southeast-1.amazonaws.com";
+const WD=["日","一","二","三","四","五","六"];
+const qs=new URLSearchParams(location.search);
+const PID=qs.get("id")||"";
+const app=document.getElementById("app");
+let PROJ=null, sortMode="time", hideDone=false;
+const LKEY="vproj-check-"+PID;   // 本機打勾覆蓋層
+let localDone={};
+try{localDone=JSON.parse(localStorage.getItem(LKEY)||"{}");}catch(e){localDone={};}
+
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
+function ymd(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function todayStr(){return ymd(new Date());}
+// 本機打勾層一旦設定就完全接手（可勾未完成、也可取消 DDB 已完成）；未設定則沿用 DDB 狀態
+function isDone(t){return (t.tid in localDone) ? localDone[t.tid]===true : t.status==="done";}
+
+async function boot(){
+  if(!PID){fail("缺少專案 id");return;}
+  let d;
+  try{const r=await fetch(API_BASE+"/projects/"+encodeURIComponent(PID));
+    if(r.status===404){fail("找不到這個專案");return;}
+    if(!r.ok)throw 0; d=await r.json();
+  }catch(e){fail("載入失敗，稍後再試");return;}
+  PROJ=d.project; render();
+}
+function fail(msg){
+  app.innerHTML='<header><div class="h-inner"><a class="back" href="index.html">‹ 全部專案</a><h1 class="h-title">🎬 專案</h1></div></header>'+
+    '<main><div class="state"><p class="big">🤔</p><h2>'+esc(msg)+'</h2></div></main>';
+}
+
+function taskDate(t){return (t.date&&/^\d{4}-\d{2}-\d{2}$/.test(t.date))?t.date:"";}
+function fmtDate(ds){
+  if(!ds)return {txt:"未定日",cls:"nodate"};
+  const d=new Date(ds+"T00:00:00"), today=todayStr();
+  const txt=(d.getMonth()+1)+"/"+d.getDate()+"（"+WD[d.getDay()]+"）";
+  if(ds===today)return{txt:"今天 "+txt,cls:"today"};
+  return {txt:txt,cls:ds<today?"overdue":""};
+}
+
+function render(){
+  const p=PROJ, tasks=p.tasks||[];
+  const done=tasks.filter(isDone).length, pct=tasks.length?Math.round(done/tasks.length*100):0;
+  const stLabel={active:"進行中",done:"已完成",archived:"封存"};
+  app.innerHTML=
+    '<header><div class="h-inner"><a class="back" href="index.html">‹ 全部專案</a>'+
+    '<h1 class="h-title">'+esc(p.title)+'</h1>'+
+    (p.subtitle?'<p class="h-sub">'+esc(p.subtitle)+' · '+(stLabel[p.status]||p.status)+'</p>':'<p class="h-sub">'+(stLabel[p.status]||p.status)+'</p>')+
+    '<div class="prog-wrap"><div class="bar"><i style="width:'+pct+'%"></i></div>'+
+    '<small>完成 '+done+' / '+tasks.length+' 項 · '+pct+'%</small></div></div></header>'+
+    '<main>'+
+    '<div class="toolbar"><div class="seg"><button data-s="time" class="'+(sortMode==="time"?"on":"")+'">🕐 時間序</button>'+
+    '<button data-s="imp" class="'+(sortMode==="imp"?"on":"")+'">🔥 重要性</button></div>'+
+    '<label class="toggle"><input type="checkbox" id="hd" '+(hideDone?"checked":"")+'>隱藏已完成</label></div>'+
+    '<div id="list"></div>'+
+    '<p class="hint">打勾＝完成後劃掉。此處打勾只記在這台裝置；要正式標記（跨裝置、我也看得到）用後台或直接在頻道跟我說。</p>'+
+    '</main>';
+  app.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{sortMode=b.getAttribute("data-s");render();});
+  document.getElementById("hd").onchange=e=>{hideDone=e.target.checked;render();};
+  renderList();
+}
+
+function renderList(){
+  const list=document.getElementById("list");
+  let tasks=(PROJ.tasks||[]).slice();
+  if(hideDone) tasks=tasks.filter(t=>!isDone(t));
+  if(!tasks.length){list.innerHTML='<div class="state"><p class="big">✅</p><h2>沒有要顯示的工作</h2></div>';return;}
+
+  let html="";
+  if(sortMode==="imp"){
+    tasks.sort((a,b)=>(b.importance-a.importance)|| (cmpDate(a,b)));
+    const groups=[[3,"🔴 高"],[2,"🟡 中"],[1,"⚪ 低"]];
+    groups.forEach(([lv,lb])=>{
+      const g=tasks.filter(t=>(t.importance||1)===lv);
+      if(!g.length)return;
+      html+='<div class="grp-h">'+lb+'（'+g.length+'）</div>'+g.map(taskHTML).join("");
+    });
+  }else{
+    // 時間序：有日期在前依日期，無日期沉底
+    const dated=tasks.filter(t=>taskDate(t)).sort(cmpDate);
+    const undated=tasks.filter(t=>!taskDate(t));
+    html+=dated.map(taskHTML).join("");
+    if(undated.length) html+='<div class="grp-h">🗓️ 未定日（'+undated.length+'）</div>'+undated.map(taskHTML).join("");
+  }
+  list.innerHTML=html;
+  list.querySelectorAll(".chk").forEach(c=>c.onclick=()=>toggle(c.getAttribute("data-tid")));
+}
+function cmpDate(a,b){const x=taskDate(a)||"9999",y=taskDate(b)||"9999";return x<y?-1:x>y?1:0;}
+
+function taskHTML(t){
+  const done=isDone(t), df=fmtDate(taskDate(t));
+  return '<div class="task i'+(t.importance||1)+(done?" done":"")+'">'+
+    '<div class="chk" data-tid="'+esc(t.tid)+'"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>'+
+    '<div class="t-main"><div class="t-top">'+
+    '<span class="t-ttl">'+esc(t.title)+'</span>'+
+    '<span class="t-date '+df.cls+'">'+esc(df.txt)+'</span>'+
+    (t.tag?'<span class="t-tag">'+esc(t.tag)+'</span>':"")+'</div>'+
+    (t.note?'<div class="t-note">'+esc(t.note)+'</div>':"")+'</div></div>';
+}
+
+function toggle(tid){
+  const t=(PROJ.tasks||[]).find(x=>x.tid===tid); if(!t)return;
+  const next=!isDone(t);
+  // 若切回與 DDB 相同狀態，清掉覆蓋（回歸權威值）；否則寫入本機層
+  if(next===(t.status==="done")) delete localDone[tid];
+  else localDone[tid]=next;
+  localStorage.setItem(LKEY,JSON.stringify(localDone));
+  render();
+}
+boot();
+</script>
+</body>
+</html>

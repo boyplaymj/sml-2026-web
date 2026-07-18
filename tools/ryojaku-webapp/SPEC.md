@@ -1,5 +1,7 @@
 # 両雀 (Ryōjaku) Web App — 還原規格書
 
+> ✅ **2026-07-17 原始碼已交付並校正 → 正解看 [`SOURCE_TRUTH.md`](./SOURCE_TRUTH.md)**。校正重點：路由12個逆向100%命中；API實為46 HTTP+1 WS（本稿的31偏少）；App地圖是 **MapLibre GL** 非 Leaflet；LINE僅備援登入非LIFF。
+>
 > **來源**：本文件由 Claude 從已上線前端（`https://d1wa3w4dmfwqc7.cloudfront.net/`）逆向還原，
 > 用於在工程師原始碼交付前先行開始開發。
 > **可信度標記**：✅ 已從前端確認 ／ 🔶 由字串/欄位名推斷、待原始碼或實測校對。

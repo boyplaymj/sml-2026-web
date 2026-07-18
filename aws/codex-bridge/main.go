@@ -1208,6 +1208,7 @@ func main() {
 		log.Fatal("DISCORD_TOKEN not set")
 	}
 	loadSessions() // 還原各頻道對話 session（重啟不丟脈絡）
+	startHandoffWorker()
 	dg, err := discordgo.New("Bot " + token)
 	if err != nil {
 		log.Fatal(err)

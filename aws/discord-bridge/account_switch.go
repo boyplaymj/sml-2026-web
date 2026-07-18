@@ -285,6 +285,7 @@ func applyAccountSlot(slot string) error {
 			return fmt.Errorf("寫入 .claude.json 失敗: %w", err)
 		}
 	}
+	snapshotHandoff()
 	if err := clearBridgeSessionsFile(); err != nil {
 		return fmt.Errorf("清空 bridge session 失敗: %w", err)
 	}

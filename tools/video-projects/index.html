@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1a1826">
+<meta name="referrer" content="no-referrer">
+<title>🎬 影片製作進度</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="影片進度">
+<style>
+  :root{
+    --bg:#12111c; --surface:#1c1a2b; --surface-2:#262338;
+    --ink:#eceaf6; --ink-soft:#bbb7d2; --muted:#817d9e; --line:#322e49;
+    --brand:#7d6cff; --brand-deep:#5b49da; --accent:#ff6f9c; --accent-soft:rgba(255,111,156,.16);
+    --hi:#ff6b6b; --mid:#ffb84d; --lo:#8a8fa8;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.5);
+    --r:18px; --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box}
+  /* 基準字級隨螢幕寬度流動：大螢幕 iPhone（17／Pro Max／「顯示較多內容」）字會等比放大，桌機設上限 */
+  html{-webkit-text-size-adjust:100%;font-size:clamp(17px,4.6vw,20px)}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Segoe UI",Roboto,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
+  header{background:linear-gradient(160deg,var(--brand) 0%,var(--brand-deep) 100%);color:#fff;
+    padding:calc(var(--safe-t) + 28px) 20px 24px;box-shadow:0 6px 18px rgba(58,44,166,.25)}
+  .h-inner{max-width:980px;margin:0 auto}
+  .h-title{font-size:1.5rem;font-weight:800;letter-spacing:-.01em;margin:0}
+  .h-sub{font-size:.86rem;opacity:.9;margin:6px 0 0;font-weight:500}
+  main{max-width:980px;margin:0 auto;padding:18px 14px calc(40px + var(--safe-b))}
+  .section-t{font-size:1.02rem;font-weight:800;color:var(--ink);margin:22px 4px 12px;display:flex;align-items:center;gap:7px}
+
+  /* ---------- 月曆 ---------- */
+  .cal{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+  .cal-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .cal-month{font-size:1rem;font-weight:800}
+  .cal-nav{display:flex;gap:6px}
+  .cal-nav button{border:1px solid var(--line);background:var(--surface-2);color:var(--ink);width:34px;height:34px;
+    border-radius:10px;font-size:1rem;font-weight:800;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .cal-nav button:active{transform:scale(.94)}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--line)}
+  .cal-wd{background:var(--surface-2);text-align:center;font-size:.72rem;font-weight:800;color:var(--muted);padding:7px 0}
+  .cal-cell{background:var(--surface);min-height:68px;padding:5px 4px 6px;position:relative;cursor:default}
+  .cal-cell.other{background:var(--surface-2);opacity:.5}
+  .cal-cell.today .cal-day{background:var(--brand);color:#fff}
+  .cal-cell.has{cursor:pointer}
+  .cal-cell.sel{outline:2px solid var(--brand);outline-offset:-2px;z-index:1}
+  .cal-day{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 4px;
+    border-radius:99px;font-size:.78rem;font-weight:700;font-variant-numeric:tabular-nums}
+  .cal-bars{display:flex;flex-direction:column;gap:2px;margin-top:4px}
+  .cal-bar{font-size:.56rem;line-height:1.32;font-weight:700;padding:1px 4px;border-radius:4px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:3px solid var(--lo);
+    background:var(--surface-2);color:var(--ink-soft)}
+  .cal-bar.hi{border-left-color:var(--hi);background:rgba(255,107,107,.18);color:#ffc4c4}
+  .cal-bar.mid{border-left-color:var(--mid);background:rgba(255,184,77,.16);color:#ffdca3}
+  .cal-bar.lo{border-left-color:var(--lo);background:rgba(138,143,168,.18);color:var(--ink-soft)}
+  .cal-bar.done{border-left-color:var(--muted);background:var(--surface-2);color:var(--muted);text-decoration:line-through}
+  .cal-more{font-size:.58rem;color:var(--muted);font-weight:700;padding-left:2px}
+  .cal-bar .ce{margin-right:2px}
+  /* 分類圖例 */
+  .cal-legend{display:flex;flex-wrap:wrap;gap:6px 12px;padding:11px 8px 3px;justify-content:center}
+  .cal-legend .lg{display:inline-flex;align-items:center;gap:5px;font-size:.7rem;font-weight:700;color:var(--ink-soft)}
+  .cal-legend .dot{width:11px;height:11px;border-radius:3px;flex:none}
+  /* 選中日的清單 */
+  .day-list{margin-top:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);
+    padding:12px 14px;display:none}
+  .day-list.show{display:block}
+  .day-list h4{margin:0 0 8px;font-size:.9rem;font-weight:800}
+  .dl-item{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-top:1px solid var(--line)}
+  .dl-item:first-of-type{border-top:none}
+  .dl-item.done .dl-ttl{text-decoration:line-through;color:var(--muted)}
+  .imp-bar{width:4px;align-self:stretch;border-radius:2px;flex:none}
+  .imp-bar.i3{background:var(--hi)} .imp-bar.i2{background:var(--mid)} .imp-bar.i1{background:var(--lo)}
+  .dl-ttl{font-size:.9rem;font-weight:600}
+  .dl-meta{font-size:.74rem;color:var(--muted)}
+
+  /* ---------- 時間軸 ---------- */
+  .timeline{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);
+    padding:8px 4px 8px 0;position:relative}
+  .tl-scroll{max-height:340px;overflow-y:auto}
+  .tl-day{display:grid;grid-template-columns:64px 1fr;gap:0}
+  .tl-date{padding:12px 8px 12px 14px;text-align:right;position:relative}
+  .tl-dd{font-size:1.05rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+  .tl-mo{font-size:.66rem;color:var(--muted);font-weight:700}
+  .tl-wd{font-size:.66rem;color:var(--muted)}
+  .tl-body{border-left:2px solid var(--line);padding:10px 14px 14px;position:relative}
+  .tl-body::before{content:"";position:absolute;left:-6px;top:16px;width:10px;height:10px;border-radius:50%;
+    background:var(--brand);border:2px solid var(--surface)}
+  .tl-day.past .tl-body::before{background:var(--muted)}
+  .tl-day.today .tl-date .tl-dd{color:var(--brand)}
+  .tl-day.today .tl-body::before{background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+  .tl-task{display:flex;gap:7px;align-items:flex-start;padding:3px 0}
+  .tl-task.done .tl-t{text-decoration:line-through;color:var(--muted)}
+  .tl-t{font-size:.88rem;font-weight:600}
+  .tl-proj{font-size:.7rem;color:var(--brand-deep);font-weight:700;background:var(--surface-2);
+    border-radius:99px;padding:1px 8px;white-space:nowrap}
+  .tl-range{text-align:center;font-size:.76rem;color:var(--muted);padding:8px;font-weight:600}
+
+  /* ---------- 專案牆 ---------- */
+  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+  .pcard{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+    box-shadow:var(--shadow);overflow:hidden;text-decoration:none;color:inherit;transition:transform .18s,box-shadow .18s;
+    -webkit-tap-highlight-color:transparent}
+  .pcard:active{transform:scale(.98)}
+  @media (hover:hover){.pcard:hover{transform:translateY(-3px);box-shadow:0 4px 8px rgba(28,24,54,.08),0 14px 34px rgba(28,24,54,.13)}}
+  .cover{position:relative;aspect-ratio:16/9;background:var(--brand);overflow:hidden}
+  .cover img{width:100%;height:100%;object-fit:cover;display:block}
+  .cover .fallback{position:absolute;inset:0;display:none;flex-direction:column;justify-content:flex-end;
+    background:linear-gradient(160deg,var(--brand),var(--brand-deep));color:#fff;padding:14px 16px}
+  .cover.noimg img{display:none}.cover.noimg .fallback{display:flex}
+  .cover .fb-emoji{font-size:1.8rem;margin-bottom:auto;padding-top:8px;opacity:.9}
+  .cover .fb-title{font-size:1.02rem;font-weight:800;line-height:1.35}
+  .stat-pill{position:absolute;top:10px;right:10px;background:rgba(28,24,54,.72);color:#fff;font-size:.74rem;font-weight:800;
+    border-radius:99px;padding:3px 11px;font-variant-numeric:tabular-nums}
+  .badge{position:absolute;top:10px;left:10px;font-size:.7rem;font-weight:800;border-radius:99px;padding:2px 10px;color:#fff}
+  .badge.active{background:#2fb96b}.badge.done{background:#6b7280}.badge.archived{background:#a1a1aa}
+  .pbody{padding:13px 15px 15px;display:flex;flex-direction:column;gap:5px;flex:1}
+  .p-title{font-size:1.06rem;font-weight:800;margin:0;line-height:1.4}
+  .p-sub{font-size:.84rem;color:var(--ink-soft);margin:0}
+  .p-prog{margin-top:auto;padding-top:10px}
+  .bar{height:7px;border-radius:99px;background:var(--surface-2);overflow:hidden;border:1px solid var(--line)}
+  .bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--accent));border-radius:99px}
+  .p-prog small{font-size:.73rem;color:var(--muted);font-weight:700}
+
+  /* ---------- 推播提醒卡 ---------- */
+  .push-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);
+    padding:14px 16px;margin:4px 0 2px;display:flex;align-items:center;gap:12px}
+  .push-card.ok{border-color:rgba(47,208,122,.45);background:linear-gradient(160deg,rgba(47,208,122,.10),var(--surface))}
+  .push-card .pc-ic{font-size:1.5rem;flex:none;line-height:1}
+  .push-card .pc-tx{flex:1;min-width:0}
+  .push-card .pc-h{font-size:.94rem;font-weight:800;margin:0}
+  .push-card .pc-s{font-size:.78rem;color:var(--ink-soft);margin:3px 0 0;line-height:1.5}
+  .push-card .pc-s b{color:var(--ink)}
+  .push-btn{flex:none;border:none;border-radius:99px;padding:10px 16px;font-size:.85rem;font-weight:800;color:#fff;cursor:pointer;
+    background:linear-gradient(160deg,var(--brand),var(--brand-deep));-webkit-tap-highlight-color:transparent;transition:transform .15s}
+  .push-btn:active{transform:scale(.94)}
+  .push-btn.ghost{background:var(--surface-2);color:var(--ink-soft);border:1px solid var(--line)}
+  .push-steps{margin:8px 0 0;padding-left:1.1em;font-size:.78rem;color:var(--ink-soft);line-height:1.7}
+  .push-steps b{color:var(--ink)}
+  .kbd{display:inline-flex;align-items:center;gap:3px;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;
+    padding:0 5px;font-weight:700;color:var(--ink)}
+
+  .state{padding:56px 24px;text-align:center;color:var(--ink-soft)}
+  .state .big{font-size:2.4rem;margin:0 0 10px}
+  .state h2{font-size:1.05rem;font-weight:800;color:var(--ink);margin:0 0 6px}
+  .spinner{width:36px;height:36px;margin:0 auto 14px;border-radius:50%;border:4px solid var(--line);border-top-color:var(--brand);
+    animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  footer{text-align:center;color:var(--muted);font-size:.78rem;padding:14px 16px calc(20px + var(--safe-b))}
+  /* 強制更新浮動鈕 */
+  .refresh-fab{position:fixed;right:16px;bottom:calc(16px + var(--safe-b));z-index:60;display:inline-flex;align-items:center;gap:7px;
+    border:none;border-radius:99px;padding:12px 18px;font-size:.9rem;font-weight:800;color:#fff;cursor:pointer;
+    background:linear-gradient(160deg,var(--brand),var(--brand-deep));box-shadow:0 6px 20px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.06) inset;
+    -webkit-tap-highlight-color:transparent;transition:transform .15s}
+  .refresh-fab:active{transform:scale(.93)}
+  .refresh-fab svg{width:17px;height:17px}
+  .refresh-fab.spin svg{animation:spin .7s linear infinite}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.spinner{display:none}.refresh-fab.spin svg{animation:none}}
+</style>
+</head>
+<body>
+<header><div class="h-inner">
+  <h1 class="h-title">🎬 影片製作進度</h1>
+  <p class="h-sub">月曆 × 時間軸 × 專案總覽 — 一眼看到每支片的進度</p>
+</div></header>
+
+<main>
+  <div id="root">
+    <div class="state"><div class="spinner"></div><p>載入中…</p></div>
+  </div>
+</main>
+<footer>影片製作進度看板</footer>
+
+<button class="refresh-fab" id="refreshFab" aria-label="強制更新" onclick="hardReload(this)">
+  <svg viewBox="0 0 24 24" fill="none"><path d="M20 11a8 8 0 1 0-.6 3M20 4v5h-5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>更新</button>
+
+<script>
+// 強制更新：加/換 cache-bust 參數重載，繞過 Safari 對 HTML 的積極快取（含頁面本體，非只重抓資料）
+function hardReload(btn){
+  if(btn) btn.classList.add("spin");
+  var base=location.href.split("#")[0].replace(/([?&])_r=\d+/,"$1").replace(/[?&]+$/,"").replace(/([?&])&/,"$1");
+  var sep=base.indexOf("?")>-1?"&":"?";
+  location.replace(base+sep+"_r="+Date.now());
+}
+const API_BASE = "https://fa87vpf8x9.execute-api.ap-southeast-1.amazonaws.com";
+const WD = ["日","一","二","三","四","五","六"];
+const root = document.getElementById("root");
+let CAL = [];        // calendar items
+let PROJECTS = [];   // project summaries
+let curMonth;        // Date 指向當月 1 號
+let selDate = null;  // 選中的 yyyy-mm-dd
+
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
+function impClass(i){return i>=3?"hi":i===2?"mid":"lo";}
+
+/* 工作類型 → 顏色（依內容自動分類）。深底可讀：邊條 bd / 底色 bg / 文字 tx */
+const CATS = {
+  shoot:  {label:"拍攝",    emoji:"🎥", bd:"#ff6b6b", bg:"rgba(255,107,107,.18)", tx:"#ffc4c4"},
+  plan:   {label:"企劃腳本", emoji:"📝", bd:"#9d8cff", bg:"rgba(157,140,255,.18)", tx:"#d8ceff"},
+  text:   {label:"文案字幕", emoji:"🔤", bd:"#3fd0e0", bg:"rgba(63,208,224,.17)",  tx:"#b3ecf7"},
+  edit:   {label:"剪輯後製", emoji:"✂️", bd:"#ff9f43", bg:"rgba(255,159,67,.18)",  tx:"#ffd9a8"},
+  music:  {label:"配樂配音", emoji:"🎵", bd:"#ff6f9c", bg:"rgba(255,111,156,.18)", tx:"#ffc2d6"},
+  publish:{label:"發布上架", emoji:"🚀", bd:"#2fd07a", bg:"rgba(47,208,122,.18)",  tx:"#a9edc9"},
+  other:  {label:"其他",    emoji:"📌", bd:"#8a8fa8", bg:"rgba(138,143,168,.20)", tx:"#c7cadd"},
+};
+const CAT_ORDER = ["shoot","plan","text","edit","music","publish","other"];
+function catKey(it){
+  const s=((it.tag||"")+" "+(it.title||"")+" "+(it.projectTitle||"")).toLowerCase();
+  const has=arr=>arr.some(k=>s.includes(k));
+  if(has(["拍攝","補拍","開拍","拍片","攝影","空景","棚拍","外拍","側拍","收音","實拍"])) return "shoot";
+  if(has(["企劃","腳本","分鏡","劇本","提案","定稿","發想","規劃","構思"]))           return "plan";
+  if(has(["文案","copy","標題","字幕","上字","翻譯","逐字","校稿"]))                  return "text";
+  if(has(["剪輯","粗剪","精剪","後製","調色","特效","轉場","剪片"]))                  return "edit";
+  if(has(["配樂","選曲","音樂","配音","旁白","音效","混音","bgm"]))                   return "music";
+  if(has(["發布","發佈","上架","上片","上線","publish","po文","排程發","投稿"]))      return "publish";
+  return "other";
+}
+function catOf(it){return CATS[catKey(it)];}
+function ymd(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function todayStr(){return ymd(new Date());}
+
+async function boot(){
+  try{
+    const [c,p] = await Promise.all([
+      fetch(API_BASE+"/calendar").then(r=>{if(!r.ok)throw 0;return r.json();}),
+      fetch(API_BASE+"/projects").then(r=>{if(!r.ok)throw 0;return r.json();})
+    ]);
+    CAL = (c&&c.items)||[];
+    PROJECTS = (p&&p.projects)||[];
+  }catch(e){
+    root.innerHTML='<div class="state"><p class="big">📡</p><h2>載入失敗</h2><p>網路不穩或伺服器暫時無回應</p><button onclick="boot()" style="margin-top:16px;border:none;border-radius:99px;padding:11px 22px;font-weight:800;background:var(--brand);color:#fff;cursor:pointer">再試一次</button></div>';
+    return;
+  }
+  // 預設月份 = 今天所在月（若無任務則跳到最早任務月）
+  const t = new Date(); curMonth = new Date(t.getFullYear(), t.getMonth(), 1);
+  render();
+}
+
+function render(){
+  root.innerHTML =
+    '<div id="pushBox"></div>'+
+    '<div class="section-t">📅 月曆</div><div id="calBox"></div><div id="dayList" class="day-list"></div>'+
+    '<div class="section-t">🧵 時間軸</div><div id="tlBox"></div>'+
+    '<div class="section-t">🎞️ 專案</div><div id="wall"></div>';
+  renderCal(); renderTimeline(); renderWall(); renderPush();
+}
+
+/* ---- Web Push 推播提醒 ---- */
+const PUSH_PUBLIC = "BBTJPri_4uiQVTdzFfryL6rUpI3wBVgka1-0aaCqKWJuG8OOljpbc3iPQmEJOP6EJW9E7sEjgp6GF2m5eM3s5DM";
+const isiOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+const isStandalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone===true;
+const pushSupported = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+let swReg=null;
+
+function b64ToU8(base64){
+  const pad="=".repeat((4-base64.length%4)%4);
+  const b=(base64+pad).replace(/-/g,"+").replace(/_/g,"/");
+  const raw=atob(b), arr=new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++) arr[i]=raw.charCodeAt(i);
+  return arr;
+}
+async function ensureSW(){
+  if(swReg) return swReg;
+  if(!pushSupported) return null;
+  try{ swReg=await navigator.serviceWorker.register("sw.js"); await navigator.serviceWorker.ready; }catch(e){ swReg=null; }
+  return swReg;
+}
+async function currentSub(){ const r=await ensureSW(); if(!r) return null; try{return await r.pushManager.getSubscription();}catch(e){return null;} }
+
+function pushCard(inner, cls){ document.getElementById("pushBox").innerHTML='<div class="push-card'+(cls?" "+cls:"")+'">'+inner+'</div>'; }
+
+async function renderPush(){
+  const box=document.getElementById("pushBox"); if(!box) return;
+  if(!pushSupported){
+    pushCard('<span class="pc-ic">🔕</span><div class="pc-tx"><p class="pc-h">此瀏覽器不支援推播</p><p class="pc-s">改用 iPhone 的 Safari，並把本頁「加入主畫面」後再開啟。</p></div>');
+    return;
+  }
+  // iOS 必須先安裝成主畫面 App 才能收推播
+  if(isiOS && !isStandalone){
+    pushCard('<span class="pc-ic">📲</span><div class="pc-tx"><p class="pc-h">開啟前先「加入主畫面」</p>'+
+      '<p class="pc-s">iPhone 只有把本頁裝成 App 後才能收推播：</p>'+
+      '<ol class="push-steps"><li>Safari 底部按 <span class="kbd">分享 ⬆️</span></li>'+
+      '<li>選 <b>加入主畫面</b> ➕</li>'+
+      '<li>回主畫面點 <b>影片進度</b> 圖示打開</li>'+
+      '<li>再回這裡按「開啟提醒」</li></ol></div>');
+    return;
+  }
+  const perm=Notification.permission;
+  const sub=await currentSub();
+  if(perm==="granted" && sub){
+    pushCard('<span class="pc-ic">🔔</span><div class="pc-tx"><p class="pc-h">提醒已開啟（此裝置）</p>'+
+      '<p class="pc-s">任務開始<b> 前 1 小時</b>會推播到這支手機。沒設時間的任務，當天早上 9:00 提醒。</p></div>'+
+      '<button class="push-btn ghost" onclick="disablePush(this)">關閉</button>','ok');
+    return;
+  }
+  if(perm==="denied"){
+    pushCard('<span class="pc-ic">🔕</span><div class="pc-tx"><p class="pc-h">通知權限被封鎖</p>'+
+      '<p class="pc-s">到 iPhone <b>設定 → 通知 → 影片進度</b> 把「允許通知」打開，再回來按開啟。</p></div>'+
+      '<button class="push-btn" onclick="enablePush(this)">再試一次</button>');
+    return;
+  }
+  pushCard('<span class="pc-ic">🔔</span><div class="pc-tx"><p class="pc-h">開啟推播提醒</p>'+
+    '<p class="pc-s">任務開始<b> 前 1 小時</b>主動提醒你，不必自己盯月曆。</p></div>'+
+    '<button class="push-btn" onclick="enablePush(this)">開啟提醒</button>');
+}
+
+async function enablePush(btn){
+  if(btn){btn.disabled=true;btn.textContent="設定中…";}
+  try{
+    const reg=await ensureSW();
+    if(!reg) throw new Error("service worker 註冊失敗");
+    const perm=await Notification.requestPermission();
+    if(perm!=="granted"){ await renderPush(); return; }
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub) sub=await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:b64ToU8(PUSH_PUBLIC)});
+    const res=await fetch(API_BASE+"/push/subscribe",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({subscription:sub.toJSON(), ua:navigator.userAgent})});
+    if(!res.ok) throw new Error("訂閱上傳失敗");
+    // 立即本地跳一則確認通知
+    try{ reg.showNotification("🎬 提醒已開啟",{body:"任務前 1 小時我會提醒你 ✅",icon:"icons/icon-192.png"});}catch(_){}
+  }catch(e){ alert("開啟失敗："+e.message); }
+  await renderPush();
+}
+async function disablePush(btn){
+  if(btn){btn.disabled=true;btn.textContent="關閉中…";}
+  try{
+    const sub=await currentSub();
+    if(sub){
+      const ep=sub.endpoint;
+      await sub.unsubscribe().catch(()=>{});
+      await fetch(API_BASE+"/push/unsubscribe",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({endpoint:ep})}).catch(()=>{});
+    }
+  }catch(e){}
+  await renderPush();
+}
+
+/* ---- 月曆 ---- */
+function calByDate(){
+  const m={}; CAL.forEach(it=>{(m[it.date]=m[it.date]||[]).push(it);}); return m;
+}
+function renderCal(){
+  const box=document.getElementById("calBox");
+  const y=curMonth.getFullYear(), mo=curMonth.getMonth();
+  const first=new Date(y,mo,1), start=new Date(y,mo,1-first.getDay());
+  const byd=calByDate(), today=todayStr();
+  const label=y+" 年 "+(mo+1)+" 月";
+  let cells="";
+  for(let i=0;i<42;i++){
+    const d=new Date(start); d.setDate(start.getDate()+i);
+    const ds=ymd(d), inMonth=d.getMonth()===mo, list=byd[ds]||[];
+    if(i>=35 && !hasAnyInWeek(start,i,mo)) continue;
+    const bars=list.slice(0,3).map(it=>{
+      if(it.status==="done") return '<span class="cal-bar done">'+esc(it.projectTitle||it.title)+'</span>';
+      const c=catOf(it);
+      return '<span class="cal-bar" style="border-left-color:'+c.bd+';background:'+c.bg+';color:'+c.tx+'"><span class="ce">'+c.emoji+'</span>'+esc(it.projectTitle||it.title)+'</span>';
+    }).join("");
+    const more=list.length>3?'<span class="cal-more">+'+(list.length-3)+' 項</span>':"";
+    cells+='<div class="cal-cell'+(inMonth?"":" other")+(ds===today?" today":"")+(list.length?" has":"")+(ds===selDate?" sel":"")+'"'+
+      (list.length?' data-d="'+ds+'"':"")+'>'+
+      '<span class="cal-day">'+d.getDate()+'</span>'+
+      (list.length?'<div class="cal-bars">'+bars+more+'</div>':"")+'</div>';
+  }
+  // 圖例：只列出目前資料中實際出現的類型
+  const present=new Set(CAL.filter(it=>it.status!=="done").map(catKey));
+  const legend=CAT_ORDER.filter(k=>present.has(k)).map(k=>{const c=CATS[k];
+    return '<span class="lg"><span class="dot" style="background:'+c.bd+'"></span>'+c.emoji+' '+c.label+'</span>';}).join("");
+  box.innerHTML=
+    '<div class="cal"><div class="cal-head"><span class="cal-month">'+label+'</span>'+
+    '<span class="cal-nav"><button id="pm">‹</button><button id="tm">今</button><button id="nm">›</button></span></div>'+
+    '<div class="cal-grid">'+WD.map(w=>'<div class="cal-wd">'+w+'</div>').join("")+cells+'</div>'+
+    (legend?'<div class="cal-legend">'+legend+'</div>':"")+'</div>';
+  document.getElementById("pm").onclick=()=>{curMonth=new Date(y,mo-1,1);selDate=null;renderCal();hideDayList();};
+  document.getElementById("nm").onclick=()=>{curMonth=new Date(y,mo+1,1);selDate=null;renderCal();hideDayList();};
+  document.getElementById("tm").onclick=()=>{const t=new Date();curMonth=new Date(t.getFullYear(),t.getMonth(),1);selDate=todayStr();renderCal();showDay(selDate);};
+  box.querySelectorAll(".cal-cell.has").forEach(c=>c.onclick=()=>{selDate=c.getAttribute("data-d");renderCal();showDay(selDate);});
+}
+function hasAnyInWeek(start,i,mo){ // 第 6 排(index35-41)只有仍屬本月才畫
+  const d=new Date(start); d.setDate(start.getDate()+i); return d.getMonth()===mo;
+}
+function hideDayList(){document.getElementById("dayList").classList.remove("show");}
+function showDay(ds){
+  const byd=calByDate(), list=(byd[ds]||[]).slice().sort((a,b)=>b.importance-a.importance);
+  const el=document.getElementById("dayList");
+  if(!list.length){hideDayList();return;}
+  el.innerHTML='<h4>'+esc(ds)+'（'+list.length+' 項）</h4>'+list.map(it=>{
+    const c=catOf(it), dot=it.status==="done"?"":'style="background:'+c.bd+'"';
+    return '<div class="dl-item'+(it.status==="done"?" done":"")+'"><span class="imp-bar i'+it.importance+'" '+dot+'></span>'+
+    '<div><div class="dl-ttl">'+(it.status==="done"?"✓ ":c.emoji+" ")+esc(it.title)+'</div>'+
+    '<div class="dl-meta">'+c.label+' · '+esc(it.projectTitle)+(it.tag?' · '+esc(it.tag):"")+'</div></div></div>';}).join("");
+  el.classList.add("show");
+}
+
+/* ---- 時間軸（跨專案，全部有日期任務）---- */
+function renderTimeline(){
+  const box=document.getElementById("tlBox");
+  if(!CAL.length){box.innerHTML='<div class="timeline"><div class="tl-range">還沒有排定日期的工作</div></div>';return;}
+  const byd={}; CAL.forEach(it=>{(byd[it.date]=byd[it.date]||[]).push(it);});
+  const dates=Object.keys(byd).sort();
+  const today=todayStr();
+  let rows=dates.map(ds=>{
+    const d=new Date(ds+"T00:00:00");
+    const cls=ds<today?"past":ds===today?"today":"";
+    const tasks=byd[ds].slice().sort((a,b)=>b.importance-a.importance).map(it=>{
+      const c=catOf(it), dot=it.status==="done"?"":'style="background:'+c.bd+'"';
+      return '<div class="tl-task'+(it.status==="done"?" done":"")+'"><span class="imp-bar i'+it.importance+'" '+dot+'></span>'+
+      '<span class="tl-t">'+(it.status==="done"?"":c.emoji+" ")+esc(it.title)+'</span><span class="tl-proj">'+esc(it.projectTitle)+'</span></div>';}).join("");
+    return '<div class="tl-day '+cls+'"><div class="tl-date"><div class="tl-dd">'+d.getDate()+'</div>'+
+      '<div class="tl-mo">'+(d.getMonth()+1)+'月</div><div class="tl-wd">週'+WD[d.getDay()]+'</div></div>'+
+      '<div class="tl-body">'+tasks+'</div></div>';
+  }).join("");
+  const range=dates[0]===dates[dates.length-1]?dates[0]:dates[0]+" ～ "+dates[dates.length-1];
+  box.innerHTML='<div class="timeline"><div class="tl-range">📌 工作橫跨 '+esc(range)+'（'+dates.length+' 天）</div>'+
+    '<div class="tl-scroll">'+rows+'</div></div>';
+  // 捲到今天
+  const t=box.querySelector(".tl-day.today")||box.querySelector(".tl-day:not(.past)");
+  if(t) t.scrollIntoView({block:"center"});
+}
+
+/* ---- 專案牆 ---- */
+function renderWall(){
+  const wall=document.getElementById("wall");
+  if(!PROJECTS.length){wall.innerHTML='<div class="state"><p class="big">🎬</p><h2>還沒有專案</h2><p>在頻道丟工作事項，我幫你整理進來</p></div>';return;}
+  const stLabel={active:"進行中",done:"已完成",archived:"封存"};
+  wall.innerHTML='<div class="grid">'+PROJECTS.map(p=>{
+    const done=p.taskCount-p.todoCount, pct=p.taskCount?Math.round(done/p.taskCount*100):0;
+    const range=p.dateFrom?(p.dateFrom===p.dateTo?p.dateFrom:p.dateFrom+" ～ "+p.dateTo):"未排日期";
+    return '<a class="pcard" href="p.html?id='+encodeURIComponent(p.id)+'">'+
+      '<div class="cover"><img src="'+esc(p.cover||"")+'" alt="" loading="lazy">'+
+      '<div class="fallback"><span class="fb-emoji">🎬</span><span class="fb-title">'+esc(p.title)+'</span></div>'+
+      '<span class="badge '+esc(p.status)+'">'+(stLabel[p.status]||p.status)+'</span>'+
+      '<span class="stat-pill">'+done+'/'+p.taskCount+'</span></div>'+
+      '<div class="pbody"><h3 class="p-title">'+esc(p.title)+'</h3>'+
+      (p.subtitle?'<p class="p-sub">'+esc(p.subtitle)+'</p>':"")+
+      '<p class="p-sub" style="font-size:.78rem">🗓️ '+esc(range)+'</p>'+
+      '<div class="p-prog"><div class="bar"><i style="width:'+pct+'%"></i></div>'+
+      '<small>'+pct+'% · 待辦 '+p.todoCount+' 項</small></div></div></a>';
+  }).join("")+'</div>';
+  wall.querySelectorAll(".cover img").forEach(img=>{
+    if(!img.getAttribute("src")){img.closest(".cover").classList.add("noimg");return;}
+    img.addEventListener("error",()=>img.closest(".cover").classList.add("noimg"));
+    if(img.complete&&img.naturalWidth===0) img.closest(".cover").classList.add("noimg");
+  });
+}
+boot();
+</script>
+</body>
+</html>

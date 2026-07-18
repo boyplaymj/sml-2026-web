@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="マップコード">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<title>日本マップコード産生器（個人版）</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  :root{
+    --bg:#0b1220; --panel:#131c2e; --panel2:#1b2740; --line:#26314c;
+    --ink:#e8eefc; --sub:#93a1c0; --acc:#5b8cff; --ok:#31c48d; --warn:#f5a524; --bad:#f26d6d;
+    --r:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,"Segoe UI",system-ui,"Noto Sans CJK JP",sans-serif;
+       padding:max(14px,env(safe-area-inset-top)) 14px calc(28px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto}
+  h1{font-size:18px;margin:2px 0 2px;letter-spacing:.02em}
+  .tag{color:var(--sub);font-size:12px;margin:0 0 14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+  label{display:block;font-size:12px;color:var(--sub);margin:0 0 6px;letter-spacing:.03em}
+  textarea,input{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+       border-radius:12px;padding:12px;font:14px/1.4 inherit;resize:vertical}
+  textarea{min-height:64px}
+  .row{display:flex;gap:8px;margin-top:10px}
+  button{appearance:none;border:0;border-radius:12px;padding:12px 14px;font:600 14px inherit;color:#fff;
+       background:var(--acc);cursor:pointer;flex:1;transition:.15s transform}
+  button:active{transform:scale(.98)}
+  button.ghost{background:var(--panel2);border:1px solid var(--line);color:var(--ink)}
+  .seg{display:flex;gap:6px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:4px;margin-top:10px}
+  .seg button{background:transparent;color:var(--sub);border-radius:9px;padding:9px;font-weight:600}
+  .seg button.on{background:var(--acc);color:#fff}
+  .muted{color:var(--sub);font-size:12px}
+  .hint{font-size:12px;color:var(--sub);margin-top:8px;line-height:1.5}
+  #map{height:230px;border-radius:12px;margin-top:12px;border:1px solid var(--line);background:#0d1526}
+  .code{font:800 clamp(26px,8vw,38px)/1.1 "SF Mono",ui-monospace,Menlo,monospace;letter-spacing:.03em;
+       word-break:break-all;margin:2px 0}
+  .code .core{color:var(--acc)}
+  .kv{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:13px}
+  .kv:first-of-type{border-top:0}
+  .kv b{font-weight:600}
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px}
+  .pill.ok{background:rgba(49,196,141,.14);color:var(--ok)}
+  .pill.warn{background:rgba(245,165,36,.14);color:var(--warn)}
+  .pill.bad{background:rgba(242,109,109,.14);color:var(--bad)}
+  .conf{font-size:13px;color:var(--sub);margin:8px 0 2px}
+  .conf b{color:var(--ink)}
+  .hide{display:none}
+  .disc{font-size:11px;color:var(--sub);line-height:1.55;margin-top:16px;border-top:1px dashed var(--line);padding-top:12px}
+  a{color:var(--acc)}
+  .copybtn{flex:0 0 auto;padding:12px 16px}
+  .flash{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ok);color:#04150d;
+       font-weight:700;padding:10px 18px;border-radius:999px;opacity:0;transition:.25s;pointer-events:none;font-size:13px}
+  .flash.show{opacity:1}
+</style>
+</head>
+<body>
+  <h1>日本マップコード 産生器</h1>
+  <p class="tag">個人自駕用 · 貼 Google 連結或座標 → 反問確認 → 出碼＋偏移驗證　<span style="color:var(--warn)">非官方演算法</span></p>
+
+  <div class="card">
+    <label>① 車機類型（決定輸出格式）</label>
+    <div class="seg" id="navtype">
+      <button data-t="base" class="on">舊機 / 租車（基本碼）</button>
+      <button data-t="hi">新機（高精度 *碼）</button>
+    </div>
+
+    <label style="margin-top:14px">② 貼 Google 地圖連結，或 <span class="muted">緯度,經度</span></label>
+    <textarea id="inp" placeholder="https://maps.app.goo.gl/...　或　https://www.google.com/maps/place/.../@35.68,139.76...　或　35.681236, 139.767125"></textarea>
+    <div class="row">
+      <button id="go">解析並產生</button>
+      <button class="ghost" id="paste" style="flex:0 0 auto">貼上</button>
+    </div>
+    <p class="hint" id="hint">短網址 <code>maps.app.goo.gl</code> 因瀏覽器限制無法自動展開——請在 Google 地圖按「分享→複製連結」拿到完整網址，或直接貼座標。</p>
+  </div>
+
+  <div class="card hide" id="result">
+    <div id="confirm"></div>
+    <div id="map"></div>
+
+    <div style="margin-top:16px">
+      <label>マップコード</label>
+      <div class="row" style="align-items:center">
+        <div class="code" id="codeout">—</div>
+      </div>
+      <div class="row">
+        <button id="copy">複製代碼</button>
+        <button class="ghost copybtn" id="copyll">複製座標</button>
+      </div>
+    </div>
+
+    <div style="margin-top:14px">
+      <div class="kv"><span>基本碼（車機必吃 · ~30m）</span><b id="k-base">—</b></div>
+      <div class="kv"><span>高精度後綴（*core · ~3m best-effort）</span><b id="k-core">—</b></div>
+      <div class="kv"><span>round-trip 偏移（碼實際指向 vs 你的點）</span><b id="k-off">—</b></div>
+      <div class="kv"><span>真實 POI 座標</span><b id="k-ll">—</b></div>
+    </div>
+  </div>
+
+  <p class="disc">
+    ⚠️ 本工具使用<b>社群逆向</b>的 mapcode 演算法（encode 改編自 <a href="https://github.com/bespired/mapcode" target="_blank">bespired/mapcode</a>，MIT；源自 <a href="https://saibara.sakura.ne.jp/map/convgeo.cgi" target="_blank">saibara</a> 的逆向），<b>非 DENSO 官方</b>，結果為近似值、邊角可能有誤。「マップコード」為 DENSO 註冊商標。本工具僅供個人使用。逆地理編碼由 OpenStreetMap Nominatim 提供。
+  </p>
+
+  <div class="flash" id="flash"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="./zonecoords.js"></script>
+<script src="./mapcode.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+let navType = 'base';
+let map, pinA, pinB, lineAB;
+
+// ---- car-type selector ----
+$('#navtype').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  [...$('#navtype').children].forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); navType = b.dataset.t;
+  if(last) render(last); // re-render if we already have a result
+});
+
+$('#paste').addEventListener('click', async ()=>{
+  try{ $('#inp').value = await navigator.clipboard.readText(); }catch(e){ flash('無法讀取剪貼簿，請手動貼上'); }
+});
+
+// ---- Google Maps URL / coord parsing ----
+function parseInput(raw){
+  raw = raw.trim();
+  // plain "lat, lon"
+  let m = raw.match(/^\s*(-?\d{1,2}\.\d+)\s*[, ]\s*(\d{2,3}\.\d+)\s*$/);
+  if(m) return { lat:+m[1], lon:+m[2], src:'手動座標' };
+  // Google place data: !3d<lat> and !4d<lon> = the REAL pin (preferred).
+  // Order isn't guaranteed, so grab each independently.
+  const mLat = raw.match(/!3d(-?\d+\.\d+)/), mLon = raw.match(/!4d(-?\d+\.\d+)/);
+  if(mLat && mLon) return { lat:+mLat[1], lon:+mLon[1], src:'Google 圖釘 POI' };
+  // q= / query= / ll= / center=
+  m = raw.match(/[?&](?:q|query|ll|center|destination|daddr|saddr)=(-?\d+\.\d+)(?:,|%2C)(-?\d+\.\d+)/i);
+  if(m) return { lat:+m[1], lon:+m[2], src:'Google 查詢座標' };
+  // @lat,lon = map CENTER (fallback, less precise)
+  m = raw.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if(m) return { lat:+m[1], lon:+m[2], src:'Google 地圖中心（較不精準）', weak:true };
+  // short link
+  if(/maps\.app\.goo\.gl|goo\.gl\/maps/.test(raw)) return { err:'short' };
+  return { err:'none' };
+}
+
+let last = null;
+const HINT_DEFAULT = $('#hint').textContent;
+function showErr(msg){ const h=$('#hint'); h.textContent=msg; h.style.color='var(--bad)'; }
+function resetHint(){ const h=$('#hint'); h.textContent=HINT_DEFAULT; h.style.color=''; }
+
+$('#go').addEventListener('click', run);
+async function run(){
+  const p = parseInput($('#inp').value);
+  if(p.err==='short'){ showErr('這是 maps.app.goo.gl 短網址，前端無法自動展開。請在 Google 地圖用「分享→複製連結」拿到 google.com/maps/place/… 的完整網址，或直接貼「緯度,經度」。'); return; }
+  if(p.err){ showErr('找不到座標。請貼 Google 地圖完整連結，或直接貼「緯度,經度」例如 34.687315, 135.526201'); return; }
+
+  const r = Mapcode.generate(p.lat, p.lon);
+  if(!r.ok){ showErr('此點超出資料表範圍（多為偏遠地區），改試附近的主要地標。'); return; }
+  resetHint();
+
+  // 1) show the mapcode result IMMEDIATELY — never block on the network
+  last = { p, r, addr: undefined }; // undefined = 查詢中
+  render(last);
+  $('#result').classList.remove('hide');
+  $('#result').scrollIntoView({behavior:'smooth',block:'start'});
+
+  // 2) fetch the confirmation address in the background (with timeout), then patch the card
+  fetchAddr(p.lat, p.lon).then(addr=>{
+    if(last && last.p === p){ last.addr = addr; render(last); }
+  });
+}
+
+// reverse geocode with a hard timeout so a slow/blocked request never hangs the UI
+function fetchAddr(lat, lon){
+  const ctrl = new AbortController();
+  const t = setTimeout(()=>ctrl.abort(), 5000);
+  const u = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&accept-language=ja&zoom=18`;
+  return fetch(u,{headers:{'Accept':'application/json'},signal:ctrl.signal})
+    .then(x=>x.json())
+    .catch(()=>null)          // null = 查詢失敗（離線/被擋）
+    .finally(()=>clearTimeout(t));
+}
+
+function fmtCode(r){
+  // split base vs *core
+  const [base, core] = r.code.split('*');
+  return {base:base.trim(), core:core||''};
+}
+
+function render({p,r,addr}){
+  const {base, core} = fmtCode(r);
+  const shown = navType==='base' ? base : `${base}<span class="core">*${core}</span>`;
+  $('#codeout').innerHTML = shown;
+
+  $('#k-base').textContent = base;
+  $('#k-core').textContent = core ? '*'+core : '—';
+  const off = r.offsetM;
+  const pill = off<8 ? 'ok' : off<25 ? 'warn' : 'bad';
+  $('#k-off').innerHTML = `<span class="pill ${pill}">${off.toFixed(1)} m</span>`;
+  $('#k-ll').textContent = `${p.lat.toFixed(6)}, ${p.lon.toFixed(6)}`;
+
+  // confirmation card
+  const a = addr && addr.address ? addr.address : null;
+  let place='', near='';
+  if(a){
+    const parts=[a.province||a.state, a.city||a.town||a.county, a.suburb||a.neighbourhood||a.quarter, a.hamlet].filter(Boolean);
+    place = parts.join(' ');
+    near = addr.name || a.tourism || a.amenity || a.building || a.road || '';
+  }
+  const srcPill = p.weak ? `<span class="pill warn">${p.src}</span>` : `<span class="pill ok">${p.src}</span>`;
+  $('#confirm').innerHTML = `
+    <div class="conf">③ 請確認地點 ${srcPill}</div>
+    ${place? `<div style="font-size:15px;margin:2px 0"><b>${place||'—'}</b></div>`:''}
+    ${near ? `<div class="muted">附近：${near}</div>`:''}
+    ${addr===undefined? `<div class="muted">查詢地址中…（不影響出碼，可先用下方地圖核對）</div>`:''}
+    ${addr===null? `<div class="muted">（地址查詢失敗，請用下方地圖核對圖釘位置）</div>`:''}
+    ${p.weak? `<div class="hint" style="color:var(--warn)">此連結只有地圖中心座標，可能非真正地標；用地圖確認後再採用。</div>`:''}
+  `;
+
+  drawMap(p, r.decoded, off);
+}
+
+function drawMap(p, dec, off){
+  if(!map){
+    map = L.map('map',{zoomControl:true, attributionControl:false}).setView([p.lat,p.lon],17);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
+  }
+  [pinA,pinB,lineAB].forEach(x=>x&&map.removeLayer(x));
+  pinA = L.circleMarker([p.lat,p.lon],{radius:8,color:'#5b8cff',fillColor:'#5b8cff',fillOpacity:.9,weight:2}).addTo(map).bindTooltip('你的圖釘');
+  pinB = L.circleMarker([dec.lat,dec.lon],{radius:8,color:'#31c48d',fillColor:'#0b1220',fillOpacity:.9,weight:3}).addTo(map).bindTooltip('碼實際指向');
+  lineAB = L.polyline([[p.lat,p.lon],[dec.lat,dec.lon]],{color:'#f5a524',weight:2,dashArray:'4 5'}).addTo(map);
+  const b = L.latLngBounds([[p.lat,p.lon],[dec.lat,dec.lon]]).pad(3);
+  map.fitBounds(b,{maxZoom:18});
+}
+
+$('#copy').addEventListener('click', ()=>{
+  if(!last) return;
+  const {base,core}=fmtCode(last.r);
+  const txt = navType==='base'? base : last.r.code;
+  copy(txt);
+});
+$('#copyll').addEventListener('click', ()=>{ if(last) copy(`${last.p.lat},${last.p.lon}`); });
+
+function copy(t){ navigator.clipboard.writeText(t).then(()=>flash('已複製：'+t)).catch(()=>flash('複製失敗')); }
+function flash(msg){ const f=$('#flash'); f.textContent=msg; f.classList.add('show'); clearTimeout(f._t); f._t=setTimeout(()=>f.classList.remove('show'),1600); }
+</script>
+</body>
+</html>

@@ -225,7 +225,7 @@ func claudeArgs(sid, prompt string) []string {
 }
 
 // runClaude 在工作目錄跑 headless claude,維持每個頻道的 session。
-func runClaude(ctx context.Context, channelID, prompt string) string {
+func runClaude(ctx context.Context, s *discordgo.Session, channelID, prompt string) string {
 	// 同頻道序列化：一次只跑一個 claude。第二則訊息會在這裡等前一則跑完再進場，
 	// 杜絕「兩個 claude --resume 同一 session、同一工作目錄」互相覆蓋檔案／搶寫 registry。
 	lk := chanLock(channelID)
@@ -244,6 +244,14 @@ func runClaude(ctx context.Context, channelID, prompt string) string {
 	mu.Lock()
 	sid := sessions[channelID]
 	mu.Unlock()
+	handoffInjected := false
+	if sid == "" {
+		prompt, handoffInjected = injectHandoffRecall(channelID, prompt)
+		// handoff(切帳號逐字稿)優先;沒有 handoff 時(如純重啟)退而讀 Discord 置頂檢查點。
+		if !handoffInjected && s != nil {
+			prompt, _ = injectPinnedCheckpoint(s, channelID, prompt)
+		}
+	}
 
 	args := claudeArgs(sid, prompt)
 
@@ -293,6 +301,9 @@ func runClaude(ctx context.Context, channelID, prompt string) string {
 			return msg
 		}
 		return "⚠️ 執行出錯：" + firstLine(stderr)
+	}
+	if handoffInjected {
+		consumeHandoff(channelID)
 	}
 	var res claudeResult
 	if err := json.Unmarshal(out.Bytes(), &res); err != nil {
@@ -1050,11 +1061,15 @@ func main() {
 	}
 	dg.Identify.Intents = discordgo.IntentsGuilds | discordgo.IntentsGuildMessages | discordgo.IntentMessageContent
 
+	// 上線廣播只在進程首次啟動發一次;gateway 重連(會再觸發 Ready)不重發,避免洗頻。
+	var announceOnce sync.Once
 	dg.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Printf("READY: 已登入為 %s,可見 %d 個伺服器", r.User.String(), len(r.Guilds))
-		for chID := range allowedChannels {
-			s.ChannelMessageSend(chID, "✅ SML Claude 已上線。大任務前先打「新對話」可清空脈絡、避免變慢；單則處理上限已拉長到 "+strconv.Itoa(timeoutMin)+" 分鐘。")
-		}
+		announceOnce.Do(func() {
+			for chID := range allowedChannels {
+				s.ChannelMessageSend(chID, "✅ SML Claude 已上線。大任務前先打「新對話」可清空脈絡、避免變慢；單則處理上限已拉長到 "+strconv.Itoa(timeoutMin)+" 分鐘。")
+			}
+		})
 	})
 	dg.AddHandler(func(s *discordgo.Session, _ *discordgo.Disconnect) {
 		log.Println("DISCONNECT: gateway 連線中斷(會自動重連)")
@@ -1182,12 +1197,13 @@ func main() {
 				}
 			}
 		}()
-		reply := runClaude(ctx, m.ChannelID, prompt)
+		reply := runClaude(ctx, s, m.ChannelID, prompt)
 		close(done)
 		// 清除暫存圖片
 		for _, p := range tmpFiles {
 			os.Remove(p)
 		}
+		reply = updatePinnedCheckpoint(s, m.ChannelID, reply)
 		sendWithButtons(s, m.ChannelID, reply)
 	})
 
@@ -1266,8 +1282,9 @@ func main() {
 				}
 			}
 		}()
-		reply := runClaude(ctx, i.ChannelID, prompt)
+		reply := runClaude(ctx, s, i.ChannelID, prompt)
 		close(done)
+		reply = updatePinnedCheckpoint(s, i.ChannelID, reply)
 		sendWithButtons(s, i.ChannelID, reply)
 	})
 
