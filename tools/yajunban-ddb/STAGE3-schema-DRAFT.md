@@ -15,7 +15,7 @@
 4. **`slots[].generated_at`**:設計冊 Firestore 草案寫成日期字串 `"2026-01-01"`。本 schema 統一 epoch 毫秒 N。存疑:插槽圖是否需保留「生成日」給後台稽核?若是,可另加 human-readable,但預設只存 ms。
 5. **stats 該放 CORE 還是獨立**:6 戰鬥數值(hp/atk/def/magic/spd/luck)是「碎片兌換才變」的準永久值(STAGE1:數值只能靠碎片提升、跨轉生保留基底),寫頻率其實低,語義上更接近 BUILD。但戰鬥/面板/門檻**讀**極高頻,且 STAGE2 決策②表格明列 stats 在 CORE。**草稿遵從 STAGE2 放 CORE**,但標記為邊界爭議點——若 Codex 認為 stats 幾乎不熱寫、該跟 BUILD 走以縮小 CORE 熱寫 item,可移。(註:hp 當前值戰鬥中不落庫、只在結算寫,STAGE1 1-3;故 CORE.stats.hp 是「上限/基礎值」語義,非戰鬥中即時血量。)
 6. **生病旗標形狀**:設計冊有兩病型(飢餓型/臃腫型),草稿用單一 `sick_type` 字串(`none`/`starve`/`obese`)+ `sick_since`,而非兩個 bool。若戰鬥/治療邏輯要同時帶兩型再改 Map。
-7. **每日計數的重置基準**:草稿用 `daily_counts`(Map)+ `daily_reset_date`(當地日 YYYYMMDD 字串)。lazy 判斷「跨日就歸零」。存疑:時區(台灣 UTC+8)在何層決定;建議存 UTC 日字串、DTO 層轉。餵食不進 daily_counts(用 satiety 當閥,STAGE1 1-1)。
+7. **每日計數的重置基準**:草稿用 `daily_counts`(Map)+ `daily_reset_date`(YYYYMMDD 字串)。lazy 判斷「跨日就歸零」。餵食不進 daily_counts(用 satiety 當閥,STAGE1 1-1)。**✅ engine 已定案(clean/pet 首片,care.js `taipeiDayKey`)**:重置基準存**台灣(UTC+8)日字串**(非 UTC),對齊簽到/日常在台灣 00:00 換日的直覺;顯示層無需再換算。engine key 用正典 `daily_counts` 鍵(headpat/play/groom/cheer),section→鍵映射在 care.js `CARE_DAILY_KEY`。
 8. **`friendship` 上限**:section-stats 面板顯示 (30/80) 但 section-growth 明寫「當前狀態型,上限 100」。草稿採 **0–100**(growth 為準),面板的 80 是進化門檻顯示區間非硬上限。
 9. **position 座標形狀**:設計冊 section-board 未在本次萃取範圍;草稿用 `pos`(Map `{x:N, y:N}`)+ 世界維度另議。若地圖有 server/zone 維度,座標可能要加 `zone`。標記待 section-board 補。
 10. **job 未就職 / 未進化預設**:`job_guild`=`null`(未選公會)、`job_tier`=`0`(0=未就職,1=見習…4=二轉)。存疑:tier 用數字 1–4 還是字串 `apprentice/colonizer/...`;草稿用數字 + 說明對照,對齊 train `tier` 用法。
@@ -67,7 +67,7 @@
 | `last_interaction` | N | `Date.now()` | 最後開面板/照顧互動(epoch ms)。友好每日 −1 衰退 + 心情新鮮度 + B 情境呼喚判定的基準 | — |
 | `last_fed_at` | N | `null` | 最後餵食(epoch ms)。satiety lazy 下降基準。**(決策⑥補欄)** | — |
 | `daily_counts` | M | `{}` | 每日照顧次數計數(跨日 lazy 歸零)。摸頭≤3/玩耍≤1/整理≤1/鼓勵≤3(餵食不計,用 satiety 當閥)。**(決策⑥補欄)** | `{ headpat:N, play:N, groom:N, cheer:N }`(缺鍵視為 0) |
-| `daily_reset_date` | S | (今日) | 每日計數重置基準日 `YYYYMMDD`(UTC,DTO 轉時區)。讀時比對→跨日清 daily_counts。見存疑⑦ | — |
+| `daily_reset_date` | S | (今日) | 每日計數重置基準日 `YYYYMMDD`(**台灣 UTC+8 日**,存疑⑦ 已定案)。讀時比對→跨日清 daily_counts。 | — |
 | `zero_friendship_since` | N | (未歸零時不寫) | 友好度降到 0 的時間(epoch ms);**快取/通知用,非唯一真相**(逃跑判定由 friendship 值+last_interaction 虛擬推導,見 5b P0-2 virtual-state)。=0 持續 7 天→逃跑。**(決策⑥點名)** | — |
 | `zero_reputation_since` | N | (未歸零時不寫) | 聲望降到 0 的時間(epoch ms);**快取/通知用,非唯一真相**(可由 reputation 值+時間戳虛擬推導,見 5b P0-2 virtual-state)。=0 持續 7 天→逃跑。**(決策⑥點名)** | — |
 | `rate_mods` | M | `{}` | **lazy rate 修正快取**(Codex 階段5 P1-6):從 M#BUILD 天賦/職業/道具去正規化的 compact 修正,讓 `getStatusCore`(只讀 CORE)能算 khui/satiety/菌圃 lazy 值免讀 BUILD。天賦/職業變更時同步(低頻);缺鍵=用設定表 base rate | `{ khui_regen:N, satiety_decay:N, garden_mature:N, ... }` |
