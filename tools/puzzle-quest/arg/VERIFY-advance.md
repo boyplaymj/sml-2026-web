@@ -36,3 +36,10 @@ Codex 收窄詞不誤命中(我下班了/他拒絕回答/助理怪怪的/怨恨 
 - **部署**：改的是 `sweetbot-next`，要 `./restart.sh` 才生效（線上未動）；離峰重啟＋私頻實測。
 - **stageBonus（§8.1）**：推進給小獎目前**未加**（保持最小改動）；要的話另議。
 - 依賴 case 有 `stageGates`（明硯已加；CASE-13 尚未開案 activePuzzleId 空）。
+
+---
+## round-2b-2 修正（回應 Codex Medium：Firestore 階段同步失敗未被視為失敗）
+- `_writeStageDoc` 改 async **內建重試**（非 2xx→指數退避重試至多 3 次），所有推進路徑(gate/admin)受惠。
+- `advanceStageOnGate` **檢查回傳 status**：非 2xx→`console.error` 大聲告警(標明 DDB/Discord 已推進、假網站可能落後、需重新同步)；**不回滾**(DDB 是 Discord 側權威、階段不倒退)。
+- 新增測試：Firestore 回 500→仍推進(回 {stage:next})但有告警。`test 9/9、全套 87/87 綠`。
+- 未做(留部署/2a-2 前):自動 reconcile(重啟或週期把 puzzle_stage 對齊 round.stage)——目前靠重試＋admin 再推進補救即可。
