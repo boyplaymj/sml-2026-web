@@ -15,8 +15,8 @@ Environment=BUG_SCANNER_ENABLED=1
 # ⚠️ 暫關:多數 SML bug 在別的 repo(sweetbot-next/score-repo),本 worktree 動不到,
 # 開了 claude 反而會在本 repo 亂刪無關檔。需更嚴的圍欄才重開。
 Environment=BUG_AUTO_FIX=0
-# 診斷報告貼到「私人頻道」(客戶看不到);入口頻道 BUG_CHANNEL_ID 保持乾淨給客戶回報。
-Environment=BUG_POST_CHANNEL=903327108451950692
+# 診斷報告貼到「維修頻道」bug回報專區(開發中心,客戶看不到);入口頻道 BUG_CHANNEL_ID 保持乾淨給客戶回報。
+Environment=BUG_POST_CHANNEL=1527655549532115054
 ExecStart=/usr/bin/python3 /opt/sml/repo/tools/bug-scanner/scan.py
 TimeoutStartSec=1800
 Nice=10
