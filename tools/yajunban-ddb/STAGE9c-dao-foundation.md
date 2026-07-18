@@ -1,7 +1,7 @@
 # 牙菌斑怪獸 · DDB 資料模型 — 階段9c:DAO 層基礎設施 + 逐表 DAO 計畫
 
 > 交接文件 · 產出日期 2026-07-17 · 承接 [STAGE8](./STAGE8-dao-engineering.md)(DAO checklist)+ 9a/9b(9 表已建)
-> 狀態:**✅ 全 DAO(A–E)完成上線**(sweetbot-next `b1878e6`→…→`46332ac`→`79a7df1`,均多輪 Codex 二驗收斂;共 446 測試不打 AWS)。逐表 DAO 交付完畢;剩 rebirth 5 顆組裝(A/C/D 交會點)+ 階段10 賽季歸檔。
+> 狀態:**✅ 全 DAO(A–E)+ rebirth 組裝完成上線**(sweetbot-next `b1878e6`→…→`79a7df1`→`27c0f7f`,均多輪 Codex 二驗收斂;共 **492 測試**不打 AWS)。逐表 DAO + **rebirth 5 顆 exact-key(A/C/D 交會點閉環:轉生繼承 + soul 深記 + 敗方 pos 重生全串起)** 交付完畢;剩階段10 賽季歸檔 + 對帳工具。
 > **程式位置**:`sweetbot-next/DAO/DDB/yajunban/`(獨立資料夾,不動共用薄 `DDBBaseDAO`)。
 
 ---
