@@ -121,21 +121,23 @@ def make_sheet(frames, cols=None, gap=0, gap_fill="."):
 
 
 # ── 渲染 ─────────────────────────────────────────────────────
-def render(grid, scale=16, path=None, bg=None):
-    """字元網格 → PNG。scale=放大倍數；bg=None 透明背景，或給 PALETTE 字元當底色。"""
+def render(grid, scale=16, path=None, bg=None, palette=None):
+    """字元網格 → PNG。scale=放大倍數；bg=None 透明背景，或給調色盤字元當底色。
+    palette=None 用內建 SWEETIE-16；傳入自訂 dict（如 pixel16 的漸層盤）即可同引擎渲染 16bit。"""
+    pal = palette if palette is not None else PALETTE
     h, w = len(grid), len(grid[0])
     for i, row in enumerate(grid):
         if len(row) != w:
             raise ValueError(f"第 {i} 列長度 {len(row)} ≠ {w}（網格必須矩形）")
         for ch in row:
-            if ch not in PALETTE:
+            if ch not in pal:
                 raise ValueError(f"第 {i} 列有未定義字元 {ch!r}")
-    base = (0, 0, 0, 0) if bg is None else (*PALETTE[bg], 255)
+    base = (0, 0, 0, 0) if bg is None else (*pal[bg], 255)
     img = Image.new("RGBA", (w, h), base)
     px = img.load()
     for y, row in enumerate(grid):
         for x, ch in enumerate(row):
-            rgb = PALETTE[ch]
+            rgb = pal[ch]
             if rgb is not None:
                 px[x, y] = (*rgb, 255)
     if scale != 1:

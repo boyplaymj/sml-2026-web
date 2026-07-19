@@ -12,7 +12,7 @@
 
 ## 🎨 8bit 遊戲圖（統一像素風產線）
 
-要做 Discord 遊戲的 **8bit / 像素圖**（sprite、圖示、道具、吉祥物、emoji）時，用 **skill `pixel8`** ＋ 工具 `tools/pixel8/`（先讀其 `README.md`）。鐵律：**用程式擺像素、鎖 SWEETIE-16 調色盤**，**絕不用 Bedrock/擴散生圖畫 8bit**（會糊邊、風格漂移）。純程式、零額外成本。
+要做 Discord 遊戲的 **8bit / 16bit / 像素圖**（sprite、圖示、道具、吉祥物、emoji）時，用 **skill `pixel8`** ＋ 工具 `tools/pixel8/`（8bit，先讀其 `README.md`）或 `tools/pixel16/`（16bit 漸層光影版，同引擎、多 `RAMPS`＋`shift_ramp`）。鐵律：**用程式擺像素、鎖定調色盤**，**絕不用 Bedrock/擴散生圖畫像素資產**（會糊邊、風格漂移）。純程式、零額外成本。
 
 ## 📌 頻道檢查點（切帳號／重啟不失憶）
 
