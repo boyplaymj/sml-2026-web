@@ -162,9 +162,78 @@ test('ShrineFortuneDAO: 既有方法仍在(getByPlayer/put/addMerit/setYakuHarai
   }
 });
 
-// ── 7. handler 尚未接線(S3-0a-ii 前空陣列)──
-test('Shrine: commands/buttons/selects 先為空陣列(S3-0a-i 不含 handler)', () => {
-  assert.deepEqual(shrine.commands, []);
-  assert.deepEqual(shrine.buttons, []);
-  assert.deepEqual(shrine.selects, []);
+// ── 7. S3-0a-ii:三陣列接線(key/func/criminalAccess)──────────
+const Config = require('../config.js');
+const TAG = Config.interactionDataTag;
+
+test('Shrine: commands=!神社(criminalAccess:block)、buttons=shrenter/shrbow、selects=shrnav', () => {
+  assert.equal(shrine.commands.length, 1);
+  assert.equal(shrine.commands[0].key, '神社');
+  assert.equal(shrine.commands[0].criminalAccess, 'block');
+  assert.equal(typeof shrine.commands[0].func, 'function');
+
+  assert.deepEqual(shrine.buttons.map((b) => b.key), ['shrenter', 'shrbow']);
+  for (const b of shrine.buttons) assert.equal(typeof b.func, 'function');
+
+  assert.deepEqual(shrine.selects.map((s) => s.key), ['shrnav']);
+  assert.equal(typeof shrine.selects[0].func, 'function');
+});
+
+// ── 8. S3-0a-ii:component 組裝(customId/選項)────────────────
+test('_entranceRow: 單一按鈕、customId=shrenter(getCustomID 組)', () => {
+  const row = shrine._entranceRow().toJSON();
+  assert.equal(row.components.length, 1);
+  const btn = row.components[0];
+  assert.equal(btn.custom_id, 'shrenter' + TAG);
+  assert.equal(btn.custom_id.split(TAG)[0], 'shrenter'); // 派發反解 name=shrenter
+  assert.ok(btn.label.includes('甜甜神社へ'));
+});
+
+test('_bowInRow: 單一按鈕、customId=shrbow-in(args 反解出 in)', () => {
+  const row = shrine._bowInRow().toJSON();
+  assert.equal(row.components.length, 1);
+  const btn = row.components[0];
+  const [name, ...args] = btn.custom_id.split(TAG);
+  assert.equal(name, 'shrbow');
+  assert.deepEqual(args, ['in']);
+  assert.ok(btn.label.includes('一礼して入る'));
+});
+
+test('_navComponents: [下拉(9 選項,shrnav), 退場鈕(shrbow-out)] 兩個 ActionRow', () => {
+  const comps = shrine._navComponents();
+  assert.equal(comps.length, 2);
+
+  // Row1:導覽下拉
+  const menuRow = comps[0].toJSON();
+  assert.equal(menuRow.components.length, 1);
+  const menu = menuRow.components[0];
+  assert.equal(menu.custom_id.split(TAG)[0], 'shrnav');
+  assert.equal(menu.placeholder, '⛩️ どちらへ參りますか');
+  assert.equal(menu.options.length, 9);
+  // 每個選項 label/emoji/value 與 navFacilities 一致,value 都能 resolveLocation
+  const nav = shrine.navFacilities();
+  menu.options.forEach((opt, i) => {
+    assert.equal(opt.label, nav[i].label);
+    assert.equal(opt.value, nav[i].value);
+    assert.equal(opt.emoji.name, nav[i].emoji);
+    assert.ok(shrine.resolveLocation(opt.value), 'option value 找不到 location: ' + opt.value);
+  });
+  // 奧社入口對到石段
+  assert.ok(menu.options.some((o) => o.value === 'okusha_stair'));
+
+  // Row2:退場礼鈕
+  const exitRow = comps[1].toJSON();
+  assert.equal(exitRow.components.length, 1);
+  const exitBtn = exitRow.components[0];
+  const [name, ...args] = exitBtn.custom_id.split(TAG);
+  assert.equal(name, 'shrbow');
+  assert.deepEqual(args, ['out']);
+  assert.ok(exitBtn.label.includes('一礼して退く'));
+});
+
+// ── 9. handler 存在性(互動流程本身要 bot restart 手動測)──────
+test('Shrine: openEntrance/enter/bow/navigate handler 方法存在', () => {
+  for (const m of ['openEntrance', 'enter', 'bow', 'navigate', '_entranceRow', '_bowInRow', '_navComponents']) {
+    assert.equal(typeof shrine[m], 'function', m);
+  }
 });
