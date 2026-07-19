@@ -65,6 +65,9 @@
 - **Codex 查驗**：無任何 v3 路徑繞過 `reserveUnits`；capture 仍 1/分；bridge 間隔已放寬；writer 只碰自己欄位。
 
 ## STAGE 5 — 部署 / IAM / 排程（Claude，機械）
+> **打包**：`tools/lambda/deploy-lambda.sh <name>`；zip root 保留 `_shared/`+`<name>/`，Handler=`<name>/index.handler`（相對 require 才解得開，本地冒煙已證）。
+> **✅ 5b/5c 完成**：Lambda `sml-yt-live-detect`（nodejs20.x、role sml-overlay-control-role、env YT/FS/FS_PROJECT/CHANNEL_ID）已建、Active、invoke 回 `skipped:off`；EventBridge `sml-yt-live-detect-2min` rate(2min) ENABLED+target+permission。`ytLiveDetect` doc mode=**off**（等 STAGE 6 演練後才 flip auto）。
+> **⏳ 5d**：重佈 `sml-chat-capture`（deploy-lambda.sh + Handler 改 `sml-chat-capture/index.handler`），部署後立即 invoke 驗證。**⏳ 4b/5e**：bridge 待解封。
 - 建 Lambda `sml-yt-live-detect`（Node），env：`YT_API_KEY`/`FS_API_KEY`/`FS_PROJECT`/`CHANNEL_ID`；EventBridge `rate(2 minutes)` ENABLED。
 - 重佈 `sml-chat-capture` + `sml-yt-chat-bridge`。
 - score-repo 部署護欄：先 commit 乾淨、確認無並行 session 佔用。
