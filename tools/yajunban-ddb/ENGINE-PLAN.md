@@ -33,7 +33,7 @@ DynamoDB 9 表                 ← ✅ 完成
 | 清潔/摸頭(G1/G2 ✅ 定稿) | obesity/friendship/xp 收支 + 每日次數閘門 | ✅ `careTxn`(通用照顧範本:白名單 + careVersion 鎖 + `daily` 當日計數整包覆寫) | 已完成(clean/pet engine 走 `_doCare`;走格子/發酵 obesity 收支待 pH 模型) |
 | 移動 | 走一格(扣 khui + 搬桶) | ✅ `WorldDAO.moveTo` | engine 接 |
 | 相鄰/偷菜/殘渣 | 找目標 + 複驗 + 拾取 | ✅ `neighbors`/`verifyOccupant`/`pickLoot` | engine 接 + 偷菜寫法 |
-| 配點/碎片兌換/技能/轉職 | 消耗+授予(TransactWrite) | 🔶 `consumeItem` 有,**各自 TransactWrite 未做** | 新 DAO 寫法數個 + engine |
+| 配點/碎片兌換/技能/轉職 | 消耗+授予(TransactWrite) | 🔶 `consumeItem` 有,**各自寫法未做**;配點玩法設計已鎖草稿 [GROWTH-talent-DRAFT.md](./GROWTH-talent-DRAFT.md)(一般天賦=單 UpdateItem 待 D1 拍板) | 新 DAO 寫法數個 + engine |
 | **戰鬥** | 3×3/8 步/19 狀態/pH **記憶體引擎** + 開戰/結算 | ✅ `startBattle`/`resolveBattle` | **記憶體戰鬥引擎(大)** + engine |
 | 堡壘內政/出征/糖潮 | 建堡/資源/raid/claim | ✅ Fortress/Raid/SugarPulse/GuildPool DAO 全有 | engine 接(較薄) |
 | 任務/群感/繼承通道 | 進度追蹤 + 發獎 + 遺產 | 🔶 ledger 有,**quest 進度/繼承 TransactWrite 未做** | 新 DAO 寫法 + engine |
