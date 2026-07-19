@@ -132,6 +132,7 @@ function normalizeTask (raw, existingKeys) {
   }
   t.enabled = toBool(raw.enabled, true);
   t.isHidden = toBool(raw.isHidden, false); // 隱藏任務:不進正常抽題池,由 bot 稀有骰另抽;預設 false
+  t.distinct = toBool(raw.distinct, false); // 不重複計數:progress=已出現的不同 key 數(如玩 N 種不同遊戲);預設 false
   return t;
 }
 
