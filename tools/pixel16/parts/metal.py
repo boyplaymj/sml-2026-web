@@ -87,6 +87,42 @@ def plate(ramp, w, h, rad=2, sheen=0.30):
     return _from(c)
 
 
+def shade(grid, ramp, sheen=0.30):
+    """把任意「已填色輪廓」(非 '.' 即形狀)上成金屬光影:
+    柱面體積(中央亮脊)+ 浮凸邊緣(左上亮/右下暗)+ 對角鏡面掃光。
+    獎盃/鑰匙/王冠等不規則造型共用。輪廓先用任意佔位字元畫,再交給它。"""
+    S = _ramp_step(ramp)
+    c = _to(grid)
+    H, W = len(c), len(c[0])
+    cells = [(x, y) for y in range(H) for x in range(W) if c[y][x] != "."]
+    if not cells:
+        return grid
+    xs = [p[0] for p in cells]
+    ys = [p[1] for p in cells]
+    minx, maxx, miny = min(xs), max(xs), min(ys)
+    span = max(1, maxx - minx)
+    cx = (minx + maxx) / 2
+
+    def solid(x, y):
+        return 0 <= x < W and 0 <= y < H and c[y][x] != "."
+
+    for x, y in cells:                       # 柱面橫向漸層
+        u = abs(x - (cx - 1)) / span * 2
+        c[y][x] = S(1 - min(1, u))
+    for x, y in cells:                       # 浮凸邊緣
+        if (not solid(x - 1, y)) or (not solid(x, y - 1)):
+            c[y][x] = S(1)
+        elif (not solid(x + 1, y)) or (not solid(x, y + 1)):
+            c[y][x] = S(0)
+    for x, y in cells:                       # 對角鏡面掃光
+        band = (x - minx) - (y - miny) * 1.25 - span * sheen
+        if -1.5 <= band <= 2.5:
+            c[y][x] = S(1)
+        if -0.4 <= band <= 0.9:
+            c[y][x] = HI
+    return _from(c)
+
+
 def emboss_line(grid, x0, x1, y, ramp):
     """壓紋刻痕:一列暗線 + 下一列亮線 = 凹刻立體。"""
     S = _ramp_step(ramp)
