@@ -9,14 +9,14 @@
   "clues": {
     "poster": "m1-notice.png",
     "message": "m1-line-staff.png",
-    "site": "https://image.boyplaymj.link/pq/mingyan.html"
+    "site": "https://image.boyplaymj.link/pq/case13/forum.html"
   },
   "stages": [
     {
       "stage": 1,
       "poster": "m1-notice.png",
       "message": "m1-line-staff.png",
-      "site": "https://image.boyplaymj.link/pq/mingyan.html?stage=1",
+      "site": "https://image.boyplaymj.link/pq/case13/forum.html",
       "docs": [
         "m1-scene.png",
         "m1-news.png",
@@ -30,7 +30,7 @@
       "stage": 2,
       "poster": "m1-notice.png",
       "message": "m2-line-gossip.png",
-      "site": "https://image.boyplaymj.link/pq/mingyan.html?stage=2",
+      "site": "https://image.boyplaymj.link/pq/case13/forum.html",
       "docs": [
         "m2-notebook-b.png",
         "m2-hr.png",
@@ -43,7 +43,7 @@
     {
       "stage": 3,
       "poster": "m1-notice.png",
-      "site": "https://image.boyplaymj.link/pq/mingyan.html?stage=3",
+      "site": "https://image.boyplaymj.link/pq/case13/forum.html",
       "docs": [
         "m3-access-log.png",
         "m3-notebook-c.png",
@@ -55,7 +55,7 @@
     {
       "stage": 4,
       "poster": "m1-notice.png",
-      "site": "https://image.boyplaymj.link/pq/mingyan.html?stage=4",
+      "site": "https://image.boyplaymj.link/pq/case13/forum.html",
       "docs": [
         "m4-electrical.png",
         "m4-pigment.png",
