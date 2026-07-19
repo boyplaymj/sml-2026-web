@@ -148,7 +148,8 @@ growth: {
 >   - **給點原語** `MonsterDAO.grantTalentPoint(userId, grantKey, n)`:單一 conditional UpdateItem on `M#BUILD`,`ADD talent_points_available :n, talent_point_grants :key`,條件 `attribute_exists(userId) AND NOT contains(talent_point_grants, :keyStr)` → **claimed-set 冪等**、`attribute_exists` 守衛擋未孵化憑空建幽靈 BUILD;失敗補 ConsistentRead 分類 `no_build/already_granted/conflict`。新增稀疏 SS 屬性 `talent_point_grants`(key=`evo:<stage>`/`kingaku:<m>`),已同步 STAGE3 M#BUILD + 寫入路徑。
 >   - **菌核躍動** `GrowthEngine.kingakuCheck(userId)`(**可 live**):讀 CORE.xp → 比隱藏里程碑 `points.kingakuMilestones` → 未領逐一 grant(升序、冪等保底 xp 最終一致下最壞晚給不重複)→ 玻璃箱 DTO 恰三欄 `{pulsed, justPulsed, pointsGained}`(不外流 xp/門檻/總量)。
 >   - **進化給點** `GrowthEngine.grantEvolutionPoint(userId, newStage)`:薄封裝 `evo:<stage>` key;完整進化門檻(7門檻/23插槽/外觀重生)屬另片,屆時 stage-up 的 CORE+BUILD TransactWrite 把此給點當 BUILD leg(冪等→拆/合皆安全)。
->   - 測試:DAO +17(→118)、engine +11(→48),**全 yajunban 680 pass / 0 fail**。未打 AWS、未 wire discord/面板。
+>   - **給點量煞車語義(Codex 二驗 P2 收斂)**:`perKingaku`/`perEvolution` 經 `sanitizePerPoint` 清洗 —— **正整數才給;`0`=後台煞車(停用該來源);負/小數/NaN=壞 config → fail-safe 停用**(熱路徑不 throw、不神秘退回 1)。kingaku 煞車回 `{pulsed:false}`;evo 煞車回 `{ok:false, reason:'grant_disabled'}`。`kingakuMilestones` 讀時 filter 正整數 + 去重 + 升序。
+>   - 測試:DAO +17(→118)、engine +16(→53),**全 yajunban 685 pass / 0 fail**。未打 AWS、未 wire discord/面板。
 > **下一步候選**:(c) 💎數值天賦(`talent_unlockable`)另片;(d) 洗點(菌核回溶劑)+ 轉生免費預點;(e) 完整進化門檻(7門檻+23插槽+外觀,把 grantEvolutionPoint 掛進 stage-up TransactWrite)。
 
 ### 工程決策(✅ 已拍板 2026-07-19)
