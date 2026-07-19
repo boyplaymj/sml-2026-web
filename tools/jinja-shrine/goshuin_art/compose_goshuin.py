@@ -41,6 +41,8 @@ SUBSEAL_IMG={
   "sakura":   ("goshuin_art/assets/seal_sakura.png", (211,96,140)),   # 春櫻=櫻花桃紅
   "nagoshi":  ("goshuin_art/assets/seal_nagoshi.png",(46,104,168)),   # 夏越=水藍
   "momiji":   ("goshuin_art/assets/seal_momiji.png", (198,88,36)),    # 紅葉=楓橙
+  "okumiya":  ("goshuin_art/assets/seal_okumiya.png",(126,66,156)),   # 奧社牌神=紫
+  "okumiya-season": ("goshuin_art/assets/seal_okumiya.png",(190,150,52)), # 奧社限定=同印金色
 }
 def tint(img,color):  # 把不透明像素全塗成指定色(保留alpha)
     r,g,b=color; px=img.load(); w,h=img.size
