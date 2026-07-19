@@ -75,9 +75,9 @@ def compose(vid,big,crestch,sub,acc,bg_):
     H=int(W*210/148); bg=src.resize((W,H)); d=ImageDraw.Draw(bg)
     ink=(26,22,20); red=(172,32,32)
     vcol_s(d,int(W*.865),int(H*.135),"奉拝",64,ink,int(H*.086)) # ② 奉拝(右上,放大)
-    # ⑤ 日期(左,今天日期,國字直式;依字數自動縮放塞滿版面高度)
-    ds=date_cn(DATE_STR); span=H*0.66; dcell=min(int(H*.072),int(span/len(ds))); dsz=int(dcell*.86)
-    vcol_s(d,int(W*.125),int(H*.10),ds,dsz,ink,dcell)
+    # ⑤ 日期(左,今天日期,國字直式;字距縮小=cell 逼近字級)
+    ds=date_cn(DATE_STR); dsz=min(int(H*.060),int(H*0.66/len(ds))); dcell=int(dsz*1.02)
+    vcol_s(d,int(W*.125),int(H*.115),ds,dsz,ink,dcell)
     # 印鑑(兩顆,大小不同、位置錯開)
     seal1=Image.open("goshuin_art/assets/seal.png").convert("RGBA")   # 大顆=中央神社印
     seal2=Image.open("goshuin_art/assets/seal2.png").convert("RGBA")  # 小顆=上方鈐印
