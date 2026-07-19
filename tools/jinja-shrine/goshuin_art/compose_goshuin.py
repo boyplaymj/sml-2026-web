@@ -23,6 +23,15 @@ V=[
  ("okumiya-season","奧社限","牌","限定",(198,150,30),"cool"),
 ]
 W=680
+# 季節印用「印鑑圖片」並重新上色的版本(可逐版本擴充):vid -> (印圖, 顏色RGB)
+SUBSEAL_IMG={ "shogatsu": ("goshuin_art/assets/seal_hatsu.png", (201,162,58)) }  # 初春=金色
+def tint(img,color):  # 把不透明像素全塗成指定色(保留alpha)
+    r,g,b=color; px=img.load(); w,h=img.size
+    for y in range(h):
+        for x in range(w):
+            a=px[x,y][3]
+            if a>0: px[x,y]=(r,g,b,a)
+    return img
 def cchar(d,cx,cy,ch,font,fill,stroke=0,scol=None):
     b=d.textbbox((0,0),ch,font=font,stroke_width=stroke)
     d.text((cx-(b[2]-b[0])/2-b[0],cy-(b[3]-b[1])/2-b[1]),ch,font=font,fill=fill,stroke_width=stroke,stroke_fill=scol or fill)
@@ -60,7 +69,10 @@ def compose(vid,big,crestch,sub,acc,bg_):
     n=len(big); csz={2:150,3:118,4:96}.get(n,92)
     vcol(d,int(W*.50),scy-int(csz*(n-1)/2)-int(csz*.1),big,F(csz),ink,int(csz*1.06),stroke=0)
     # 季節副印(左下方,accent白字方印)
-    if sub:
+    if vid in SUBSEAL_IMG:   # 季節印=印鑑圖片(重新上色)
+        p,col=SUBSEAL_IMG[vid]; si=tint(Image.open(p).convert("RGBA"),col)
+        ss=98; si=si.resize((ss,ss)); bg.paste(si,(int(W*.17),int(H*.785)),si)
+    elif sub:                # 季節印=程式方印+字
         ss=84; sx,sy=int(W*.20),int(H*.80); d.rectangle([sx,sy,sx+ss,sy+ss],fill=acc)
         vcol_s(d,sx+ss//2,sy+8,sub,36,(250,247,240),int((ss-16)/2))
     out=f"goshuin_art/out/{vid}.png"; bg.save(out); print("ok",vid)
