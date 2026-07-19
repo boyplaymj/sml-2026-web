@@ -134,14 +134,15 @@ growth: {
 
 ## 8 · DAO / engine 分層計畫(照 feed/clean/pet 範本)
 
-1. **config `growth.talents`**(§7)—— 先結構 + 產酸臂範例節點,其餘臂/真值待 section-talent。
-2. **DAO `MonsterDAO.allotTalent(userId, nodeId, { prereq, cost })`**
-   對 `M#BUILD` 的寫入,條件:`talent_points_available >= cost` AND `contains(全部 prereq)` AND `NOT contains(nodeId)`(冪等防重複扣點);`ADD talent_nodes :node, talent_points_available :-cost`。
-   回 `{ ok } / { ok:false, reason:'no_points'/'prereq_unmet'/'already_owned' }`。
-   - 首次配點:`talent_nodes` 稀疏不存在 → `contains` 回 false → `NOT contains` 為 true(允許)、`ADD` 建立 SS。
-3. **engine `GrowthEngine.allotTalent(userId, nodeId)`**
-   讀 status(CORE.stage + BUILD nodes/points + soul)→ 硬閘(stage≥node.stage)+ 軟閘(算 cost/mult)→ 查 config 節點定義 → 呼 DAO → 回玻璃箱 DTO。
-4. **各層測試**(不打 AWS,同 care 片流儀)。
+1. **✅ config `growth.talents`**(§7)—— 結構 + 產酸臂 5 範例節點 + `getTalent(nodeId)` 存取器(其餘臂/真值待 section-talent)。commit `7c7a7b4`。
+2. **✅ DAO `MonsterDAO.allotTalent(userId, nodeId, { prereq, cost })`**
+   `M#BUILD` 單一 conditional UpdateItem:`SET updatedAt ADD talent_nodes :node, talent_points_available :-cost`,條件 `points≥cost AND NOT contains(node)(冪等) AND contains(全 prereq)`;失敗補一次 ConsistentRead 分類 → `no_build/no_points/already_owned/prereq_unmet/conflict`;非條件錯 rethrow。首次配點 talent_nodes 稀疏→NOT contains 放行、ADD 建 SS。commit `25a5336`。
+3. **✅ engine `GrowthEngine.allotTalent(userId, nodeId)`**
+   讀 CORE.stage + BUILD nodes/points + PROGRESS soul → 硬閘(stage≥node.stage 讀時判定)+ 軟閘(`computeSoftGate`:現世 soul 算 cost/effectMult,缺→中性)→ config getTalent → DAO → 玻璃箱 DTO(結構透明、裸點數不外流,只揭「還可以點」事件)。DAO 補 `getBuild`/`getProgress`。commit `74e153c`。
+4. **✅ 各層測試**(不打 AWS):config 31 / MonsterDAO 101 / growth 20,全 yajunban 635 pass。
+
+> **一般天賦配點主迴圈 = code-complete**(step 1-3)。未 live(engine 階段攢著,未 wire discord.js/面板)。
+> **下一步候選**:(a) 讀天賦樹面板 DTO(逐節點 locked/available/owned 狀態,渲染用);(b) 進化給點 + 菌核躍動 give-point;(c) 💎數值天賦(`talent_unlockable`)另片;(d) 洗點(菌核回溶劑)+ 轉生免費預點。
 
 ### 工程決策(✅ 已拍板 2026-07-19)
 - **D1 ✅ 單一 conditional UpdateItem**(非 TransactWrite):消耗(points−cost)與授予(nodes ADD)**同在 `M#BUILD` 兩鍵** → 一發 UpdateItem 即原子。TransactWrite 只在**進化**(同時動 CORE.stage + BUILD)才需要。已同步改 STAGE1 §1-2/§寫入路徑 + STAGE3 §寫入路徑 的標記(免分岔)。
