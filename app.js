@@ -277,7 +277,9 @@ function renderCalendar(){
       const isToday = (`${y}-${m}-${d}`===TODAY);
       if(gm){
         const gc = gm.grp==='men' ? '#38bdf8' : '#f472b6';
-        cells+=`<button class="cal-cell game ${isToday?'today':''}" style="--gc:${gc}" onclick="openGame('${gm.grp}',${gm.i})">
+        const played = !!GAME_RESULTS[gameKey(gm.grp,gm.players)];   // 已播並結算
+        cells+=`<button class="cal-cell game ${played?'played':''} ${isToday?'today':''}" style="--gc:${gc}" onclick="openGame('${gm.grp}',${gm.i})">
+          ${played?'<span class="cal-done" title="已完成">✓</span>':''}
           <span class="cal-num">${d}</span><span class="cal-pill">${gm.grp==='men'?'男':'女'}G${gm.g}</span></button>`;
       }else{
         cells+=`<div class="cal-cell ${isToday?'today':''}"><span class="cal-num">${d}</span></div>`;
@@ -294,7 +296,7 @@ function renderCalendar(){
 let GAME_RESULTS = {};
 let _openGame = null;                                       // 記住目前展開的場次，資料更新時可重繪
 const gameKey = (grp,players) => grp + '|' + players.slice().sort().join(',');
-const RANK_MEDAL = ['①','②','③','④'];
+const RANK_MEDAL = ['1','2','3','4'];
 const RANK_LABEL = ['冠軍','亞軍','季軍','殿軍'];
 
 function openGame(grp,i,scroll){

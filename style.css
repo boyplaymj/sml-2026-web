@@ -390,6 +390,12 @@ footer .brand-logo{height:46px;}
 .cal-pill{margin-top:2px;font-family:var(--ff-disp);font-weight:900;font-size:9px;letter-spacing:.04em;
   color:#fff;background:var(--gc);border-radius:20px;padding:1px 6px;line-height:1.5;}
 .cal-cell.today{outline:2px solid var(--gold);outline-offset:1px;}
+/* 已播場次：左上角完成勾勾 + 略淡化 */
+.cal-cell.game.played{opacity:.62;background:color-mix(in srgb,var(--gc) 9%,transparent);}
+.cal-cell.game.played:hover{opacity:1;}
+.cal-done{position:absolute;top:3px;left:3px;z-index:3;width:15px;height:15px;border-radius:50%;
+  display:grid;place-items:center;font-size:9px;font-weight:900;line-height:1;color:#04231a;
+  background:#34d399;box-shadow:0 1px 4px rgba(0,0,0,.55);}
 
 /* 對戰展開面板 */
 .game-detail{margin-top:24px;border:1px solid var(--gold);border-radius:18px;overflow:hidden;
@@ -416,9 +422,9 @@ footer .brand-logo{height:46px;}
   color:#a7f3d0;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.4);vertical-align:middle;}
 .gd-card.ranked{border-color:color-mix(in srgb,var(--c) 40%,var(--line-soft));}
 .gd-card.champ{border-color:var(--gold);box-shadow:0 0 0 1px color-mix(in srgb,var(--gold) 45%,transparent) inset;}
-.gd-medal{position:absolute;top:8px;left:8px;z-index:2;width:30px;height:30px;border-radius:50%;
-  display:grid;place-items:center;font-size:18px;font-weight:900;color:#0b1220;
-  background:rgba(255,255,255,.9);box-shadow:0 3px 10px rgba(0,0,0,.5);}
+.gd-medal{position:absolute;top:8px;left:8px;z-index:2;width:28px;height:28px;border-radius:50%;
+  display:grid;place-items:center;font-family:var(--ff-disp);font-size:16px;font-weight:900;line-height:1;
+  text-align:center;color:#0b1220;background:rgba(255,255,255,.9);box-shadow:0 3px 10px rgba(0,0,0,.5);}
 .gd-medal.r1{background:linear-gradient(160deg,#fde68a,#f59e0b);color:#3a2500;}
 .gd-medal.r2{background:linear-gradient(160deg,#e5e7eb,#9ca3af);}
 .gd-medal.r3{background:linear-gradient(160deg,#f0b892,#c2651c);color:#2a1200;}

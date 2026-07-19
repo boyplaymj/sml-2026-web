@@ -131,6 +131,7 @@ function normalizeTask (raw, existingKeys) {
     t.rewardPropQty = Math.max(1, Math.floor(Number(raw.rewardPropQty) || 1));
   }
   t.enabled = toBool(raw.enabled, true);
+  t.isHidden = toBool(raw.isHidden, false); // 隱藏任務:不進正常抽題池,由 bot 稀有骰另抽;預設 false
   return t;
 }
 
@@ -193,8 +194,11 @@ exports.handler = async (event) => {
     if (action === 'preview') {
       const vipLevel = Math.max(0, Math.min(10, Math.floor(Number(body.vipLevel) || 0)));
       const drawCount = 3 + vipLevel;
-      const pool = (await scanAll(T_CONFIG))
-        .filter(t => t.enabled !== false)
+      const allCfg = await scanAll(T_CONFIG);
+      const hiddenCount = allCfg.filter(t => t.enabled !== false && t.isHidden === true).length;
+      // 正常抽題池排除隱藏任務(隱藏由 bot 端稀有骰另抽,不佔正常張數)
+      const pool = allCfg
+        .filter(t => t.enabled !== false && !t.isHidden)
         .map(t => ({ key: String(t.key), title: t.title, difficulty: t.difficulty, weight: Math.max(0, Number(t.weight) || 0) }));
       const totalWeight = pool.reduce((s, x) => s + x.weight, 0);
       const TRIALS = 3000;
@@ -212,7 +216,7 @@ exports.handler = async (event) => {
         .sort((a, b) => b.appearProb - a.appearProb);
       const difficultyMix = {};
       for (const [k, v] of Object.entries(diffCount)) difficultyMix[k] = +(v / totalDrawn).toFixed(3);
-      return reply(200, { ok: true, drawCount, pool: pool.length, totalWeight, difficultyMix, tasks });
+      return reply(200, { ok: true, drawCount, pool: pool.length, totalWeight, difficultyMix, tasks, hiddenCount });
     }
 
     return reply(400, { ok: false, error: 'unknown action: ' + action });
