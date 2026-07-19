@@ -50,11 +50,13 @@ evolution: {
 1. **DAO `buildEvolveTxn(userId, spec, now)` → TB**(可測 `.build()`);`evolve()` send+分類。
    - CORE leg:`SET stage=:new, updatedAt` 條件 `stage=:cur AND xp≥ AND survival_hours≥ AND charm≥ AND friendship≥ AND reputation≥ AND born_at≤:cutoff AND sick_type=:none`。
    - BUILD leg:`ADD talent_points_available :per, talent_point_grants {evo:<stage>}` 條件 `attribute_exists(userId) AND NOT contains(talent_point_grants, evo:<stage>)`。
-   - `ClientRequestToken=evolve#<uid>#<newStage>`(冪等)。**恰一次升階**由 CORE `stage=:cur` 保證(升完 stage=new,再升的 `=cur` 必失敗)。
-   - 分類:idx1(BUILD)失敗→`already_evolved`;idx0(CORE)失敗→`not_eligible`;其餘→`conflict`。
+   - **不設 `ClientRequestToken`**(Codex 二驗 P1-1):**恰一次升階**由 CORE `stage=:cur` + BUILD claimed-set 保證(升完 stage=new,再升的 `=cur` 必失敗);設 token 反會因同 stage 重送時 `now`/`cutoffBornAt` 重算 → DDB `IdempotentParameterMismatch`。
+   - 分類(Codex 二驗 P1-3 細化):idx0(CORE)失敗→`not_eligible`;idx1(BUILD)失敗→`_classifyEvolveFail` 強讀 CORE/BUILD → CORE 已達階=`already_evolved` / BUILD 缺=`no_build`(fail-loud) / evo key 已claim 但 stage 未升=`inconsistent_evo_claim` / 其餘=`conflict`。
    - builder 補 `conditionLte`/`conditionNotContains`(共用 infra,鏡像 `conditionGte`)。
-2. **engine `checkEvolution(userId)`**:讀 core → 逐門檻 met/unmet → 玻璃箱 DTO(`canEvolve`/`nextStage`/每閘 met bool + 分帶提示,**不給裸 charm/friendship/xp/門檻數值**,對齊 STAGE3 line 131);已達 stage6 頂 → `atMax`。
+2. **engine `checkEvolution(userId)`**:讀 core → 逐門檻 met/unmet → 玻璃箱 DTO(`canEvolve`/`nextStage`/每閘 met bool,**不給裸 charm/friendship/xp/門檻數值**,對齊 STAGE3 line 131);已達 stage6 頂 → `atMax`。
 3. **engine `evolve(userId)`**:pre-check→不合格回 reasons→合格算 cutoffBornAt/thresholds→呼 DAO evolve→透傳分類。玻璃箱只揭「進化了!→stageN」事件。
+4. **門檻 fail-CLOSED**(Codex 二驗 P1-2):`sanitizeEvolutionThreshold` 六欄須為 **number 型別 + finite + 非負**(擋 null/字串/負 —— `Number()||0` 會靜默轉 0 = 白嫖升階漏洞);壞值回 `bad_threshold` 不進 DAO。明確數字 `0` 合法。
+> ✅ **Codex 二驗結案(2026-07-19)**:無 P0;P1×3 全收斂(sweetbot-next commit `a1e7231`);全 yajunban **746 pass/0 fail**。
 
 ## 5 · 開工前依賴(不擋結構)
 - 🔵 section-growth:六階 6 門檻真值 + 分帶尺度。
