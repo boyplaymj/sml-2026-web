@@ -10,6 +10,10 @@
 
 判斷成本或加 LLM 前，先讀 `tools/COST_CONTROL.md`（正典）與 skill `claude-api`（現價/SDK）。
 
+## 🎨 8bit 遊戲圖（統一像素風產線）
+
+要做 Discord 遊戲的 **8bit / 像素圖**（sprite、圖示、道具、吉祥物、emoji）時，用 **skill `pixel8`** ＋ 工具 `tools/pixel8/`（先讀其 `README.md`）。鐵律：**用程式擺像素、鎖 SWEETIE-16 調色盤**，**絕不用 Bedrock/擴散生圖畫 8bit**（會糊邊、風格漂移）。純程式、零額外成本。
+
 ## 📌 頻道檢查點（切帳號／重啟不失憶）
 
 discord-bridge 有「全自動釘選檢查點」機制（`aws/discord-bridge/checkpoint.go`）：切帳號或重啟會清空所有頻道 session，開新對話時 bridge 會自動把該頻道**最新的置頂檢查點**讀回、注入我的第一個 prompt，讓對話無縫接續。
