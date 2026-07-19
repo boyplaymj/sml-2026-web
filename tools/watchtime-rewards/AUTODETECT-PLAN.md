@@ -56,7 +56,8 @@
 ## STAGE 4 — 既有 Lambda 接帳本 + kill switch（Claude，小改）
 > **拆 4a/4b**：`sml-yt-chat-bridge/index.js` 有別 session 未提交編輯 → 先做 4a(capture)、4b(bridge) 待其乾淨。
 > **共用模組**：`reserveUnits`/`budgetCompute` 已收斂到 `tools/lambda/_shared/ytBudget.js`（單一來源，內含 `makeBudgetDeps` 真實 CAS transport 工廠）；detect 的 `lib/budget.js` 改為 re-export shim。三個 Lambda import 同一份。STAGE 5 部署各 zip 需打包 `_shared/`。
-> **✅ 4a 已完成**：capture 每個 v3（videos.list 解析 + liveChatMessages.list）前 `reserveUnits(1)`、deny 即 skip；新增 `liveChatVideoId` 欄位做換片重置。detect 58 測試經 shim 仍全綠、capture `node -c` 過。
+> **✅ 4a 完成並 Codex 複驗綠**（score-repo `fe2bd94`）：capture 每個 v3（videos.list 解析 + liveChatMessages.list）前 `reserveUnits(1)`、deny 即 skip；`liveChatVideoId` 換片重置（含 legacy）；terminal `ended`（連續解析失敗 endMissCount≥2；`parseResolve` 確保 API failure≠terminal）。純函式 12 測 + detect 58 測全綠。
+> **⏳ 4b（bridge）待做**：等 `sml-yt-chat-bridge/index.js` 別 session 未提交編輯清掉後：加 `reserveUnits(1)` + 輪詢 5s→10s。
 - `sml-chat-capture`：每次 `yt()` 前呼叫 STAGE 2b 的 `reserveUnits(1)`；`!allowed` 則跳過該次呼叫。維持 1 次/分。抓取器寫入沿用既有 `capWrite`（已是 updateMask 逐欄，符合 finding 2）。
 - ⚠️**videoId 換片重置（Claude STAGE 3 覆核發現）**：偵測器 activate 新片時只寫 `{videoId,enabled}`、**不碰** liveChatId/pageToken（writer 契約）。因此 capture 必須在**偵測到 `videoId` 與自己 liveChatId 所屬的片不同時，先清掉 liveChatId+pageToken 再重解**，否則新片會沿用上一場的 stale liveChatId（雖會靠 400 於 ~1 分自癒、期間不誤寫訊息，但應主動重置）。做法：capture 記住上次處理的 videoId，發現變了就 reset liveChatId/pageToken。
 - `sml-yt-chat-bridge`：同上 + 頂上供應時把 `MIN_POLL` 5s→10s（最壞用量砍半）。
