@@ -271,6 +271,44 @@
 
 ---
 
+## 5.4 御朱印系統（v0.3 定案：月度收藏養成 buff）
+
+**定位**：長線月度養成——每月蓋一枚御朱印，給**小幅但長效**的運氣加乘，且**收藏越多、每月加乘越強**。與御守（持有型分軸 buff）、御神籤（每日短效 buff）三者時間尺度錯開。
+
+### 機制
+- **一個月只能蓋 1 枚**（台北月曆月）。統一 **500🦷**／枚，差在**款式**。⏰ 受付 09:00–15:00（§5.3）。
+- **同款可再蓋**（御朱印本就記「日期」，同印不同月各成一枚＝真實習俗）→ 每月蓋印即 +1 收藏，不必湊新款。
+- **運氣加乘**：蓋印當下套一個**六軸小幅 buff**，`source:'goshuin'`、**效期 30 天**（撐到下次蓋印，覆蓋制）。
+  - **幅度隨累計蓋印枚數成長**：`delta = min(2 + (枚數 − 1) × 1, 10)`（六軸各 +delta）。新手 +2、老手封頂 +10。**始終溫和**（+10→約 +2% 收益、PvE ×1.04），**不碰 PvP**（§1.2 鐵律）。
+  - 缺當月新款也能蓋（重蓋任一款純續 buff＋推收藏）→ 月月有事做、buff 不斷層。
+- **收藏永久**進御朱印帳；分頁列每枚（款式＋蓋印年月）。季節款有窗口、奧社款需通關（限定款＝收藏多樣性；% 由總枚數驅動）。
+
+### 版本目錄（config `goshuinVersions`，統一 500🦷）
+| 版本 | 類別 | 出現條件 |
+|---|---|---|
+| 本社印「麻雀大明神」 | 常駐 | 全年 |
+| 初詣・正月 / 春櫻詣 / 夏越大祓 / 秋葉紅葉 | 季節 | config `window:[起,迄]`（台北）窗口內 |
+| 奧社・牌神 / 季節×奧社 | 奧社·限定 | 通關奧社內殿（活動期） |
+
+### 資料/存取（沿用 `sweetbot-shrine-goshuin`）
+- **SK 改為 `goshuin#<YYYY-MM>`（台北年月）** → **一枚/月由 SK 唯一性 + 條件寫入原子強制**（`attribute_not_exists`）。屬性：`versionId`、`stampedAt`、`ym`、`imageKey`。
+- 累計枚數 = 該玩家 Query count（小量、by-player，無 GSI）。
+- buff 走 `fortune.buffs[]`（`source:'goshuin'`，覆蓋制）＝與御神籤同機制，引擎 `computeLuck` 已會讀。
+
+### 圖像（$0）
+御朱印圖＝**書法社名＋大朱印**，程式合成（Noto Serif 直排＋紅印，同御神籤管線），先 placeholder→可替換使用者生成正式圖，存圖床、素材不進 git。
+
+### config 區塊
+```js
+goshuin: {
+  stampFee: 500, buffDays: 30, buffBase: 2, buffPerStamp: 1, buffCap: 10,
+  versions: [ /* {id,name,category,window?,requireOkumiya?,image} */ ]
+}
+```
+> fail-safe：config 缺 goshuin → 蓋印停用（不亂送 buff）；buff 缺欄位以預設補。
+
+---
+
 ## 6. 資料模型（DDB，全 PAY_PER_REQUEST）
 
 > 表名前綴一律 `sweetbot-shrine-*`（對齊 sweetbot-next 既有慣例，非 `sml-`）。全 `PAY_PER_REQUEST` @ `ap-southeast-1`。詳細 schema/keys/存取模式見 `STAGE0.md`。
@@ -279,7 +317,7 @@
 |---|---|---|
 | `sweetbot-shrine-fortune` | 玩家運氣狀態 | PK=discordId；六子屬性 base + 當前 buff 陣列（各帶 `expireAt`）；`lastHarai`（洗手日）；厄年狀態；功德值；**奧社進度**（`okumiyaClearedAt`/`okumiyaAttemptDate`/`okumiyaAttemptsToday`，v0.2） |
 | `sweetbot-shrine-omamori` | 玩家御守持有 | PK=discordId, SK=御守實例；type、`acquiredAt`、`expireAt(=+365d)`、是否已回收、穢れ狀態 |
-| `sweetbot-shrine-goshuin` | 御朱印帳收藏 | PK=discordId, SK=版本；蓋印日、活動 |
+| `sweetbot-shrine-goshuin` | 御朱印帳收藏 | PK=discordId, **SK=`goshuin#<YYYY-MM>`**（台北年月，一枚/月由 SK 唯一+條件寫入強制，§5.4）；versionId/stampedAt/ym/imageKey |
 | `sweetbot-shrine-ema` | 繪馬牆 | PK=月分桶, SK=createTime；玩家願文（公開）、讚 |
 | `sweetbot-shrine-pillar` | 表參道石柱捐獻 | PK=discordId（累計）；金額、刻字（榮譽榜=小表 scan） |
 | `sweetbot-shrine-omikuji-pool` | 籤詩池（後台可增修） | PK=omikujiId；籤階、和歌、分項 score（見 §2.2） |
