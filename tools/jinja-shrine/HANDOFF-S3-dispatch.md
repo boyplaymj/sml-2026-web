@@ -10,8 +10,9 @@
 |---|---|---|---|
 | S3-omikuji | 抽御神籤（每抽100🦷、只首抽計運、凶籤強制結ぶ） | 授與所 | `HANDOFF-S3-omikuji.md` |
 | S3-goshuin | 御朱印（月度500🦷、六軸長效buff隨枚數成長） | 御朱印受付所 | `HANDOFF-S3-goshuin.md` |
+| S3-1 | 手水舍（五步→temizuMult 折扣、跨系統） | 手水舍 | `HANDOFF-S3-1-temizu.md` |
 
-兩者互相獨立，但**共用下列前置 → 先做一次、兩邊共用，別各寫一份**。
+三者互相獨立，但**共用下列前置 → 先做一次、兩邊共用，別各寫一份**。`applyTemizuMult`/`ShrineTemizu.js` 由 **S3-1 §2 純核心**落地（omikuji/goshuin/御守 都呼叫它；`temizu.enabled` 預設 false 時回 1.0，故三者可先於手水 UI 上線）。
 
 ---
 
@@ -37,7 +38,7 @@
 ---
 
 ## 2. 建議建置順序
-1. **共用前置**（§1：replaceBuffsBySource / isOpen / config / 面板骨架）。
+1. **共用前置**（§1：replaceBuffsBySource / isOpen / **`ShrineTemizu.js` 純核心(judgeTemizu/resolveTemizuMult/applyTemizuMult)** / config含temizu / 面板骨架）。
 2. **御神籤**：ShrineOmikujiPoolDAO + `seed_omikuji_pool.js`（讀 `omikuji_pool.json` 33 筆）+ ShrineOmikujiService（draw/musubu）+ **ShrineLuck 加 pendingKyo drain（保既有 20 test 綠）** + 卡片。
 3. **御朱印**：ShrineGoshuinDAO（SK=`goshuin#<YYYY-MM>` 條件寫入）+ ShrineGoshuinService（stamp/book）+ 卡片。
 4. 各自 `node --test` 全綠 → **Opus 覆核** → 同步 `tools/jinja-shrine/impl-s3/` → **Codex 二驗**。
