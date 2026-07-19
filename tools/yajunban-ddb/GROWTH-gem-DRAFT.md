@@ -16,6 +16,8 @@
 - **D-c3 觸發 + 冪等**:`gemCheck(userId)`(仿 `kingakuCheck`)在數值變動後呼叫 → 讀 `CORE.stats` 比 config 門檻 → 未標且已達的 `ADD talent_unlockable`(claimed-set 冪等,重跑不重複標)。
 - **D-c4 習得 = 原子搬移**:`learnGem(userId, gemId)` 單一 conditional UpdateItem:`DELETE talent_unlockable :gem` + `ADD talent_gems :gem`,條件「在 unlockable 且 不在 gems」→ 可習得→已習得 原子搬移。
 
+> **Codex 階段1 二驗收斂(2026-07-19)**:P1-1 `markGemUnlockable` 條件補 `NOT contains(talent_gems)` 保三態互斥(否則已習得 gem 被重標);P1-2 STAGE3 M#BUILD `talent_gems` 已回填正典+孵化缺省+寫入路徑;P2-1 兩 DAO 用 raw `UpdateCommand`(非 builder,避免 `REMOVE` 刪整包 SS);P2-2 config `getGemTalent` 補測(讀/null/override deep-merge)。
+
 ## 2 · 狀態機(每 gem)
 ```
    stat < threshold ─────────────────► [locked]     (面板:🔒 未達)
@@ -39,9 +41,11 @@ gemTalents: {                                          // key=gemId(稀疏)
 存取器 `ConfigStore.getGemTalent(gemId)`(缺=null)。
 
 ## 4 · DAO / engine 分層(照 (b) 範本)
-1. **DAO `markGemUnlockable(userId, gemId)`**:單一 conditional UpdateItem on M#BUILD,`ADD talent_unlockable :gem`,條件 `attribute_exists(userId) AND NOT contains(talent_unlockable, :gemStr)`(冪等 claimed-set,擋幽靈 BUILD)。分類 `no_build/already_unlockable/conflict`。
-2. **DAO `learnGem(userId, gemId)`**:單一 conditional UpdateItem,`DELETE talent_unlockable :gem` + `ADD talent_gems :gem`,條件 `attribute_exists(userId) AND contains(talent_unlockable, :gemStr) AND NOT contains(talent_gems, :gemStr)`。原子搬移。分類 `no_build/not_unlockable/already_learned/conflict`。
-3. **engine `gemCheck(userId)`**:讀 CORE.stats → 比 gemTalents 門檻 → 未標且已達的逐一 markGemUnlockable → 玻璃箱 DTO(揭「💠N 個新數值天賦可習得」事件,**不外流裸 stats/門檻**)。
+> ⚠️ **兩個 DAO 都用單顆 raw `UpdateCommand`(仿 `grantTalentPoint`),非 `YajunbanTransactionBuilder`**(Codex (c) P2-1):builder 只做跨顆 TransactWrite,且其 `.remove()` 是 `REMOVE path`(刪整包屬性),**不是** DDB Set-元素 `DELETE`。learnGem 的 `DELETE talent_unlockable :gem` 是 raw UpdateExpression 的 Set-元素刪除(只刪該 gem,保留其餘)。
+
+1. **DAO `markGemUnlockable(userId, gemId)`**(單顆 raw UpdateCommand on M#BUILD):`ADD talent_unlockable :gem`,條件 `attribute_exists(userId) AND NOT contains(talent_unlockable, :gemStr) AND NOT contains(talent_gems, :gemStr)`。⚠️ **`NOT contains(talent_gems)` 不可省**(Codex (c) P1-1):否則已習得的 gem 因 stat 仍達標被 `gemCheck` 重標回 unlockable,破壞三態互斥。分類 `no_build/already_unlockable/already_learned/conflict`。
+2. **DAO `learnGem(userId, gemId)`**(單顆 raw UpdateCommand):`SET updatedAt DELETE talent_unlockable :gem ADD talent_gems :gem`,條件 `attribute_exists(userId) AND contains(talent_unlockable, :gemStr) AND NOT contains(talent_gems, :gemStr)`。可習得→已習得 原子搬移(同顆兩集,單 UpdateItem 即原子,免 Transact)。分類 `no_build/not_unlockable/already_learned/conflict`。
+3. **engine `gemCheck(userId)`**:讀 CORE.stats + BUILD(unlockable/gems)→ 比 gemTalents 門檻 → 未標、未習得、已達的逐一 markGemUnlockable(engine 先讀 BUILD 過濾 learned,DAO 條件再保險)→ 玻璃箱 DTO(揭「💠N 個新數值天賦可習得」事件,**不外流裸 stats/門檻**)。
 4. **engine `learnGem(userId, gemId)`**:驗 config 有此 gem → 呼 DAO → 玻璃箱 DTO(揭「習得💎」+ 方向敘述)。
 5. **engine `getGemPanel(userId)`**:讀 stats + unlockable + gems → 逐 gem 狀態 locked/unlockable/learned(玻璃箱:met 布林 + 狀態,**不給裸 stats/門檻數值**,對齊配點環玻璃箱)。
 

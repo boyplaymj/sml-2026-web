@@ -74,7 +74,7 @@
 | `createdAt` | N | `Date.now()` | item 建立時間(epoch ms) | — |
 | `updatedAt` | N | `Date.now()` | 最後寫入時間(epoch ms),每次 UpdateItem SET | — |
 
-**孵化 = 單一 `TransactWrite` 原子建立 M#CORE + M#BUILD**(Codex Stage3 合流 #3:不可只 Put M#CORE,否則中途失敗留半隻怪獸)。兩顆各帶 `ConditionExpression attribute_not_exists(userId)` 防重複孵化。M#CORE 初值:`stage=1, xp=0, charm/friendship/reputation/survival_hours=0, obesity_level=0, battle_deaths=0, satiety=滿, sick_type=none`;M#BUILD 初值:`job_guild=null, job_tier=0, talent_points_available=0, skill_slots=預設空槽`,而 `talent_nodes/talent_unlockable/skill_bag/slots` 屬性**不寫**(缺省視為空)。M#PROGRESS 走 lazy-create(首次接任務/成就時建),或 Stage4 決定納入孵化交易。
+**孵化 = 單一 `TransactWrite` 原子建立 M#CORE + M#BUILD**(Codex Stage3 合流 #3:不可只 Put M#CORE,否則中途失敗留半隻怪獸)。兩顆各帶 `ConditionExpression attribute_not_exists(userId)` 防重複孵化。M#CORE 初值:`stage=1, xp=0, charm/friendship/reputation/survival_hours=0, obesity_level=0, battle_deaths=0, satiety=滿, sick_type=none`;M#BUILD 初值:`job_guild=null, job_tier=0, talent_points_available=0, skill_slots=預設空槽`,而 `talent_nodes/talent_unlockable/talent_gems/talent_point_grants/skill_bag/slots` 屬性**不寫**(缺省視為空)。M#PROGRESS 走 lazy-create(首次接任務/成就時建),或 Stage4 決定納入孵化交易。
 
 ---
 
@@ -89,7 +89,8 @@
 | `talent_nodes` | SS | **(不寫·缺省=空集)** | **已點天賦節點 id 集合**。⚠️ **DynamoDB 不能存空 SS**(Codex Stage3 合流 #2)→ 預設**不寫此屬性**、缺省視為空;第一次配點用 `ADD talent_nodes :nodeSet` 建立(冪等原子單節點)+扣點。稀疏可讀。🔒:只給結構/方向,經 DTO(戰鬥才配靜態平衡表) | 元素=節點 id 字串,如 `"biofilm_A_3"`, `"acid_B_5"`, `"center_reborn_2"` |
 | `talent_points_available` | N | `0` | 可用天賦點(未花)。進化 +perEvolution / 菌核躍動 +perKingaku(給點原語 `grantTalentPoint` 原子 ADD;配點時原子扣,條件 ≥cost)。🔒裸值(只揭「可以點了」事件,不給數字) | — |
 | `talent_point_grants` | SS | **(不寫·缺省=空集)** | **已領過的「給點事由」key 集合**,當進化/菌核躍動給點的**冪等骨幹**(claimed-set)。key 形如 `"evo:3"`(進化到第3階)/`"kingaku:2000"`(躍動里程碑)。給點 = 單一 conditional UpdateItem `ADD talent_points_available :n, talent_point_grants :key`,條件 `attribute_exists(userId) AND NOT contains(talent_point_grants, :key)` → 同一事由只給一次(最終一致的 xp ADD 下最壞晚給、絕不重複)。⚠️ 同 talent_nodes:空 SS 不寫、缺省視為空;`attribute_exists(userId)` 守衛防對未孵化憑空建幽靈 BUILD。**(GROWTH-talent-DRAFT (b) 補欄)** | 元素=給點事由 key 字串 |
-| `talent_unlockable` | SS | **(不寫·缺省=空集)** | **數值天賦「已達門檻可習得」標記集合**(💎 數值天賦環,數值跨門檻時 `ADD` 寫入)。⚠️ 同 talent_nodes:空 SS 不寫、缺省視為空。與 nodes 分開:unlockable=可習得待點、nodes=已點。**(決策⑥點名補欄)**。🔒 | 元素=數值天賦節點 id,如 `"gem_atk_1"` |
+| `talent_unlockable` | SS | **(不寫·缺省=空集)** | **💎數值天賦「可習得待點」pending 集**(數值跨門檻 `markGemUnlockable` 時 `ADD`,條件 `attribute_exists(userId) AND NOT contains(talent_unlockable,:gem) AND NOT contains(talent_gems,:gem)` —— 後者防已習得的 gem 被重標,保三態互斥,Codex (c) P1-1)。習得後由 `learnGem` 原子搬到 `talent_gems`(DELETE 此集 + ADD 那集)。⚠️ 空 SS 不寫、缺省視為空。🔒 | 元素=gem id,如 `"gem_atk_1"` |
+| `talent_gems` | SS | **(不寫·缺省=空集)** | **💎已習得數值天賦集**(learn 後 effect 生效,戰鬥/面板讀此集查 config `gemTalents[id].effect`)。`learnGem` 單顆 raw UpdateCommand:`DELETE talent_unlockable :gem ADD talent_gems :gem`,條件 `attribute_exists(userId) AND contains(talent_unlockable,:gem) AND NOT contains(talent_gems,:gem)` → 可習得→已習得 原子搬移。⚠️ 空 SS 不寫、缺省視為空;與 unlockable 兩集不重疊(三態互斥)。**(GROWTH-gem-DRAFT (c) 補欄)** | 元素=gem id,如 `"gem_atk_1"` |
 | `skill_slots` | M | (見預設) | 已裝備技能槽(槽數受 stage 限:主動 1→4/被動 1→2/天賦欄固定 1)。裝備/替換寫。存裝備中技能 id | `{ active:L[skillId,...], passive:L[skillId,...], talent:L[skillId] }`;3 格技能佔多格由 DTO/戰鬥層驗 |
 | `skill_bag` | M | `{}` | 技能包包:已學會技能→等級。學新招/升級寫(TransactWrite 扣道具)。基礎技替換不消失、一般技替換遺忘(從 bag 刪)。各技有 Lv 上限(後台平衡閥) | `{ <skillId>: { level:N } }`(key 即 skillId,不冗存 id;Codex Stage3 合流 #4) |
 | `job_guild` | S | `null` | 所屬公會:`acid_smith`/`matrix_builder`/`pioneer`/`bridger`/`toxin_chemist`/`schemer`(六公會);未就職=null。轉職 TransactWrite 驗種族禁忌+階段+任務。見存疑⑩ | — |
@@ -114,6 +115,8 @@
 | 配點(talent_points −cost + talent_nodes ADD 節點) | M#BUILD | **單一 conditional UpdateItem**(兩鍵同顆→原子,免 Transact;TransactWrite 只在進化耦合 CORE+BUILD 時。GROWTH-talent-DRAFT D1) |
 | 菌核躍動給點(talent_points +perKingaku + talent_point_grants ADD `kingaku:<m>`) | M#BUILD | **單一 conditional UpdateItem**(claimed-set 冪等,`attribute_exists(userId) AND NOT contains(...)`;非 Transact。GROWTH-talent-DRAFT (b)) |
 | 進化給點(talent_points +perEvolution + talent_point_grants ADD `evo:<stage>`) | M#BUILD | **單一 conditional UpdateItem**(給點原語同上);完整進化門檻/插槽/外觀=另片,屆時 stage-up 的 CORE+BUILD TransactWrite 把此給點當 BUILD leg(冪等→拆/合皆安全) |
+| 💎標記可習得(talent_unlockable ADD `gem`) | M#BUILD | **單一 conditional UpdateItem**(`markGemUnlockable`:`attribute_exists AND NOT contains(unlockable) AND NOT contains(gems)`;claimed-set 冪等 + 防已習得重標。GROWTH-gem-DRAFT (c)) |
+| 💎習得 gem(talent_unlockable DELETE + talent_gems ADD `gem`) | M#BUILD | **單一 conditional UpdateItem**(`learnGem` raw:`DELETE talent_unlockable :gem ADD talent_gems :gem`,條件 `attribute_exists AND contains(unlockable) AND NOT contains(gems)`;可習得→已習得原子搬移。非 builder=避免 REMOVE 刪整包) |
 | 學技能/升級(skill_bag + 扣道具) | M#BUILD(+背包表) | **TransactWrite** |
 | 裝備/替換技能槽 | M#BUILD | UpdateItem,槽數≤stage 條件 |
 | 轉職(job_guild/job_tier) | M#BUILD | **TransactWrite**(驗種族禁忌/階段/任務) |
