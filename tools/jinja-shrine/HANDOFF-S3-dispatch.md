@@ -20,6 +20,7 @@
    - omikuji 用 `source:'omikuji'`、goshuin 用 `source:'goshuin'`。兩單都要「覆蓋制」→ 這支是唯一實作。
    - omikuji 另需 `clearKyo`（REMOVE pendingKyo + 濾掉 `source==='omikuji' && delta<0`）。
 2. **時間閘 helper `isOpen(facility, now)`** — 純比較台北小時對 `config.hours`（`sanpai:[9,17]`、`goshuin:[9,15]`）；**fail-safe：缺 hours → 全日開放**。omikuji 授與所預設全日、goshuin 受付 09–15。
+2b. **手水乘數 `applyTemizuMult(fortune, buffs, now)`（跨系統共用前置，見 `RITUAL.md §4`）** — 取當日 `fortune.temizuMult`（`temizuDate`≠今日 → 0.2）；把每筆 buff 的**正向 delta** `× mult`（負向不折）。**御神籤首抽 / 御守 / 御朱印 / 本殿参拜**四處 grant buff **前**都要過這支。三檔：未手水 0.2 / 錯序 0.5 / 正解 1.0（手水 S3-1 寫入，當日第一次定生死、不能重做）。**gate by `config.temizu.enabled`（預設 `false` → mult 恆 1.0）**：S3-1 手水 UI 上線前先關著（否則沒手水入口卻全被 80% off＝壞體驗），手水做好後才開 `true` 啟用折扣。config 缺 → mult=1.0（fail-safe）。
 3. **config 區塊**：`defaults.js` + `seed_shrine_config.js` 同時加 `omikuji{}`（HANDOFF-S3-omikuji §7）與 `goshuin{}`（S3-goshuin §4）+ `hours`。
 4. **Shrine.js 面板**：兩系統各加設施操作鈕（授與所+「抽御神籤」、御朱印受付所+「蓋御朱印」「御朱印帳」），一起改一次 `facilityActionRow`/`handleAction`/handler 表。
 
