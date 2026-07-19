@@ -1,0 +1,6 @@
+# 素材不進 git（圖走圖床 image.boyplaymj.link）
+omikuji_art/bg/
+omikuji_art/out/
+omikuji_art/_contact_sheet.png
+# 毛筆字型可 re-download（見 compose.py 註記），太大不進 git
+fonts/
