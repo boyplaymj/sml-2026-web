@@ -136,7 +136,7 @@
 | `mood` | emoji + 怪獸口吻提示文字 |
 | `obesity_level` | 體態名(精實/圓潤/臃腫/病態臃腫),外觀圖變胖 |
 | `satiety / sick_type` | 需求提示💬、生病狀態帶名 |
-| `talent_nodes / talent_points_available / talent_unlockable` | 天賦樹「結構+方向」透明、數字不透明;只揭「可以點了」事件 |
+| `talent_nodes / talent_points_available / talent_unlockable / talent_gems` | 天賦樹「結構+方向」透明、數字不透明;只揭「可以點了/💠可習得/💎已習得」事件。gem panel 只輸出狀態(locked/unlockable/learned)+ effect 名,不直出裸 stats/門檻(GROWTH-gem-DRAFT (c)) |
 | `khui`(由 khui_last_ts 算) | 菌氣格數(給格數可以,不給內部間隔數) |
 
 ---
