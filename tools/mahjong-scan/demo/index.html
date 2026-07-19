@@ -19,6 +19,13 @@
   header .tag{font-size:11px; color:var(--sub); border:1px solid var(--line); padding:1px 7px; border-radius:99px}
   header .sub{margin-left:auto; font-size:11px; color:var(--sub)}
 
+  /* 掃描鈕 */
+  .scan{width:100%; border:none; border-radius:14px; padding:14px; margin-bottom:11px;
+    font-size:16px; font-weight:800; letter-spacing:.5px; color:#04222e;
+    background:linear-gradient(180deg,#5fd0ff,#38bdf8); box-shadow:0 3px 10px rgba(56,189,248,.35)}
+  .scan:active{transform:translateY(1px)}
+  .scan:disabled{opacity:.55; background:var(--panel2); color:var(--sub); box-shadow:none}
+
   /* 牌圖（2:3） */
   .tile{display:block; width:100%; height:auto; aspect-ratio:311/468; border-radius:6px;
     object-fit:contain; user-select:none; -webkit-user-drag:none;
@@ -68,9 +75,12 @@
 <body>
 <header>
   <h1>兩雀 · 聽什麼</h1>
-  <span class="tag">P0 原型</span>
+  <span class="tag">P1 辨識</span>
   <span class="sub">台灣 16 張制</span>
 </header>
+
+<button id="scanBtn" class="scan">📷 拍照 / 選照片辨識牌</button>
+<input id="fileIn" type="file" accept="image/*" capture="environment" hidden>
 
 <div class="result" id="result">
   <div class="status">
@@ -99,7 +109,9 @@
   <span class="note">吃碰槓露出後只點暗牌（暗牌 13/10/7 張也能判聽）· 花牌/暗槓 P0 未支援 · 判定核心 MahjongHand.js（6000 手驗證）</span>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/ort.min.js"></script>
 <script src="mahjongHand.js"></script>
+<script src="detect.js"></script>
 <script>
 (function(){
   var MAX=17;             // 門清最多 16 張，摸進第 17 張可判胡；副露暗牌更少
@@ -219,6 +231,32 @@
   document.getElementById('egBtn').addEventListener('click', function(){
     // 16 張三面聽：一萬刻 + 456萬 + 78萬 + 123索 + 123筒 + 中將 → 聽 3/6/9萬
     hand=[1,1,1, 4,5,6, 7,8, 11,12,13, 21,22,23, 501,501]; render();
+  });
+
+  // 📷 掃描辨識
+  var scanBtn=document.getElementById('scanBtn'), fileIn=document.getElementById('fileIn');
+  function scanStatus(msg){ elPhase.textContent=''; setPill('辨識','var(--accent)');
+    elHead.className='headline'; elHead.textContent=msg; }
+  scanBtn.addEventListener('click', function(){ fileIn.click(); });
+  fileIn.addEventListener('change', function(){
+    var f=fileIn.files && fileIn.files[0]; if(!f) return;
+    var img=new Image();
+    img.onload=function(){
+      scanBtn.disabled=true; scanStatus('載入辨識模型…');
+      MahjongDetect.detectTiles(img, scanStatus).then(function(out){
+        URL.revokeObjectURL(img.src);
+        hand = out.ids.slice(0, MAX);           // 辨識結果灌入手牌
+        scanBtn.disabled=false; render();
+        if(out.ids.length===0){ elHead.className='headline warn';
+          elHead.textContent='沒辨識到牌 · 換個角度、讓牌面清楚再拍一次'; }
+      }).catch(function(e){
+        scanBtn.disabled=false; elHead.className='headline bad';
+        elHead.textContent='辨識失敗：'+(e && e.message ? e.message : e);
+      });
+    };
+    img.onerror=function(){ elHead.className='headline bad'; elHead.textContent='圖片讀取失敗'; };
+    img.src=URL.createObjectURL(f);
+    fileIn.value='';
   });
 
   buildPalette(); render();
