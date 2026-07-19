@@ -2,8 +2,8 @@
 import json
 from PIL import Image, ImageDraw, ImageFont
 from fontTools.ttLib import TTFont as _TT
-SR="fonts/NotoSerifTC.otf"        # 明朝(缺字回退,全覆蓋)
-SIDE="fonts/SideFont.ttf"         # ZHLYSS_T(全部文字主用字型;使用者指定)
+SR="fonts/NotoSerifTC.otf"        # 明朝(保底回退;實際上ShiShiRuYi已全覆蓋不觸發)
+SIDE="fonts/ShiShiRuYi.ttf"       # 獅尸如意小雅辭麗(全部文字主用;御神籤全字0缺)
 def F(s): return ImageFont.truetype(SR,s)
 def FS(s): return ImageFont.truetype(SIDE,s)
 _sd=set(_TT(SIDE).getBestCmap().keys())
