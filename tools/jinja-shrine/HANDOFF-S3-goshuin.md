@@ -74,7 +74,9 @@ goshuin: {
 ## 5. Discord 卡片（Shrine.js）
 - **蓋御朱印**：面板加 `shract goshuin/stamp` → 若當月未蓋 → 列**當前可蓋款式**（StringSelect，季節/奧社依條件過濾）→ 選款 → `service.stamp` → ephemeral 更新（顯示新枚＋「六軸運勢 +delta（30 天）」＋累計枚數）。已蓋過當月 → 提示「本月已蓋（下月請早）」。
 - **御朱印帳**：`shract goshuin/book` → `service.book` → embed 分頁列已蓋（款名＋年月）＋「已集 N 枚」＋未蓋款式灰列。
-- 圖：御朱印圖 `imageBaseUrl/<versionId>.png`。
+- 圖：御朱印圖 = **書法社名＋雙篆刻印鑑＋當日參拜日期**。⚠️ **日期上圖(定案:圖上帶蓋印日)** → 圖**非純靜態版本圖**,需在**蓋印時帶當日日期合成**（`goshuin_art/compose_goshuin.py` 已可傳日期；每枚存 `imageKey` 指向合成結果）。
+  - **實作抉擇(Codex 定)**：(a) 蓋印時 shell out 跑 Python 合成器產圖→上圖床→存 imageKey；或 (b) 把合成器 port 成 Node(canvas)在 sweetbot-next 內跑。二者皆 $0(無 LLM)。素材(字型/印鑑)隨工具走、不進 git。
+  - 版本底圖(印鑑/社紋/副印色)固定，只有「日期」逐枚不同 → 也可預生成 7 版本底圖、蓋印時僅疊日期一層(最省)。
 
 ---
 

@@ -3,7 +3,19 @@
 # 印鑑來源:使用者提供之篆刻印鑑(Discord附件)→ goshuin_art/assets/seal.png(白底去背);素材不進git
 from PIL import Image, ImageDraw, ImageFont
 from fontTools.ttLib import TTFont as _TT
-import math
+import math, datetime, sys
+
+# ── 日期→國字直式(參拜日期,預設今天;可傳 YYYY-MM-DD 覆蓋) ──
+_D="〇一二三四五六七八九"
+def _cn_ymd(n):  # 月/日 1..31 → 國字
+    if n<10: return _D[n]
+    t,o=divmod(n,10); s=("" if t==1 else _D[t])+"十"+(_D[o] if o else "")
+    return s
+def date_cn(dstr=None):
+    d=datetime.date.today() if not dstr else datetime.date.fromisoformat(dstr)
+    y="".join(_D[int(c)] for c in str(d.year))
+    return f"{y}年{_cn_ymd(d.month)}月{_cn_ymd(d.day)}日"
+DATE_STR = sys.argv[1] if len(sys.argv)>1 else None   # 可命令列傳日期,否則今天
 SR="fonts/JinXiHaoLong.otf"   # 金梅浩龍書法體(中央社名大書;御朱印用字全覆蓋)
 SIDE="fonts/SideFont.ttf"     # ZHLYSS_T(使用者提供;側邊小字:奉拝/日期/副印)
 def F(s): return ImageFont.truetype(SR,s)
@@ -57,17 +69,19 @@ def compose(vid,big,crestch,sub,acc,bg_):
     sw,sh=src.size; src=src.crop((int(sw*.13),int(sh*.11),int(sw*.87),int(sh*.89)))
     H=int(W*210/148); bg=src.resize((W,H)); d=ImageDraw.Draw(bg)
     ink=(26,22,20); red=(172,32,32)
-    vcol_s(d,int(W*.85),int(H*.20),"奉拝",34,ink,int(H*.05)) # ② 奉拝(右上,側字型)
-    vcol_s(d,int(W*.145),int(H*.22),"〇年〇月〇日",34,ink,int(H*.055)) # ⑤ 日期(左,側字型)
+    vcol_s(d,int(W*.865),int(H*.135),"奉拝",64,ink,int(H*.086)) # ② 奉拝(右上,放大)
+    # ⑤ 日期(左,今天日期,國字直式;依字數自動縮放塞滿版面高度)
+    ds=date_cn(DATE_STR); span=H*0.66; dcell=min(int(H*.072),int(span/len(ds))); dsz=int(dcell*.86)
+    vcol_s(d,int(W*.125),int(H*.10),ds,dsz,ink,dcell)
     # 印鑑(兩顆,大小不同、位置錯開)
     seal1=Image.open("goshuin_art/assets/seal.png").convert("RGBA")   # 大顆=中央神社印
     seal2=Image.open("goshuin_art/assets/seal2.png").convert("RGBA")  # 小顆=上方鈐印
     s2=118; seal2=seal2.resize((s2,s2)); bg.paste(seal2,(int(W*.50)-s2//2,int(H*.075)),seal2) # 上方小印
     s1=250; seal1=seal1.resize((s1,s1)); scx,scy=int(W*.50),int(H*.49)
     bg.paste(seal1,(scx-s1//2,scy-s1//2),seal1)                       # 中央大印
-    # ③ 社名(中央大書,墨,細筆不描邊,壓大印上)
-    n=len(big); csz={2:150,3:118,4:96}.get(n,92)
-    vcol(d,int(W*.50),scy-int(csz*(n-1)/2)-int(csz*.1),big,F(csz),ink,int(csz*1.06),stroke=0)
+    # ③ 社名(中央大書,墨,細筆不描邊,壓大印上;放大)
+    n=len(big); csz={2:210,3:168,4:132}.get(n,128)
+    vcol(d,int(W*.50),scy-int(csz*(n-1)/2)-int(csz*.05),big,F(csz),ink,int(csz*1.02),stroke=0)
     # 季節副印(左下方,accent白字方印)
     if vid in SUBSEAL_IMG:   # 季節印=印鑑圖片(重新上色)
         p,col=SUBSEAL_IMG[vid]; si=tint(Image.open(p).convert("RGBA"),col)
