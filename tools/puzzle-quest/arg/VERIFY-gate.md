@@ -50,5 +50,22 @@ B1/B3/B4/B5 一如既往 ✅
 - [ ] unknown case 不再寫 bundleCache；長度上限有效。
 - [ ] `node test.js` 14/14、`./package.sh` 產 zip 內含 index.js/cases.json/bundles。
 
+## 2a-3（已上線 2026-07-19）：建 AWS ＋ 部署 ＋ E2E
+使用者批准後執行，Codex R2 已放行。**基礎設施（ap-southeast-1）**：
+- Lambda `sml-puzzle-arg`（nodejs20.x, 128MB, timeout 10s）；exec role `sml-puzzle-arg-role`（僅 AWSLambdaBasicExecutionRole，無 DDB/密鑰）。
+- HTTP API `sml-puzzle-arg`（id `uodv2enht1`），**單一路由 `GET /arg`**，AWS_PROXY payload 2.0，`$default` stage auto-deploy。
+- 端點 `gateUrl` = `https://uodv2enht1.execute-api.ap-southeast-1.amazonaws.com/arg` → 已回填 `mingyan-world.json` config.gateUrl 並重跑 build.py（50 頁、audit 全綠）。
+- S3：`aws s3 sync dist/mingyan/ s3://boyplaymj-image/pq/case13/ --exclude "_*.json"`（50 檔，`_secret_bundle.json` 未上傳，已驗 S3 無此物件）；CloudFront E2IJWN6FWT2XYG 失效 `/pq/case13/*`。
+
+**Codex 6 檢查逐項驗（皆過）**：
+1. ✅ zip 由 `package.sh` 現場打包。
+2. ✅ 只提供 `GET /arg`（無 `$default` catch-all）。
+3. ✅ `gateUrl` 回填後重跑 `build.py`。
+4. ✅ S3 deploy `--exclude "_*.json"`；dry-run 確認上傳集無 `_*.json`，S3 實查無 `_secret_bundle.json`。
+5. ✅ 直打 API：stage<4／跨案／未知節點 → 403 且 body 無 secret（live）；`_probe` 暫時案（映射現行 live puzzleId、minStage1）直打 → 200 回內文，證 200 分支 wiring 通，測完移除重部署（`_probe` 現 403）。
+6. ✅ 部署後 view-source 靜態殼（`d-pigment.html` 等）真 keystone 零命中（audit B6 authoritative 綠；手動 grep 命中的 `接地` 是 stage3 安全紀錄紅鯡魚「接地連續性正常」，不在 solution.core method/motive any-set）。
+
+**E2E（live CDN）**：`forum.html` 200；gated 殼 `d-pigment.html` 200、view-source 零 keystone、指向 gate URL；殼 runtime 打 gate → 403（現行 live `puzzle_stage`=`hongchang-poison-coverup`，mingyan 未 active → 正確鎖）。待 mingyan 真正開案跑到 stage4，內文才由閘門發放。
+
 ## 💰 成本（同 PHASE2-DESIGN §G）
 Lambda＋HTTP API，讀 stage 可快取，無 LLM、無新 DDB（內文 bundle 進部署包）→ 免費額度內、<$1/月。

@@ -15,7 +15,7 @@
     "puzzleId": "mingyan-forgery-coverup",
     "firebaseKey": "AIzaSyAZaa_yHu7gsRaj71YL8x3REHfL_V5Tq4w",
     "firebaseProject": "sml2026newscore",
-    "gateUrl": ""
+    "gateUrl": "https://uodv2enht1.execute-api.ap-southeast-1.amazonaws.com/arg"
   },
   "nodes": [
     {
