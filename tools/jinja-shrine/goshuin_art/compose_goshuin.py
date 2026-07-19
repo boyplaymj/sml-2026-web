@@ -1,5 +1,6 @@
 # 御朱印圖(7款,對齊解析圖5部位):①社紋(頂圓神紋) ②奉拝(右上) ③社名(中央大書壓印)
 # ④神社印(中央紅方印刻社名) ⑤日期(左直排)。季節靠社紋色+副印區分。$0程式合成。
+# 印鑑來源:使用者提供之篆刻印鑑(Discord附件)→ goshuin_art/assets/seal.png(白底去背);素材不進git
 from PIL import Image, ImageDraw, ImageFont
 import math
 SR="fonts/JinXiHaoLong.otf"   # 金梅浩龍書法體(使用者提供;御朱印用字全覆蓋)
@@ -41,7 +42,10 @@ def compose(vid,big,crestch,sub,acc,bg_):
     crest(d,int(W*.50),int(H*.11),46,crestch,acc)          # ① 社紋
     vcol(d,int(W*.85),int(H*.19),"奉拝",F(34),ink,int(H*.05)) # ② 奉拝(右上)
     vcol(d,int(W*.145),int(H*.20),"〇年〇月〇日",F(34),ink,int(H*.055)) # ⑤ 日期(左)
-    nameseal(d,int(W*.50),int(H*.47),118,red)               # ④ 神社印(中央)
+    # ④ 神社印(中央)= 實體篆刻印鑑圖(使用者提供),去背貼上
+    seal=Image.open("goshuin_art/assets/seal.png").convert("RGBA")
+    sw=250; seal=seal.resize((sw,sw)); scx,scy=int(W*.50),int(H*.47)
+    bg.paste(seal,(scx-sw//2,scy-sw//2),seal)
     # ③ 社名(中央大書,墨,粗描邊,壓印上)
     n=len(big); csz={2:150,3:118,4:96}.get(n,92)
     vcol(d,int(W*.50),int(H*.47)-int(csz*(n-1)/2)-int(csz*.1),big,F(csz),ink,int(csz*1.06),stroke=3,scol=ink)
