@@ -44,27 +44,27 @@ def compose(rank,idx):
     r=W/bg.width; H=int(bg.height*r); bg=bg.resize((W,H)); d=ImageDraw.Draw(bg)
     ink=(28,26,24); red=(170,30,30); rcol=red if ji else (22,22,22); line=(110,95,80)
     # ── 標題方框 ──
-    hx0,hx1,hy0,hy1=int(W*.16),int(W*.84),int(H*.085),int(H*.205)
+    hx0,hx1,hy0,hy1=int(W*.22),int(W*.78),int(H*.095),int(H*.19)
     d.rectangle([hx0,hy0,hx1,hy1],outline=ink,width=3)
-    n=len(rank); rsz={1:96,2:84,3:66}.get(n,64); rf=F(rsz)
+    n=len(rank); rsz={1:78,2:68,3:54}.get(n,52); rf=F(rsz)
     ws=[d.textbbox((0,0),c,font=rf,stroke_width=2)[2]-d.textbbox((0,0),c,font=rf,stroke_width=2)[0] for c in rank]
     gap=int(rsz*.08); tw=sum(ws)+gap*(n-1); x=(W-tw)//2; ycen=(hy0+hy1)//2
     for c,wd in zip(rank,ws): cchar(d,x+wd/2,ycen,c,rf,rcol,2); x+=wd+gap
     # 甜甜神社(標題框右上外側直題小)
-    vcol(d,int(W*.90),int(H*.095),"甜甜神社",F(20),(120,105,92),int(H*.038))
+    vcol(d,int(W*.885),int(H*.10),"甜甜神社",F(18),(120,105,92),int(H*.034))
     # ── 詩文直格 4 欄(右起左行),含欄線 ──
-    gx0,gx1=int(W*.155),int(W*.845); gy0,gy1=int(H*.245),int(H*.585)
+    gx0,gx1=int(W*.205),int(W*.795); gy0,gy1=int(H*.25),int(H*.55)
     d.rectangle([gx0,gy0,gx1,gy1],outline=line,width=2)
     for k in range(1,4):
         lx=gx0+(gx1-gx0)*k//4; d.line([(lx,gy0),(lx,gy1)],fill=line,width=1)
-    poem=POEMS[rank]; cw=(gx1-gx0)/4; cell=(gy1-gy0)/5; csz=48
+    poem=POEMS[rank]; cw=(gx1-gx0)/4; cell=(gy1-gy0)/5; csz=42
     for i,ln in enumerate(poem):
         cx=int(gx1-cw*(i+0.5))   # 右→左
         vcol(d,cx,gy0+int(cell*0.1),ln,F(csz),ink,cell)
     # ── 下半:六分項解說直排(右起左行) ──
-    ix0,ix1=int(W*.155),int(W*.845); iy0,iy1=int(H*.61),int(H*.90)
+    ix0,ix1=int(W*.205),int(W*.795); iy0,iy1=int(H*.615),int(H*.85)
     d.line([(ix0,iy0),(ix1,iy0)],fill=line,width=1)
-    items=INTERP[rank]; icw=(ix1-ix0)/6; icell=int(H*.034); isz=21; lsz=22
+    items=INTERP[rank]; icw=(ix1-ix0)/6; icell=int(H*.030); isz=18; lsz=19
     for i,(cat,txt) in enumerate(items):
         cx=int(ix1-icw*(i+0.5))  # 右→左
         # 類名(紅,2字) + 解(墨,4字)
