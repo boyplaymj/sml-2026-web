@@ -93,5 +93,29 @@
 
 ## 7. 待拍板
 - 導覽用**下拉選單**(推薦,9 設施省版面)還是**方向按鈕**(參道上下走,更有移動感)?
-- 面板進場預設在 `torii`(鳥居)還是玩家上次離開的位置(需存 fortune.lastLocation)?
 - 風味文字(各地點旁白)批次待寫。
+- (進場預設已定:`torii` 鳥居下,先一礼硬門。)
+
+---
+
+## 8. 執行切分（小任務 · 標主手 · 每階段 Codex 驗）
+
+> 原則同 S2:每子任務**小到能一次做完 + 一次驗**。**先切「可單測核心」與「互動接線」**——互動流程無法離線單測(要 bot restart 手動點),把可測的邏輯獨立出來先做穩,接線再疊。做完 → Opus 覆核 → 同步 review 副本 → Codex 驗 → 過了才下一個。
+
+| # | 子任務 | 內容 | 主手 | 可單測? | 依賴 |
+|---|---|---|---|---|---|
+| **S3-0a-i** | visit DAO + 面板純核心 | `ShrineFortuneDAO` 加 openVisit/closeVisit/appendBuff;`Shrine.js` 純 helper(resolveLocation/_panel/_shitsureiOnEnter/flavor/載入 positions);node:test 全綠 | **🔵 Fable5** | ✅ 純單測(最穩,先做) | positions.json ✅ |
+| **S3-0a-ii** | 面板互動接線 | `Shrine.js` commands(`!神社`)/buttons(shrenter/shrbow)/selects(shrnav) handler + discord.js 4 行註冊 | **🔵 Fable5** | ❌ 手動(restart) | S3-0a-i |
+| **S3-0b** | 3 現成操作 + 選擇子流程 | 授與所 grant(選 6 御守)/古札納所 recycle(列御守選)/御祈禱 harai(選性別);接 §4 已備 service | **🔵 Fable5** | 部分(service 已測) | S3-0a-ii |
+| **S3-1** | 手水五步儀式 | 5 按鈕打散 + 順序 state machine + 失礼扣 + temizuDone(當日);**命門=順序 enforcement**(RITUAL §3) | **Opus 命門** + Fable5 | 順序判定純測 ✅ / 互動手動 | S3-0a-ii |
+| **S3-2** | 本殿參拜抽籤 | **ShrineOmikujiService.draw(新命門)** 讀 omikuji-pool→抽階→六軸 buff;需 temizuDone;吉凶詩文**無數值** | **Opus 命門** + Fable5 | draw 純測 ✅ | S3-1 |
+| **S3-3** | 市集買賣 | 開市排程 + 買折扣 + 賣道具納回部分牙齒 | **🔵 Fable5** | 部分 | S3-0a-ii |
+| **S3-4** | 御朱印帳 | 蓋印/收藏(季節版) | **🔵 Fable5** | 部分 | S3-0a-ii |
+| **S3-5** | 奧社聽牌試煉 | 翻牌回合引擎 + TTL 對局表 + 按鈕方陣 UI + MahjongHand 驗答(DESIGN §5.2) | **Opus 架構** + Fable5 | 純核心 ✅(MahjongHand 已備)/ 互動手動 | S3-0a-ii |
+
+**純 Fable5**:S3-0a-i、S3-0a-ii、S3-0b、S3-3、S3-4。
+**需 Opus 定命門/架構**:S3-1(手水順序)、S3-2(抽籤 draw)、S3-5(奧社試煉引擎)。
+
+**建議起跑順序**:**S3-0a-i(可單測核心,最穩)** → S3-0a-ii(接線)→〔此時可第一次 restart 手動測「走進神社+鞠躬+導覽」〕→ S3-1 手水 → S3-2 參拜 → S3-0b/S3-3/S3-4 設施 → S3-5 奧社。
+
+> ⚠️ **restart 依賴**:S3-0a-ii 起的互動都要 bot restart 才測得到 → 與 S2 部署窗口一起排(清 session + 協調 daily-quest/emoji 別 session)。**S3-0a-i 可完全離線做完做穩,不受 restart 影響 → 最適合現在先開工。**
