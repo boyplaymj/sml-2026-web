@@ -28,13 +28,15 @@
 ---
 
 ## 2. 新增：籤池 DAO `DAO/DDB/ShrineOmikujiPoolDAO.js`
-- 表 `sweetbot-shrine-omikuji-pool`，PK=`id`(S)。
+> ⚠️ **表已上線(S0)，PK=`omikujiId`(S)、非 `id`**（Codex 用 describe-table 回讀確認；base DAO 寫死 PK=id 不可用 → doc client 自寫）。**照此 PK，別重建表。**
 - `listAll()`：Scan 全表**必分頁**（`ExclusiveStartKey` 迴圈），回 33 筆。給 service 快取（60s）用，抽籤不必每次 Scan。
-- 每筆 schema（= `omikuji_pool.json` 一筆）：`{ id, rank, shi:[4], kaie, items:{ 商賣/爭事/學問/健康/戀愛/旅行: {score, text} } }`。
+- 每筆 schema（=`omikuji_pool.json` 一筆，**已對齊表 PK + 每 item 內嵌 axis**）：`{ omikujiId, rank, shi:[4], kaie, items:{ 商賣/爭事/學問/健康/戀愛/旅行: {score, text, axis} } }`。
 
 ## 2b. 種子 migration `migration/seed_omikuji_pool.js`
-- 讀 `tools/jinja-shrine/omikuji_pool.json` 的 `pool[]`（或內嵌一份），逐筆 `Put`（冪等：同 id 覆寫）。
-- 建表冪等 CreateTable（PAY_PER_REQUEST）若未建。跑完驗 33 筆。
+> ⚠️ **表已有舊 12 筆是舊 schema**（`omikujiId/waka/sougou`，id 前綴 `ok-*`）。新 33 筆是 `shi/kaie`、id 前綴 `omikuji-*`。**兩格式混掃會壞** → seed 必須 **clear-then-seed**。
+- **步驟**：①Scan 全表既有 key（分頁）→ 逐筆 `Delete`（清掉舊 12 筆 `ok-*`）；②讀 `tools/jinja-shrine/omikuji_pool.json` 的 `pool[]` 逐筆 `Put`（key=`omikujiId`）。冪等（重跑=先清再灌，結果恆為那 33 筆）。
+- 建表冪等 CreateTable（PAY_PER_REQUEST，PK=`omikujiId`）若未建。跑完驗**恰 33 筆、全為新 schema**（無 `waka`/`sougou` 殘留）。
+- ⚠️ 這是**內容池非玩家資料**，清舊安全（無資料損失）。
 
 ---
 
@@ -47,12 +49,12 @@
 4. 抽階：依 `cfg.omikuji.weights`（11 階權重）加權隨機 → rank；再從該 rank 的籤中等機率抽一張 slip（pool 快取）。
 5. **判當日首抽**：`today = 台北時區 YYYY-MM-DD(now)`；`counted = (fortune.omikujiDrawDate !== today)`。
    - **counted=true（首抽）**：
-     - 生成 6 筆 buff：`{axis: 軸(商賣→zaiun…對照表), delta: items[x].score, expireAt: now + base*mult}`；`base=cfg.omikuji.buffBaseHours*3600`(預設 12h)、`mult=cfg.omikuji.rankTtlMultiplier[rank]`。
+     - 生成 6 筆 buff：`{axis: items[x].axis, delta: items[x].score, expireAt: now + base*mult, source:'omikuji'}`（**axis 直接讀 item.axis**，種子已內嵌）；`base=cfg.omikuji.buffBaseHours*3600`(預設 12h)、`mult=cfg.omikuji.rankTtlMultiplier[rank]`。
      - **覆蓋制**：呼叫 `fortuneDAO.replaceOmikujiState(discordId, {date:today, rank, buffs:6筆, pendingKyo})`（§4，一次性移除舊 omikuji buff + 寫新的 + 設/清 pendingKyo + 更新 omikujiDrawDate/omikujiTodayRank）。
      - 若 rank 為凶類 → `pendingKyo = { rank, date: today }`；否則 `pendingKyo = null`（清除）。
    - **counted=false（重抽）**：不動 buff/pendingKyo/date，只回籤詩卡（`counted:false`）。
 6. 回 `card`（§6 給 Shrine.js 組 embed）。
-7. **軸對照**（六分項 → 六軸 key）：商賣→zaiun、爭事→shengun、學問→zhiun、健康→body、戀愛→renyuan、旅行→xingyun（對齊 `AXES`/`defaults.js`）。
+7. **軸對照已內嵌種子**（每 item 帶 `axis`：商賣→zaiun、爭事→shengun、學問→zhiun、健康→body、戀愛→renyuan、旅行→xingyun）→ service 不必自建對照表，直接讀 `item.axis`。
 
 ### `musubu(discordId, now)` → `{ ok, reason? }`（結ぶ）
 - 讀 fortune；若無 `pendingKyo` → `{ok:true, reason:'nothing_to_bind'}`（冪等）。

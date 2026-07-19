@@ -1,48 +1,1424 @@
 {
-  "_note": "甜甜神社 御神籤籤池種子(33張=11階×3)。五言四句(shi)+解曰(kaie)+六分項(items:score+text4字)。灌入 sweetbot-shrine-omikuji-pool。體例仿淺草寺觀音一百籤。score帶:大吉+6~10/吉+4~8/中吉+3~6/小吉+2~5/末吉+1~4/末小吉0~3/凶-2~1/小凶-3~0/半凶-4~-1/末凶-5~-2/大凶-8~-3。item鍵=六軸:商賣→財運,爭事→勝運,學問→智運,健康→body,戀愛→人緣,旅行→行運。",
+  "_note": "甜甜神社 御神籤籤池種子(33張=11階×3)。五言四句(shi)+解曰(kaie)+六分項(items:score+text4字)。灌入 sweetbot-shrine-omikuji-pool(PK=omikujiId)。體例仿淺草寺觀音一百籤。score帶:大吉+6~10/吉+4~8/中吉+3~6/小吉+2~5/末吉+1~4/末小吉0~3/凶-2~1/小凶-3~0/半凶-4~-1/末凶-5~-2/大凶-8~-3。item鍵=六軸:商賣→財運,爭事→勝運,學問→智運,健康→body,戀愛→人緣,旅行→行運。 [schema對齊已上線表:PK=omikujiId、每item內嵌axis;seed需clear-then-seed清掉舊12筆waka/sougou格式]",
   "pool": [
-    {"id":"omikuji-daikichi-01","rank":"大吉","shi":["牌山凝瑞氣","高台自摸成","滿座皆仰望","莫作等閒輕"],"kaie":"牌神大悅，運勢如日中天，凡所求皆遂。惟居高易折，戒得意忘形。","items":{"商賣":{"score":9,"text":"財源連莊"},"爭事":{"score":10,"text":"逢戰必勝"},"學問":{"score":7,"text":"數盡向聽"},"健康":{"score":6,"text":"氣血調和"},"戀愛":{"score":8,"text":"良緣天成"},"旅行":{"score":7,"text":"途中拾福"}}},
-    {"id":"omikuji-daikichi-02","rank":"大吉","shi":["東風開大局","連莊喜自來","牌神親加護","一擲定春雷"],"kaie":"時來運轉，牌神加護，一舉成名。乘勢而為，然仍須謙抑。","items":{"商賣":{"score":10,"text":"利市三倍"},"爭事":{"score":9,"text":"一擲成名"},"學問":{"score":6,"text":"文思泉湧"},"健康":{"score":7,"text":"精力充沛"},"戀愛":{"score":7,"text":"情投意合"},"旅行":{"score":8,"text":"出行大吉"}}},
-    {"id":"omikuji-daikichi-03","rank":"大吉","shi":["天和降玄機","滿盤盡如意","牌通神鬼路","福祿雙雙至"],"kaie":"福祿雙全，諸事如意，如天和降臨。惜福守成，可長可久。","items":{"商賣":{"score":8,"text":"財祿雙全"},"爭事":{"score":9,"text":"勢如破竹"},"學問":{"score":8,"text":"豁然貫通"},"健康":{"score":7,"text":"身輕體健"},"戀愛":{"score":9,"text":"佳偶天成"},"旅行":{"score":6,"text":"行止皆宜"}}},
-
-    {"id":"omikuji-kichi-01","rank":"吉","shi":["春風入牌局","聽張逐手來","守正無躁進","福自摸中開"],"kaie":"運勢上揚，穩中有進。守正則吉，貪則生變。","items":{"商賣":{"score":7,"text":"財路漸寬"},"爭事":{"score":6,"text":"對局占先"},"學問":{"score":5,"text":"讀牌有神"},"健康":{"score":5,"text":"精神飽滿"},"戀愛":{"score":6,"text":"緣分升溫"},"旅行":{"score":4,"text":"出行平安"}}},
-    {"id":"omikuji-kichi-02","rank":"吉","shi":["順風開好局","牌路漸分明","穩取無須急","財名兩自成"],"kaie":"順境當前，牌路分明。穩紮穩打，財名可期。","items":{"商賣":{"score":8,"text":"穩收厚利"},"爭事":{"score":5,"text":"步步為營"},"學問":{"score":6,"text":"條理分明"},"健康":{"score":5,"text":"作息得宜"},"戀愛":{"score":5,"text":"漸入佳境"},"旅行":{"score":6,"text":"路途順遂"}}},
-    {"id":"omikuji-kichi-03","rank":"吉","shi":["清風拂綠案","一索見生機","守成能得利","切莫問災危"],"kaie":"生機初現，守成得利。安分則吉，不必憂危。","items":{"商賣":{"score":6,"text":"生意漸旺"},"爭事":{"score":7,"text":"先聲奪人"},"學問":{"score":5,"text":"茅塞頓開"},"健康":{"score":6,"text":"體氣安和"},"戀愛":{"score":4,"text":"以誠相待"},"旅行":{"score":7,"text":"遠行有得"}}},
-
-    {"id":"omikuji-chukichi-01","rank":"中吉","shi":["兩面聽已成","靜候一張來","心平牌路順","躁進反成災"],"kaie":"中庸之運，順其自然則得，強求生變。","items":{"商賣":{"score":5,"text":"財運平穩"},"爭事":{"score":4,"text":"勝負相當"},"學問":{"score":6,"text":"靈感忽至"},"健康":{"score":4,"text":"作息宜正"},"戀愛":{"score":3,"text":"宜緩不急"},"旅行":{"score":4,"text":"途順留意"}}},
-    {"id":"omikuji-chukichi-02","rank":"中吉","shi":["中盤局漸開","牌氣半浮沉","守拙勝於巧","安然待好音"],"kaie":"局勢半明半昧，守拙為上。安然靜待，好音自來。","items":{"商賣":{"score":4,"text":"守成小利"},"爭事":{"score":5,"text":"以靜制動"},"學問":{"score":5,"text":"溫故知新"},"健康":{"score":5,"text":"勿過勞形"},"戀愛":{"score":4,"text":"細水長流"},"旅行":{"score":3,"text":"近遊為宜"}}},
-    {"id":"omikuji-chukichi-03","rank":"中吉","shi":["平和開一局","得失兩相安","莫使貪心起","中庸福自寬"],"kaie":"得失兩安，中庸是福。莫起貪心，方得長久。","items":{"商賣":{"score":5,"text":"進退有據"},"爭事":{"score":3,"text":"平分秋色"},"學問":{"score":6,"text":"融會貫通"},"健康":{"score":4,"text":"心平氣和"},"戀愛":{"score":5,"text":"相敬如賓"},"旅行":{"score":4,"text":"往返皆安"}}},
-
-    {"id":"omikuji-shokichi-01","rank":"小吉","shi":["小牌亦成台","積少福自來","莫嫌張數薄","穩紮運方開"],"kaie":"小有斬獲，積善可成。莫因利薄而輕棄。","items":{"商賣":{"score":3,"text":"微利可圖"},"爭事":{"score":2,"text":"小勝勿貪"},"學問":{"score":4,"text":"用功見效"},"健康":{"score":5,"text":"身心俱佳"},"戀愛":{"score":3,"text":"慢火為上"},"旅行":{"score":2,"text":"近遊得福"}}},
-    {"id":"omikuji-shokichi-02","rank":"小吉","shi":["微光透牌背","一步一階升","勤取無多欲","終能積小成"],"kaie":"寸進之運，勤則有得。少欲知足，積小成大。","items":{"商賣":{"score":4,"text":"點滴入袋"},"爭事":{"score":3,"text":"穩中求勝"},"學問":{"score":3,"text":"循序漸進"},"健康":{"score":4,"text":"起居安穩"},"戀愛":{"score":2,"text":"以心換心"},"旅行":{"score":5,"text":"小行得利"}}},
-    {"id":"omikuji-shokichi-03","rank":"小吉","shi":["小局見溫和","安然可得和","福雖如細雨","潤物意還多"],"kaie":"和局溫吉，福如細雨。點滴之潤，其意實多。","items":{"商賣":{"score":2,"text":"薄有進帳"},"爭事":{"score":4,"text":"小有斬獲"},"學問":{"score":5,"text":"漸有心得"},"健康":{"score":3,"text":"調養得法"},"戀愛":{"score":4,"text":"溫情漸生"},"旅行":{"score":3,"text":"途中小順"}}},
-
-    {"id":"omikuji-suekichi-01","rank":"末吉","shi":["此局牌未順","聽張猶在遲","耐得洗牌過","福在後半時"],"kaie":"先抑後揚，後勢可期。守成待時，勿急於一役。","items":{"商賣":{"score":2,"text":"目下平淡"},"爭事":{"score":1,"text":"初戰後揚"},"學問":{"score":3,"text":"厚積薄發"},"健康":{"score":3,"text":"漸入佳境"},"戀愛":{"score":2,"text":"靜待花開"},"旅行":{"score":1,"text":"遠行宜延"}}},
-    {"id":"omikuji-suekichi-02","rank":"末吉","shi":["初盤多阻滯","後手漸生機","守得雲開日","枯枝亦放時"],"kaie":"前滯後通，守得雲開。時運將至，枯枝再發。","items":{"商賣":{"score":1,"text":"先淡後濃"},"爭事":{"score":2,"text":"後來居上"},"學問":{"score":4,"text":"苦盡甘來"},"健康":{"score":2,"text":"漸次康復"},"戀愛":{"score":3,"text":"緣在後段"},"旅行":{"score":2,"text":"近則無妨"}}},
-    {"id":"omikuji-suekichi-03","rank":"末吉","shi":["陰霾牌未展","守靜待天時","一陽初動處","福氣漸相隨"],"kaie":"陰極陽生，守靜待時。一陽初動，福氣漸隨。","items":{"商賣":{"score":3,"text":"漸有轉機"},"爭事":{"score":1,"text":"守則不敗"},"學問":{"score":2,"text":"勤能補拙"},"健康":{"score":3,"text":"靜養為宜"},"戀愛":{"score":2,"text":"順其自然"},"旅行":{"score":2,"text":"遲行為安"}}},
-
-    {"id":"omikuji-suekokichi-01","rank":"末小吉","shi":["牌風正平淡","未見大三元","安分守聽候","微福亦堪憐"],"kaie":"平順微吉，宜守不宜攻。安分即是福。","items":{"商賣":{"score":1,"text":"財氣微弱"},"爭事":{"score":0,"text":"宜避其鋒"},"學問":{"score":2,"text":"貴在有恆"},"健康":{"score":2,"text":"尚可勿勞"},"戀愛":{"score":1,"text":"順其自然"},"旅行":{"score":1,"text":"平安勿貪"}}},
-    {"id":"omikuji-suekokichi-02","rank":"末小吉","shi":["平平開一局","無喜亦無驚","守分能安穩","微光照晚晴"],"kaie":"無喜無驚，守分安穩。微光晚晴，聊勝於無。","items":{"商賣":{"score":2,"text":"平穩無虞"},"爭事":{"score":0,"text":"難分高下"},"學問":{"score":1,"text":"小有所得"},"健康":{"score":2,"text":"起居如常"},"戀愛":{"score":1,"text":"淡然相處"},"旅行":{"score":1,"text":"近行為宜"}}},
-    {"id":"omikuji-suekokichi-03","rank":"末小吉","shi":["淡淡牌中意","浮沉未可期","安心休妄想","守拙即便宜"],"kaie":"浮沉未定，安心守拙。莫作妄想，守分即宜。","items":{"商賣":{"score":1,"text":"守成為上"},"爭事":{"score":1,"text":"點到為止"},"學問":{"score":2,"text":"溫習舊業"},"健康":{"score":1,"text":"莫要熬夜"},"戀愛":{"score":0,"text":"緣分未明"},"旅行":{"score":2,"text":"平安是福"}}},
-
-    {"id":"omikuji-kyo-01","rank":"凶","shi":["牌山藏暗湧","摸來盡孤張","收斂宜自守","險處莫輕嘗"],"kaie":"運勢低迷，諸事宜慎。凶籤纏身，速往境內結ぶ化解，否則穢れ日增。","items":{"商賣":{"score":-2,"text":"財路受阻"},"爭事":{"score":-1,"text":"對局宜守"},"學問":{"score":1,"text":"唯讀尚可"},"健康":{"score":-2,"text":"易倦調息"},"戀愛":{"score":0,"text":"緣滯勿求"},"旅行":{"score":-1,"text":"遠行不宜"}}},
-    {"id":"omikuji-kyo-02","rank":"凶","shi":["濁氣籠牌案","摸張盡逆風","宜收莫強進","繫神可解凶"],"kaie":"濁氣籠罩，處處逆風。宜收莫進，速結ぶ繫神以解。","items":{"商賣":{"score":-2,"text":"忌動錢財"},"爭事":{"score":0,"text":"避戰為上"},"學問":{"score":1,"text":"靜心尚可"},"健康":{"score":-2,"text":"防範小恙"},"戀愛":{"score":-1,"text":"易生嫌隙"},"旅行":{"score":-1,"text":"改期為宜"}}},
-    {"id":"omikuji-kyo-03","rank":"凶","shi":["逆局牌難順","前程起暗波","退身方寡過","繫願免蹉跎"],"kaie":"前路暗波，退守寡過。速結ぶ繫願，方免蹉跎。","items":{"商賣":{"score":-1,"text":"守財為要"},"爭事":{"score":-2,"text":"退則無咎"},"學問":{"score":0,"text":"心浮宜靜"},"健康":{"score":-1,"text":"稍感疲累"},"戀愛":{"score":0,"text":"勿強求緣"},"旅行":{"score":-2,"text":"途多阻滯"}}},
-
-    {"id":"omikuji-shokyo-01","rank":"小凶","shi":["連莊忽中斷","聽張總落空","退步且觀局","勿與天爭鋒"],"kaie":"小有阻滯，退守為上。凶氣未散，結ぶ以安。","items":{"商賣":{"score":-3,"text":"破財緊守"},"爭事":{"score":-2,"text":"連敗暫收"},"學問":{"score":0,"text":"心浮宜靜"},"健康":{"score":-3,"text":"小恙早歇"},"戀愛":{"score":-1,"text":"忍讓為上"},"旅行":{"score":-2,"text":"途阻改期"}}},
-    {"id":"omikuji-shokyo-02","rank":"小凶","shi":["牌氣忽轉薄","孤張入手多","收心宜守拙","繫願渡風波"],"kaie":"牌氣轉薄，孤張入手。守拙收心，結ぶ渡波。","items":{"商賣":{"score":-2,"text":"財氣轉弱"},"爭事":{"score":-3,"text":"暫避其鋒"},"學問":{"score":0,"text":"難以專注"},"健康":{"score":-2,"text":"注意作息"},"戀愛":{"score":-1,"text":"口角宜忍"},"旅行":{"score":-3,"text":"遠行不利"}}},
-    {"id":"omikuji-shokyo-03","rank":"小凶","shi":["局中生暗礁","摸去半成空","守靜方無失","繫神解小凶"],"kaie":"暗礁潛伏，摸去成空。守靜無失，結ぶ解凶。","items":{"商賣":{"score":-3,"text":"慎防漏財"},"爭事":{"score":-1,"text":"守成勿攻"},"學問":{"score":-1,"text":"事倍功半"},"健康":{"score":-2,"text":"防範感冒"},"戀愛":{"score":-2,"text":"緣分停滯"},"旅行":{"score":-1,"text":"近行為宜"}}},
-
-    {"id":"omikuji-hankyo-01","rank":"半凶","shi":["牌局半傾頹","放銃在目前","謹守休妄動","繫神方保全"],"kaie":"凶多於吉，務必結ぶ。妄進必放大銃。","items":{"商賣":{"score":-4,"text":"財損止血"},"爭事":{"score":-3,"text":"敗象速退"},"學問":{"score":-1,"text":"事倍功半"},"健康":{"score":-3,"text":"體虛忌勞"},"戀愛":{"score":-2,"text":"緣薄冷靜"},"旅行":{"score":-3,"text":"不宜遠行"}}},
-    {"id":"omikuji-hankyo-02","rank":"半凶","shi":["風雲牌上變","失聽又逢沖","急退猶存半","繫願解災凶"],"kaie":"風雲突變，失聽逢沖。急退存半，結ぶ解災。","items":{"商賣":{"score":-3,"text":"防大破財"},"爭事":{"score":-4,"text":"速退保身"},"學問":{"score":-1,"text":"神思不寧"},"健康":{"score":-2,"text":"謹防勞損"},"戀愛":{"score":-3,"text":"爭執難免"},"旅行":{"score":-2,"text":"改道為宜"}}},
-    {"id":"omikuji-hankyo-03","rank":"半凶","shi":["半局已生變","孤懸勢漸危","收兵休戀戰","繫願始能歸"],"kaie":"局勢漸危，收兵為上。莫再戀戰，結ぶ乃歸。","items":{"商賣":{"score":-4,"text":"急須止損"},"爭事":{"score":-2,"text":"鳴金收兵"},"學問":{"score":-2,"text":"心亂難成"},"健康":{"score":-3,"text":"體弱宜養"},"戀愛":{"score":-2,"text":"暫且冷處"},"旅行":{"score":-4,"text":"切莫遠行"}}},
-
-    {"id":"omikuji-suekyo-01","rank":"末凶","shi":["終局見敗象","滿手是孤張","唯有繫神願","方免厄加身"],"kaie":"厄運深重，不結ぶ則運勢崩落。速繫神前。","items":{"商賣":{"score":-5,"text":"大破財兆"},"爭事":{"score":-4,"text":"逢戰必敗"},"學問":{"score":-2,"text":"神思昏亂"},"健康":{"score":-4,"text":"病氣速養"},"戀愛":{"score":-3,"text":"緣盡勿執"},"旅行":{"score":-4,"text":"千萬勿行"}}},
-    {"id":"omikuji-suekyo-02","rank":"末凶","shi":["殘局風雨急","牌盡入迷津","速繫神前願","方能免厄身"],"kaie":"風雨殘局，牌入迷津。速結ぶ繫願，方免厄身。","items":{"商賣":{"score":-4,"text":"錢財大耗"},"爭事":{"score":-5,"text":"敗局已定"},"學問":{"score":-2,"text":"心力交瘁"},"健康":{"score":-4,"text":"防重病兆"},"戀愛":{"score":-3,"text":"情多波折"},"旅行":{"score":-3,"text":"遠行招凶"}}},
-    {"id":"omikuji-suekyo-03","rank":"末凶","shi":["末路多荊棘","孤張放大銃","非繫神不解","厄重壓心胸"],"kaie":"末路荊棘，厄重壓身。非結ぶ不解，速往神前。","items":{"商賣":{"score":-5,"text":"血本無歸"},"爭事":{"score":-4,"text":"切勿應戰"},"學問":{"score":-3,"text":"神志難清"},"健康":{"score":-4,"text":"速歇速醫"},"戀愛":{"score":-2,"text":"緣薄難續"},"旅行":{"score":-5,"text":"寸步難行"}}},
-
-    {"id":"omikuji-daikyo-01","rank":"大凶","shi":["牌山盡崩摧","八方皆放銃","非繫神不可","穢氣噬無窮"],"kaie":"大凶臨身，萬事凶險。務必立刻結ぶ，否則運氣值大量流失。","items":{"商賣":{"score":-8,"text":"傾家之兆"},"爭事":{"score":-7,"text":"一戰即潰"},"學問":{"score":-3,"text":"心神大亂"},"健康":{"score":-6,"text":"速歇速養"},"戀愛":{"score":-5,"text":"緣斷之象"},"旅行":{"score":-6,"text":"勿出遠門"}}},
-    {"id":"omikuji-daikyo-02","rank":"大凶","shi":["黑雲壓牌案","四顧盡凶危","急速繫神願","遲疑禍必隨"],"kaie":"黑雲壓境，四顧凶危。速結ぶ繫願，遲則禍隨。","items":{"商賣":{"score":-7,"text":"破財如崩"},"爭事":{"score":-8,"text":"全盤皆輸"},"學問":{"score":-4,"text":"六神無主"},"健康":{"score":-5,"text":"病厄纏身"},"戀愛":{"score":-5,"text":"情緣盡毀"},"旅行":{"score":-6,"text":"寸行招災"}}},
-    {"id":"omikuji-daikyo-03","rank":"大凶","shi":["大厄臨牌局","傾崩不可回","非繫神難免","穢氣重成堆"],"kaie":"大厄當頭，傾崩難回。非結ぶ難免，穢氣重積，速速化解。","items":{"商賣":{"score":-8,"text":"財去如流"},"爭事":{"score":-6,"text":"觸戰即亡"},"學問":{"score":-4,"text":"神魂難定"},"健康":{"score":-6,"text":"大凶於身"},"戀愛":{"score":-6,"text":"孽緣速斷"},"旅行":{"score":-5,"text":"閉門為安"}}}
+    {
+      "omikujiId": "omikuji-daikichi-01",
+      "rank": "大吉",
+      "shi": [
+        "牌山凝瑞氣",
+        "高台自摸成",
+        "滿座皆仰望",
+        "莫作等閒輕"
+      ],
+      "kaie": "牌神大悅，運勢如日中天，凡所求皆遂。惟居高易折，戒得意忘形。",
+      "items": {
+        "商賣": {
+          "score": 9,
+          "text": "財源連莊",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": 10,
+          "text": "逢戰必勝",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": 7,
+          "text": "數盡向聽",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": 6,
+          "text": "氣血調和",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": 8,
+          "text": "良緣天成",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": 7,
+          "text": "途中拾福",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-daikichi-02",
+      "rank": "大吉",
+      "shi": [
+        "東風開大局",
+        "連莊喜自來",
+        "牌神親加護",
+        "一擲定春雷"
+      ],
+      "kaie": "時來運轉，牌神加護，一舉成名。乘勢而為，然仍須謙抑。",
+      "items": {
+        "商賣": {
+          "score": 10,
+          "text": "利市三倍",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": 9,
+          "text": "一擲成名",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": 6,
+          "text": "文思泉湧",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": 7,
+          "text": "精力充沛",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": 7,
+          "text": "情投意合",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": 8,
+          "text": "出行大吉",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-daikichi-03",
+      "rank": "大吉",
+      "shi": [
+        "天和降玄機",
+        "滿盤盡如意",
+        "牌通神鬼路",
+        "福祿雙雙至"
+      ],
+      "kaie": "福祿雙全，諸事如意，如天和降臨。惜福守成，可長可久。",
+      "items": {
+        "商賣": {
+          "score": 8,
+          "text": "財祿雙全",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": 9,
+          "text": "勢如破竹",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": 8,
+          "text": "豁然貫通",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": 7,
+          "text": "身輕體健",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": 9,
+          "text": "佳偶天成",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": 6,
+          "text": "行止皆宜",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-kichi-01",
+      "rank": "吉",
+      "shi": [
+        "春風入牌局",
+        "聽張逐手來",
+        "守正無躁進",
+        "福自摸中開"
+      ],
+      "kaie": "運勢上揚，穩中有進。守正則吉，貪則生變。",
+      "items": {
+        "商賣": {
+          "score": 7,
+          "text": "財路漸寬",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": 6,
+          "text": "對局占先",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": 5,
+          "text": "讀牌有神",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": 5,
+          "text": "精神飽滿",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": 6,
+          "text": "緣分升溫",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": 4,
+          "text": "出行平安",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-kichi-02",
+      "rank": "吉",
+      "shi": [
+        "順風開好局",
+        "牌路漸分明",
+        "穩取無須急",
+        "財名兩自成"
+      ],
+      "kaie": "順境當前，牌路分明。穩紮穩打，財名可期。",
+      "items": {
+        "商賣": {
+          "score": 8,
+          "text": "穩收厚利",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": 5,
+          "text": "步步為營",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": 6,
+          "text": "條理分明",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": 5,
+          "text": "作息得宜",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": 5,
+          "text": "漸入佳境",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": 6,
+          "text": "路途順遂",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-kichi-03",
+      "rank": "吉",
+      "shi": [
+        "清風拂綠案",
+        "一索見生機",
+        "守成能得利",
+        "切莫問災危"
+      ],
+      "kaie": "生機初現，守成得利。安分則吉，不必憂危。",
+      "items": {
+        "商賣": {
+          "score": 6,
+          "text": "生意漸旺",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": 7,
+          "text": "先聲奪人",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": 5,
+          "text": "茅塞頓開",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": 6,
+          "text": "體氣安和",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": 4,
+          "text": "以誠相待",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": 7,
+          "text": "遠行有得",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-chukichi-01",
+      "rank": "中吉",
+      "shi": [
+        "兩面聽已成",
+        "靜候一張來",
+        "心平牌路順",
+        "躁進反成災"
+      ],
+      "kaie": "中庸之運，順其自然則得，強求生變。",
+      "items": {
+        "商賣": {
+          "score": 5,
+          "text": "財運平穩",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": 4,
+          "text": "勝負相當",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": 6,
+          "text": "靈感忽至",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": 4,
+          "text": "作息宜正",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": 3,
+          "text": "宜緩不急",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": 4,
+          "text": "途順留意",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-chukichi-02",
+      "rank": "中吉",
+      "shi": [
+        "中盤局漸開",
+        "牌氣半浮沉",
+        "守拙勝於巧",
+        "安然待好音"
+      ],
+      "kaie": "局勢半明半昧，守拙為上。安然靜待，好音自來。",
+      "items": {
+        "商賣": {
+          "score": 4,
+          "text": "守成小利",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": 5,
+          "text": "以靜制動",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": 5,
+          "text": "溫故知新",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": 5,
+          "text": "勿過勞形",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": 4,
+          "text": "細水長流",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": 3,
+          "text": "近遊為宜",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-chukichi-03",
+      "rank": "中吉",
+      "shi": [
+        "平和開一局",
+        "得失兩相安",
+        "莫使貪心起",
+        "中庸福自寬"
+      ],
+      "kaie": "得失兩安，中庸是福。莫起貪心，方得長久。",
+      "items": {
+        "商賣": {
+          "score": 5,
+          "text": "進退有據",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": 3,
+          "text": "平分秋色",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": 6,
+          "text": "融會貫通",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": 4,
+          "text": "心平氣和",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": 5,
+          "text": "相敬如賓",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": 4,
+          "text": "往返皆安",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-shokichi-01",
+      "rank": "小吉",
+      "shi": [
+        "小牌亦成台",
+        "積少福自來",
+        "莫嫌張數薄",
+        "穩紮運方開"
+      ],
+      "kaie": "小有斬獲，積善可成。莫因利薄而輕棄。",
+      "items": {
+        "商賣": {
+          "score": 3,
+          "text": "微利可圖",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": 2,
+          "text": "小勝勿貪",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": 4,
+          "text": "用功見效",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": 5,
+          "text": "身心俱佳",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": 3,
+          "text": "慢火為上",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": 2,
+          "text": "近遊得福",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-shokichi-02",
+      "rank": "小吉",
+      "shi": [
+        "微光透牌背",
+        "一步一階升",
+        "勤取無多欲",
+        "終能積小成"
+      ],
+      "kaie": "寸進之運，勤則有得。少欲知足，積小成大。",
+      "items": {
+        "商賣": {
+          "score": 4,
+          "text": "點滴入袋",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": 3,
+          "text": "穩中求勝",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": 3,
+          "text": "循序漸進",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": 4,
+          "text": "起居安穩",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": 2,
+          "text": "以心換心",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": 5,
+          "text": "小行得利",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-shokichi-03",
+      "rank": "小吉",
+      "shi": [
+        "小局見溫和",
+        "安然可得和",
+        "福雖如細雨",
+        "潤物意還多"
+      ],
+      "kaie": "和局溫吉，福如細雨。點滴之潤，其意實多。",
+      "items": {
+        "商賣": {
+          "score": 2,
+          "text": "薄有進帳",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": 4,
+          "text": "小有斬獲",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": 5,
+          "text": "漸有心得",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": 3,
+          "text": "調養得法",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": 4,
+          "text": "溫情漸生",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": 3,
+          "text": "途中小順",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-suekichi-01",
+      "rank": "末吉",
+      "shi": [
+        "此局牌未順",
+        "聽張猶在遲",
+        "耐得洗牌過",
+        "福在後半時"
+      ],
+      "kaie": "先抑後揚，後勢可期。守成待時，勿急於一役。",
+      "items": {
+        "商賣": {
+          "score": 2,
+          "text": "目下平淡",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": 1,
+          "text": "初戰後揚",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": 3,
+          "text": "厚積薄發",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": 3,
+          "text": "漸入佳境",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": 2,
+          "text": "靜待花開",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": 1,
+          "text": "遠行宜延",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-suekichi-02",
+      "rank": "末吉",
+      "shi": [
+        "初盤多阻滯",
+        "後手漸生機",
+        "守得雲開日",
+        "枯枝亦放時"
+      ],
+      "kaie": "前滯後通，守得雲開。時運將至，枯枝再發。",
+      "items": {
+        "商賣": {
+          "score": 1,
+          "text": "先淡後濃",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": 2,
+          "text": "後來居上",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": 4,
+          "text": "苦盡甘來",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": 2,
+          "text": "漸次康復",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": 3,
+          "text": "緣在後段",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": 2,
+          "text": "近則無妨",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-suekichi-03",
+      "rank": "末吉",
+      "shi": [
+        "陰霾牌未展",
+        "守靜待天時",
+        "一陽初動處",
+        "福氣漸相隨"
+      ],
+      "kaie": "陰極陽生，守靜待時。一陽初動，福氣漸隨。",
+      "items": {
+        "商賣": {
+          "score": 3,
+          "text": "漸有轉機",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": 1,
+          "text": "守則不敗",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": 2,
+          "text": "勤能補拙",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": 3,
+          "text": "靜養為宜",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": 2,
+          "text": "順其自然",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": 2,
+          "text": "遲行為安",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-suekokichi-01",
+      "rank": "末小吉",
+      "shi": [
+        "牌風正平淡",
+        "未見大三元",
+        "安分守聽候",
+        "微福亦堪憐"
+      ],
+      "kaie": "平順微吉，宜守不宜攻。安分即是福。",
+      "items": {
+        "商賣": {
+          "score": 1,
+          "text": "財氣微弱",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": 0,
+          "text": "宜避其鋒",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": 2,
+          "text": "貴在有恆",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": 2,
+          "text": "尚可勿勞",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": 1,
+          "text": "順其自然",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": 1,
+          "text": "平安勿貪",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-suekokichi-02",
+      "rank": "末小吉",
+      "shi": [
+        "平平開一局",
+        "無喜亦無驚",
+        "守分能安穩",
+        "微光照晚晴"
+      ],
+      "kaie": "無喜無驚，守分安穩。微光晚晴，聊勝於無。",
+      "items": {
+        "商賣": {
+          "score": 2,
+          "text": "平穩無虞",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": 0,
+          "text": "難分高下",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": 1,
+          "text": "小有所得",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": 2,
+          "text": "起居如常",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": 1,
+          "text": "淡然相處",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": 1,
+          "text": "近行為宜",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-suekokichi-03",
+      "rank": "末小吉",
+      "shi": [
+        "淡淡牌中意",
+        "浮沉未可期",
+        "安心休妄想",
+        "守拙即便宜"
+      ],
+      "kaie": "浮沉未定，安心守拙。莫作妄想，守分即宜。",
+      "items": {
+        "商賣": {
+          "score": 1,
+          "text": "守成為上",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": 1,
+          "text": "點到為止",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": 2,
+          "text": "溫習舊業",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": 1,
+          "text": "莫要熬夜",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": 0,
+          "text": "緣分未明",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": 2,
+          "text": "平安是福",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-kyo-01",
+      "rank": "凶",
+      "shi": [
+        "牌山藏暗湧",
+        "摸來盡孤張",
+        "收斂宜自守",
+        "險處莫輕嘗"
+      ],
+      "kaie": "運勢低迷，諸事宜慎。凶籤纏身，速往境內結ぶ化解，否則穢れ日增。",
+      "items": {
+        "商賣": {
+          "score": -2,
+          "text": "財路受阻",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": -1,
+          "text": "對局宜守",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": 1,
+          "text": "唯讀尚可",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": -2,
+          "text": "易倦調息",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": 0,
+          "text": "緣滯勿求",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": -1,
+          "text": "遠行不宜",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-kyo-02",
+      "rank": "凶",
+      "shi": [
+        "濁氣籠牌案",
+        "摸張盡逆風",
+        "宜收莫強進",
+        "繫神可解凶"
+      ],
+      "kaie": "濁氣籠罩，處處逆風。宜收莫進，速結ぶ繫神以解。",
+      "items": {
+        "商賣": {
+          "score": -2,
+          "text": "忌動錢財",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": 0,
+          "text": "避戰為上",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": 1,
+          "text": "靜心尚可",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": -2,
+          "text": "防範小恙",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": -1,
+          "text": "易生嫌隙",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": -1,
+          "text": "改期為宜",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-kyo-03",
+      "rank": "凶",
+      "shi": [
+        "逆局牌難順",
+        "前程起暗波",
+        "退身方寡過",
+        "繫願免蹉跎"
+      ],
+      "kaie": "前路暗波，退守寡過。速結ぶ繫願，方免蹉跎。",
+      "items": {
+        "商賣": {
+          "score": -1,
+          "text": "守財為要",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": -2,
+          "text": "退則無咎",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": 0,
+          "text": "心浮宜靜",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": -1,
+          "text": "稍感疲累",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": 0,
+          "text": "勿強求緣",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": -2,
+          "text": "途多阻滯",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-shokyo-01",
+      "rank": "小凶",
+      "shi": [
+        "連莊忽中斷",
+        "聽張總落空",
+        "退步且觀局",
+        "勿與天爭鋒"
+      ],
+      "kaie": "小有阻滯，退守為上。凶氣未散，結ぶ以安。",
+      "items": {
+        "商賣": {
+          "score": -3,
+          "text": "破財緊守",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": -2,
+          "text": "連敗暫收",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": 0,
+          "text": "心浮宜靜",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": -3,
+          "text": "小恙早歇",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": -1,
+          "text": "忍讓為上",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": -2,
+          "text": "途阻改期",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-shokyo-02",
+      "rank": "小凶",
+      "shi": [
+        "牌氣忽轉薄",
+        "孤張入手多",
+        "收心宜守拙",
+        "繫願渡風波"
+      ],
+      "kaie": "牌氣轉薄，孤張入手。守拙收心，結ぶ渡波。",
+      "items": {
+        "商賣": {
+          "score": -2,
+          "text": "財氣轉弱",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": -3,
+          "text": "暫避其鋒",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": 0,
+          "text": "難以專注",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": -2,
+          "text": "注意作息",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": -1,
+          "text": "口角宜忍",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": -3,
+          "text": "遠行不利",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-shokyo-03",
+      "rank": "小凶",
+      "shi": [
+        "局中生暗礁",
+        "摸去半成空",
+        "守靜方無失",
+        "繫神解小凶"
+      ],
+      "kaie": "暗礁潛伏，摸去成空。守靜無失，結ぶ解凶。",
+      "items": {
+        "商賣": {
+          "score": -3,
+          "text": "慎防漏財",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": -1,
+          "text": "守成勿攻",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": -1,
+          "text": "事倍功半",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": -2,
+          "text": "防範感冒",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": -2,
+          "text": "緣分停滯",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": -1,
+          "text": "近行為宜",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-hankyo-01",
+      "rank": "半凶",
+      "shi": [
+        "牌局半傾頹",
+        "放銃在目前",
+        "謹守休妄動",
+        "繫神方保全"
+      ],
+      "kaie": "凶多於吉，務必結ぶ。妄進必放大銃。",
+      "items": {
+        "商賣": {
+          "score": -4,
+          "text": "財損止血",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": -3,
+          "text": "敗象速退",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": -1,
+          "text": "事倍功半",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": -3,
+          "text": "體虛忌勞",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": -2,
+          "text": "緣薄冷靜",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": -3,
+          "text": "不宜遠行",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-hankyo-02",
+      "rank": "半凶",
+      "shi": [
+        "風雲牌上變",
+        "失聽又逢沖",
+        "急退猶存半",
+        "繫願解災凶"
+      ],
+      "kaie": "風雲突變，失聽逢沖。急退存半，結ぶ解災。",
+      "items": {
+        "商賣": {
+          "score": -3,
+          "text": "防大破財",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": -4,
+          "text": "速退保身",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": -1,
+          "text": "神思不寧",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": -2,
+          "text": "謹防勞損",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": -3,
+          "text": "爭執難免",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": -2,
+          "text": "改道為宜",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-hankyo-03",
+      "rank": "半凶",
+      "shi": [
+        "半局已生變",
+        "孤懸勢漸危",
+        "收兵休戀戰",
+        "繫願始能歸"
+      ],
+      "kaie": "局勢漸危，收兵為上。莫再戀戰，結ぶ乃歸。",
+      "items": {
+        "商賣": {
+          "score": -4,
+          "text": "急須止損",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": -2,
+          "text": "鳴金收兵",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": -2,
+          "text": "心亂難成",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": -3,
+          "text": "體弱宜養",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": -2,
+          "text": "暫且冷處",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": -4,
+          "text": "切莫遠行",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-suekyo-01",
+      "rank": "末凶",
+      "shi": [
+        "終局見敗象",
+        "滿手是孤張",
+        "唯有繫神願",
+        "方免厄加身"
+      ],
+      "kaie": "厄運深重，不結ぶ則運勢崩落。速繫神前。",
+      "items": {
+        "商賣": {
+          "score": -5,
+          "text": "大破財兆",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": -4,
+          "text": "逢戰必敗",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": -2,
+          "text": "神思昏亂",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": -4,
+          "text": "病氣速養",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": -3,
+          "text": "緣盡勿執",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": -4,
+          "text": "千萬勿行",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-suekyo-02",
+      "rank": "末凶",
+      "shi": [
+        "殘局風雨急",
+        "牌盡入迷津",
+        "速繫神前願",
+        "方能免厄身"
+      ],
+      "kaie": "風雨殘局，牌入迷津。速結ぶ繫願，方免厄身。",
+      "items": {
+        "商賣": {
+          "score": -4,
+          "text": "錢財大耗",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": -5,
+          "text": "敗局已定",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": -2,
+          "text": "心力交瘁",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": -4,
+          "text": "防重病兆",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": -3,
+          "text": "情多波折",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": -3,
+          "text": "遠行招凶",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-suekyo-03",
+      "rank": "末凶",
+      "shi": [
+        "末路多荊棘",
+        "孤張放大銃",
+        "非繫神不解",
+        "厄重壓心胸"
+      ],
+      "kaie": "末路荊棘，厄重壓身。非結ぶ不解，速往神前。",
+      "items": {
+        "商賣": {
+          "score": -5,
+          "text": "血本無歸",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": -4,
+          "text": "切勿應戰",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": -3,
+          "text": "神志難清",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": -4,
+          "text": "速歇速醫",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": -2,
+          "text": "緣薄難續",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": -5,
+          "text": "寸步難行",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-daikyo-01",
+      "rank": "大凶",
+      "shi": [
+        "牌山盡崩摧",
+        "八方皆放銃",
+        "非繫神不可",
+        "穢氣噬無窮"
+      ],
+      "kaie": "大凶臨身，萬事凶險。務必立刻結ぶ，否則運氣值大量流失。",
+      "items": {
+        "商賣": {
+          "score": -8,
+          "text": "傾家之兆",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": -7,
+          "text": "一戰即潰",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": -3,
+          "text": "心神大亂",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": -6,
+          "text": "速歇速養",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": -5,
+          "text": "緣斷之象",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": -6,
+          "text": "勿出遠門",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-daikyo-02",
+      "rank": "大凶",
+      "shi": [
+        "黑雲壓牌案",
+        "四顧盡凶危",
+        "急速繫神願",
+        "遲疑禍必隨"
+      ],
+      "kaie": "黑雲壓境，四顧凶危。速結ぶ繫願，遲則禍隨。",
+      "items": {
+        "商賣": {
+          "score": -7,
+          "text": "破財如崩",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": -8,
+          "text": "全盤皆輸",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": -4,
+          "text": "六神無主",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": -5,
+          "text": "病厄纏身",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": -5,
+          "text": "情緣盡毀",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": -6,
+          "text": "寸行招災",
+          "axis": "xingyun"
+        }
+      }
+    },
+    {
+      "omikujiId": "omikuji-daikyo-03",
+      "rank": "大凶",
+      "shi": [
+        "大厄臨牌局",
+        "傾崩不可回",
+        "非繫神難免",
+        "穢氣重成堆"
+      ],
+      "kaie": "大厄當頭，傾崩難回。非結ぶ難免，穢氣重積，速速化解。",
+      "items": {
+        "商賣": {
+          "score": -8,
+          "text": "財去如流",
+          "axis": "zaiun"
+        },
+        "爭事": {
+          "score": -6,
+          "text": "觸戰即亡",
+          "axis": "shengun"
+        },
+        "學問": {
+          "score": -4,
+          "text": "神魂難定",
+          "axis": "zhiun"
+        },
+        "健康": {
+          "score": -6,
+          "text": "大凶於身",
+          "axis": "body"
+        },
+        "戀愛": {
+          "score": -6,
+          "text": "孽緣速斷",
+          "axis": "renyuan"
+        },
+        "旅行": {
+          "score": -5,
+          "text": "閉門為安",
+          "axis": "xingyun"
+        }
+      }
+    }
   ]
 }

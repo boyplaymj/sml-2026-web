@@ -44,6 +44,6 @@ def compose(s):
     # 朱印
     ss=58; sx=int(W*.76); sy=int(H*.91); sq=Image.new("RGB",(ss,ss),red); bg.paste(sq,(sx,sy))
     cchar(d,sx+ss/2,sy+ss/2,"福" if ji else "祓",F(40),(250,245,235))
-    out=f"omikuji_art/out/pool_{s['id']}.png"; bg.save(out); return out
+    out=f"omikuji_art/out/pool_{s['omikujiId']}.png"; bg.save(out); return out
 for s in POOL: compose(s)
 print("rendered",len(POOL),"slips")

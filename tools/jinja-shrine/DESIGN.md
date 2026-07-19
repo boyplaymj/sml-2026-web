@@ -320,7 +320,7 @@ goshuin: {
 | `sweetbot-shrine-goshuin` | 御朱印帳收藏 | PK=discordId, **SK=`goshuin#<YYYY-MM>`**（台北年月，一枚/月由 SK 唯一+條件寫入強制，§5.4）；versionId/stampedAt/ym/imageKey |
 | `sweetbot-shrine-ema` | 繪馬牆 | PK=月分桶, SK=createTime；玩家願文（公開）、讚 |
 | `sweetbot-shrine-pillar` | 表參道石柱捐獻 | PK=discordId（累計）；金額、刻字（榮譽榜=小表 scan） |
-| `sweetbot-shrine-omikuji-pool` | 籤詩池（後台可增修） | PK=omikujiId；籤階、和歌、分項 score（見 §2.2） |
+| `sweetbot-shrine-omikuji-pool` | 籤詩池（後台可增修） | **PK=`omikujiId`**；rank、`shi`(五言四句)、`kaie`、items{score/text/axis}（見 §2.2）。⚠️ S0 舊 12 筆為 `waka/sougou` 舊格式，seed 用 clear-then-seed 換成 33 筆新 schema |
 | `sweetbot-shrine-okumiya-session` | 奧社聽牌試煉「對局盤面」（v0.2） | PK=discordId（一人一局）；盒子佈局（各格牌＋已翻/已取狀態）、當前關卡、手牌、翻牌數、目標聽牌。**帶 TTL**（逾時自動清，仿 battle 租約）。題目由**出題器即時生成**（非預寫池），故無題庫表 |
 | `sweetbot-shrine-config` | 後台設定 | PK=key；各設施費用、籤階權重、buff 時效、御守效期、厄運扣率、市集活動；**開放時間 `hours`**（v0.2）；**奧社入山料 / 每日挑戰上限 / 通關效期 / 10 關難度軸參數 / 各關 🦷⭐ 獎勵**（v0.2） |
 
