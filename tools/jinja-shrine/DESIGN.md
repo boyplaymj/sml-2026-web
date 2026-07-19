@@ -99,10 +99,11 @@
 
 - 每抽一張 → Discord 卡片 =**籤紙圖 + embed 籤詩全文**（圖走視覺、文字放 embed 可讀可譯，對齊「圖不內嵌 UI 文字」原則）。
 - **圖像方案（$0、撐得住無限抽）＝每籤階一張預生成籤紙圖（11 張）**，抽到該階即取。
-- **製法定案＝Bedrock 生空白 washi 籤紙底圖 ＋ 書法毛筆字型程式合成**（不讓 SD 生 CJK，必糊）：
-  - 底圖 2 款：**吉類＝暖色紅捲軸**、**凶類＝靛藍古紙**（Bedrock SD3.5 生，無文字）。
-  - 文字用**毛筆字型**（`Ma Shan Zheng` 馬善政毛筆楷，PIL 直排合成）：中央 rank 大字（吉類朱紅／凶類墨黑）＋側題「甜甜神社／麻雀大明神」＋底部朱印（吉類「福」／凶類「祓」）。
-  - 工具＝`omikuji_art/compose.py` ＋ `fonts/`（毛筆字型，可 re-download，**不進 git**）；**首版 11 張草圖已生**，預覽在 `image.boyplaymj.link/omikuji-preview/`。素材不進 git。
+- **製法定案＝Bedrock 生空白 washi 籤紙底圖 ＋ 書法字型程式合成**（不讓 SD 生 CJK，必糊）：
+  - **版式參考淺草寺籤紙**：**階名大字在上 ＋ 五言四句直排、右起左行 ＋ 右緣直題「麻雀大明神御籤」＋ 底部朱印**（吉類「福」／凶類「祓」）。
+  - 底圖 2 款：**吉類＝暖米washi**、**凶類＝淡灰washi**，皆雙線黑框大留白（Bedrock SD3.5 生、無文字，`plain_warm/plain_cool`）。
+  - 字型雙軌（**繁體覆蓋是關鍵**，MaShan 為簡體缺 52 繁字→只用於階名）：**階名/朱印＝`Ma Shan Zheng`（毛筆）**；**詩文四句＝`Noto Serif CJK TC`（明朝、全繁覆蓋、木刻籤質感）**。PIL 直排合成。
+  - 工具＝`omikuji_art/compose_v2.py` ＋ `fonts/`（毛筆+明朝，可 re-download，**不進 git**）；**傳統版式 11 張已生**，預覽 `image.boyplaymj.link/omikuji-preview/v2/`。素材不進 git。
 - **不走「每抽即時 Bedrock 生成」**（無限抽會爆成本＋延遲）。日後若要「每張獨一無二」→ 程式合成再疊和歌／流水號＝擴充點。
 
 ---
