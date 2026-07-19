@@ -2,18 +2,23 @@
 const https = require('https');
 const { EventEmitter } = require('events');
 
-let MOCK = { puzzleId: 'mingyan-forgery-coverup', stage: 4 };
+// MOCK.mode: 'ok'(預設) | 'error'(網路錯) | 'http'(非2xx) | 'badjson'
+let MOCK = { puzzleId: 'mingyan-forgery-coverup', stage: 4, mode: 'ok' };
 https.get = (url, cb) => {
-  const res = new EventEmitter();
-  res.statusCode = 200;
-  cb(res);
-  const body = JSON.stringify({ fields: {
-    puzzleId: { stringValue: MOCK.puzzleId },
-    stage: { integerValue: String(MOCK.stage) }
-  }});
-  process.nextTick(() => { res.emit('data', body); res.emit('end'); });
   const req = new EventEmitter();
   req.setTimeout = () => {}; req.destroy = () => {};
+  if (MOCK.mode === 'error') { process.nextTick(() => req.emit('error', new Error('mock net fail'))); return req; }
+  const res = new EventEmitter();
+  res.statusCode = MOCK.mode === 'http' ? 503 : 200;
+  res.resume = () => {};
+  cb(res);
+  const body = MOCK.mode === 'badjson'
+    ? '<<not json>>'
+    : JSON.stringify({ fields: {
+        puzzleId: { stringValue: MOCK.puzzleId },
+        stage: { integerValue: String(MOCK.stage) }
+      }});
+  process.nextTick(() => { res.emit('data', body); res.emit('end'); });
   return req;
 };
 
@@ -88,6 +93,39 @@ const KNOWN = 'd-pigment.html'; // bundle 內 minStage 4
       headers: { origin: 'https://evil.example' },
       queryStringParameters: { case: 'mingyan', node: KNOWN } });
     eq(r.headers['Access-Control-Allow-Origin'], ORIGIN, 'cors 回退');
+  });
+
+  // ── fail-closed：先成功 cache stage4，再 Firestore 失敗 → 不可沿用舊 stage 放行 ──
+  await t('先stage4成功後 Firestore error → 403(不沿用舊cache)', async () => {
+    MOCK = { puzzleId: 'mingyan-forgery-coverup', stage: 4, mode: 'ok' };
+    let r = await gate(ev({ case: 'mingyan', node: KNOWN }));
+    eq(r.statusCode, 200, '先成功');
+    MOCK.mode = 'error';
+    r = await gate(ev({ case: 'mingyan', node: KNOWN }));
+    eq(r.statusCode, 403, 'error後');
+    if (r.body.includes('鈦白') || r.body.includes('贗品')) throw new Error('洩內文');
+  });
+  await t('Firestore timeout(error) → 403', async () => {
+    MOCK = { puzzleId: 'mingyan-forgery-coverup', stage: 4, mode: 'error' };
+    const r = await gate(ev({ case: 'mingyan', node: KNOWN }));
+    eq(r.statusCode, 403, 'code');
+  });
+  await t('Firestore HTTP 503 → 403', async () => {
+    MOCK = { puzzleId: 'mingyan-forgery-coverup', stage: 4, mode: 'http' };
+    const r = await gate(ev({ case: 'mingyan', node: KNOWN }));
+    eq(r.statusCode, 403, 'code');
+  });
+  await t('Firestore 壞 JSON → 403', async () => {
+    MOCK = { puzzleId: 'mingyan-forgery-coverup', stage: 4, mode: 'badjson' };
+    const r = await gate(ev({ case: 'mingyan', node: KNOWN }));
+    eq(r.statusCode, 403, 'code');
+  });
+  MOCK = { puzzleId: 'mingyan-forgery-coverup', stage: 4, mode: 'ok' };
+  await t('超長 case/node → 403', async () => {
+    let r = await gate(ev({ case: 'm'.repeat(65), node: KNOWN }));
+    eq(r.statusCode, 403, 'long case');
+    r = await gate(ev({ case: 'mingyan', node: 'n'.repeat(129) + '.html' }));
+    eq(r.statusCode, 403, 'long node');
   });
 
   console.log(`\n${pass} passed, ${fail} failed`);

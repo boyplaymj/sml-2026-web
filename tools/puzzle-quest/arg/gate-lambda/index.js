@@ -70,12 +70,23 @@ function reply (code, body, headers, origin) {
 const locked = (origin) => reply(403, 'locked',
   { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' }, origin);
 
-// 讀全服 stage（帶 45s 快取）。回 { puzzleId, stage }。讀失敗 → 保守回 stage 1（等於鎖）。
+// 讀全服 stage。回 { puzzleId, stage }。
+// 規則（fail-closed）：TTL 內回上一筆好快取；TTL 過期後 refresh 失敗（timeout/error/非2xx/壞JSON）
+//   → 回 FAILCLOSED（stage 1、空 puzzleId＝鎖），**絕不沿用過期的舊 stage**。
+//   不污染 stageCache.at → 下一個請求會立即重試，Firestore 復原後自動恢復。
+const FAILCLOSED = { puzzleId: '', stage: 1 };
 function fetchStage () {
   const now = Date.now();
-  if (now - stageCache.at < STAGE_TTL_MS) return Promise.resolve(stageCache);
+  if (stageCache.at && now - stageCache.at < STAGE_TTL_MS) return Promise.resolve(stageCache);
   return new Promise((resolve) => {
+    let settled = false;
+    const done = (v) => { if (!settled) { settled = true; resolve(v); } };
     const req = https.get(STAGE_DOC_URL, (res) => {
+      if (res.statusCode < 200 || res.statusCode >= 300) {
+        console.error('stage http', res.statusCode);
+        res.resume(); // drain
+        return done(FAILCLOSED);
+      }
       let data = '';
       res.on('data', c => { data += c; });
       res.on('end', () => {
@@ -84,20 +95,15 @@ function fetchStage () {
           const puzzleId = (f.puzzleId && f.puzzleId.stringValue) || '';
           const stage = parseInt((f.stage && f.stage.integerValue) || '1', 10) || 1;
           stageCache = { at: Date.now(), puzzleId, stage };
+          done(stageCache);
         } catch (e) {
           console.error('stage parse fail', e.message);
-          // 解析失敗：沿用上一筆快取（若有），否則保守鎖
-          if (!stageCache.at) stageCache = { at: Date.now(), puzzleId: '', stage: 1 };
+          done(FAILCLOSED); // 壞 JSON：不寫快取、不放行
         }
-        resolve(stageCache);
       });
     });
-    req.on('error', (e) => {
-      console.error('stage fetch fail', e.message);
-      if (!stageCache.at) stageCache = { at: Date.now(), puzzleId: '', stage: 1 };
-      resolve(stageCache);
-    });
-    req.setTimeout(3000, () => req.destroy(new Error('timeout')));
+    req.on('error', (e) => { console.error('stage fetch fail', e.message); done(FAILCLOSED); });
+    req.setTimeout(3000, () => { req.destroy(new Error('timeout')); done(FAILCLOSED); });
   });
 }
 
@@ -114,12 +120,15 @@ exports.handler = async (event) => {
   const caseId = String(q.case || '').trim();
   const node = String(q.node || '').trim();
 
-  // 參數硬驗（形狀 + 白名單）——不符一律鎖，不洩漏原因差異
+  // 參數硬驗（形狀 + 白名單 + 長度上限）——不符一律鎖，不洩漏原因差異
   if (!CASE_RE.test(caseId) || !NODE_RE.test(node)) return locked(origin);
+  if (caseId.length > 64 || node.length > 128) return locked(origin);
 
+  // 未知 case 先擋：只對 cases.json 已知 key 讀 bundle，避免 public endpoint 灌任意 key 撐爆 bundleCache
   const caseCfg = CASES[caseId];
+  if (!caseCfg) return locked(origin);
   const bundle = getBundle(caseId);
-  if (!caseCfg || !bundle) return locked(origin);
+  if (!bundle) return locked(origin);
 
   const entry = bundle[node];
   if (!entry) return locked(origin); // 未知節點：當作鎖（不區分「不存在」與「未解鎖」）

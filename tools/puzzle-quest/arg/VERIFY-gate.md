@@ -34,17 +34,21 @@ B1/B3/B4/B5 一如既往 ✅
   1. 讀全服 stage：Firestore `sml_config/puzzle_stage`（REST＋public key，45s 快取）；`puzzleId` 需等於 `cases.json[case].puzzleId`，否則一律鎖。
   2. 查 `bundles/<case>.json` 的 `[node].minStage`；`currentStage >= minStage` → 回 `[node].html`（200, `text/html; charset=utf-8`）；否則 **403**（不回內文）。
   3. `node`/`case` 走白名單 regex（擋路徑穿越）；**未知 node／未知 case → 403（非 404）** — 刻意不區分「不存在」與「未解鎖」，避免用狀態碼列舉哪些節點存在。
-  4. stage 讀失敗/逾時/解析錯 → **保守鎖**（沿用上一筆快取或回 stage 1），絕不因讀失敗放行。
+  4. stage 讀失敗/逾時/HTTP非2xx/壞JSON → **fail-closed**（回 `{puzzleId:'',stage:1}`＝鎖），**絕不沿用過期舊 stage**；不污染快取 `at`，下個請求立即重試、Firestore 復原自動恢復。（TTL 內才用上一筆好快取）
 - **CORS**：`Access-Control-Allow-Origin` 只給 `https://image.boyplaymj.link`（非白名單 Origin 回退此預設）；`OPTIONS`→204。
 - **內文來源**：`bundles/<case>.json`＝build 的 `_secret_bundle.json`，`package.sh` 打包時同步進部署包；**更新內文＝重 build＋重跑 package.sh＋重部署 Lambda**。
 - **回填（2a-3）**：Lambda 上線後把端點 URL 填進 `mingyan-world.json` config `gateUrl`，重 build（殼才知道去哪 fetch）。現況 `gateUrl:""` → 殼顯示「尚未接上伺服器」鎖頁（預期）。
-- **本地驗收**：`node gate-lambda/test.js` → 9 項全綠（到階 200／未到階 403 不洩內文／跨案 403／未知 node+case 403／路徑穿越 403／缺參數 403／OPTIONS 204／非白名單 Origin 回退）。
+- **本地驗收**：`node gate-lambda/test.js` → **14 項全綠**（到階 200／未到階 403／跨案 403／未知 node+case 403／路徑穿越 403／缺參數 403／OPTIONS 204／Origin 回退／**fail-closed×4**（先stage4成功後 error→403 不沿用舊cache／timeout／HTTP 503／壞JSON）／超長 case+node 403）。
 
-### Codex 複驗 2a-2（詳見 gate-lambda 內同名段落＋此清單）
-- [ ] `fetchStage()` 每條失敗分支都落「鎖」不放行（安全命門）。
-- [ ] 低 stage／跨案／未知節點回應 body 不含任何 keystone 字（鈦白/贗品/接地/洗錢）。
-- [ ] `bundleCache[caseId]=null` 記憶未知 case 有無 map 無上限風險（現況：`CASE_RE` 限字元、未知 case 早 403，但仍寫一筆 null）→ 評估是否收斂成只認 `cases.json` 的 key。
-- [ ] `node test.js` 全綠、`./package.sh` 產 zip 內含 index.js/cases.json/bundles。
+### Codex Round 1 findings → 已修（2026-07-19）
+- **High｜fail-closed 沒成立（沿用過期 stage4 cache 放行）**：已修 — `fetchStage()` 過期後 refresh 失敗一律回 `FAILCLOSED`，不再沿用舊快取；補 HTTP 非2xx、壞JSON、timeout 分支。新增測試「先stage4成功→Firestore error→403」即 Codex 原 repro，現綠。
+- **Medium｜未知 case 先讀 bundle 並 cache null（可灌 key）**：已修 — handler 先 `if(!caseCfg) return locked` 才 `getBundle`；bundleCache 只會存 `cases.json` 已知 key。另加 `case<=64`／`node<=128` 長度上限。
+
+### Codex 複驗 2a-2（修正後）
+- [ ] 重看 `fetchStage()`：TTL 內用好快取、過期失敗回 FAILCLOSED、不污染 `at`；四類失敗（error/timeout/http/badjson）皆不放行。
+- [ ] 低 stage／跨案／未知節點／讀失敗回應 body 不含任何 keystone 字（鈦白/贗品/接地/洗錢）。
+- [ ] unknown case 不再寫 bundleCache；長度上限有效。
+- [ ] `node test.js` 14/14、`./package.sh` 產 zip 內含 index.js/cases.json/bundles。
 
 ## 💰 成本（同 PHASE2-DESIGN §G）
 Lambda＋HTTP API，讀 stage 可快取，無 LLM、無新 DDB（內文 bundle 進部署包）→ 免費額度內、<$1/月。
