@@ -12,7 +12,7 @@
 | **S0 資料層** | 7 表冪等 migration + 籤池/config 種子 | 主導規格(本檔) | 產 migration/種子樣板 | schema/keys/冪等/TTL、種子結構 |
 | **S1 運氣引擎** | 六軸模型 + `computeLuck` lazy 統一出口 + `getLuck` 存取器 + 單元測試 | 主導設計+覆核 | 實作 | buff/穢れ/厄年結算正確、fail-safe 回 50、公式對 §1.2 |
 | **S2 御守/回收/厄年** | 授與/365天效期/古札納所回收/穢れ負成長/消災解厄綁生日 | 主導設計+覆核 | 實作 | 到期→穢れ、回收消除、厄年数え年表對、生日聯動 |
-| **S3 Discord 八設施** | 手水 gate→主殿抽籤→授與所→奧社→御祈禱→古札納所→御朱印帳→繪馬→石柱 | 覆核 | 實作 | 互動流、牙齒扣費原子、gate 邏輯 |
+| **S3 Discord 八設施** | 手水(temizuMult折扣,非gate)→主殿抽籤→授與所→奧社→御祈禱→古札納所→御朱印帳→繪馬→石柱 | 覆核 | 實作 | 互動流、牙齒扣費原子、temizuMult 折扣套用 |
 | **S4 跨遊戲 wiring** | `getLuck` 接麻將館/隨機事件/路權…逐一調係數 | 主導(防 pay-to-win) | 輔助 | PvP 不動勝率、係數保守、fail-safe |
 | **S5 後台** | 遊戲館管理頁：籤池/費用/權重/效期/厄運率/繪馬審核/石柱榜/御朱印上架 | 覆核 | 生成+覆核 | 認證閘、schema 對齊、%÷100 |
 
@@ -29,10 +29,11 @@
   {
     "discordId": "123",
     "base": { "zaiun":50, "shengun":50, "zhiun":50, "body":50, "renyuan":50, "xingyun":50 },
-    "buffs": [                      // 有效祝福 buff，lazy 讀取時濾掉過期
-      { "axis":"zaiun", "delta":8, "source":"omikuji-0007", "grantedAt":1721260000, "expireAt":1721346400 }
+    "buffs": [                      // 有效祝福 buff，lazy 讀取時濾掉過期。source 供覆蓋制:'omikuji'/'goshuin'/'shitsurei_*'
+      { "axis":"zaiun", "delta":8, "source":"omikuji", "grantedAt":1721260000, "expireAt":1721346400 }
     ],
-    "lastHarai": "20260718",        // 手水洗手日(yyyymmdd)；當日==今天才算已淨手
+    "temizuDate": "20260718",       // 當日手水日(台北 yyyymmdd/YYYY-MM-DD 擇一固定);≠今日→視為未做
+    "temizuMult": 1.0,              // 當日手水成效乘數 0.2/0.5/1.0(RITUAL §4;temizu.enabled=false 時忽略=1.0)
     "yaku": { "year":2026, "kazoe":33, "level":"honyaku", "resolved":false }, // 厄年當年算一次
     "merit": 0,                     // 功德值(折價券性質)
     "updatedAt": 1721260000

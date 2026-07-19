@@ -157,7 +157,7 @@
 | # | 設施 | 機制 | 牙齒流向 |
 |---|---|---|---|
 | 1 | 表參道／裏參道 | 捐牙立**石柱**（刻名永久展示、排行）+ 不定期**市集**活動（限時商店/活動籤） | 大額 sink + 榮譽 |
-| 2 | 手水舍 | 參拜前**必先洗手**（每日免費儀式，軟性 gate 養習慣；當日未洗→主殿/奧社不開） | 免費 |
+| 2 | 手水舍 | 每日免費儀式，五步作法（**非 gate、不擋任何設施**）→ 決定當日 **temizuMult 折扣**：未做 ×0.2 / 錯序 ×0.5 / 正解 ×1.0，套用到所有運氣提升的取得（見 `RITUAL.md §4`） | 免費 |
 | 3 | 古札納所 | **回收舊御守/神札** → 消除厄運負成長 + 給功德值 | 回收循環 |
 | 4 | 參拜主殿 | 花牙參拜 → **選祈求項目**（對應子屬性）→ **抽籤決定祝福等級** | 中額 sink |
 | 5 | 御朱印受付所 | 簽**御朱印帳**（收藏系統）+ 季節/特別限定版可收藏 | 收藏 sink |
@@ -176,7 +176,7 @@
 奧社入口不是花牙齒就能進——要通過牌神的**聽牌試煉**：一個「翻牌記憶 × 湊聽牌」的地城式回合遊戲。**引擎抽成可重用 module，日後可脫離神社獨立開放為小遊戲。**
 
 **核心循環（每關）**
-1. 起程前置：當日已手水；在開放時間內（§5.3）；付一次「入山料」牙齒。
+1. 起程前置：在開放時間內（§5.3）；付一次「入山料」牙齒。（手水**不擋闖關**，只影響通關/深度參拜加持的 temizuMult 額度，見 `RITUAL.md §4`。）
 2. **宣告聽牌目標**（例：聽三六餅）。
 3. **盒子 = 蓋著的牌方陣（🀫）**：內含「一副能聽中目標的正解牌」＋若干**干擾牌**，洗亂後全部蓋住。
 4. **回合**：翻開一格 →
@@ -315,7 +315,7 @@ goshuin: {
 
 | 表 | 用途 | 重點 |
 |---|---|---|
-| `sweetbot-shrine-fortune` | 玩家運氣狀態 | PK=discordId；六子屬性 base + 當前 buff 陣列（各帶 `expireAt`）；`lastHarai`（洗手日）；厄年狀態；功德值；**奧社進度**（`okumiyaClearedAt`/`okumiyaAttemptDate`/`okumiyaAttemptsToday`，v0.2） |
+| `sweetbot-shrine-fortune` | 玩家運氣狀態 | PK=discordId；六子屬性 base + 當前 buff 陣列（各帶 `expireAt`/`source`）；**`temizuDate`+`temizuMult`（當日手水成效，RITUAL §4）**；厄年狀態；功德值；omikuji（`omikujiDrawDate`/`omikujiTodayRank`/`pendingKyo`）；**奧社進度**（`okumiyaClearedAt`/`okumiyaAttemptDate`/`okumiyaAttemptsToday`，v0.2） |
 | `sweetbot-shrine-omamori` | 玩家御守持有 | PK=discordId, SK=御守實例；type、`acquiredAt`、`expireAt(=+365d)`、是否已回收、穢れ狀態 |
 | `sweetbot-shrine-goshuin` | 御朱印帳收藏 | PK=discordId, **SK=`goshuin#<YYYY-MM>`**（台北年月，一枚/月由 SK 唯一+條件寫入強制，§5.4）；versionId/stampedAt/ym/imageKey |
 | `sweetbot-shrine-ema` | 繪馬牆 | PK=月分桶, SK=createTime；玩家願文（公開）、讚 |
@@ -353,7 +353,7 @@ goshuin: {
 
 - **Phase 0**（✅已上線）：資料層 **7 表** migration（冪等 CreateTable）+ 籤詩池種子 + config 種子。（v0.2 的第 8 表 `okumiya-session` 於 Phase 2 奧社時增建，冪等 migration + 開 TTL。）
 - **Phase 1**（✅已實作+Codex查驗）：運氣引擎（六子屬性 + lazy compute buff/穢れ結算）+ `getLuck` 存取器 + 單元測試。**先把數值算對、可查詢，不接遊戲。**
-- **Phase 2**：Discord 端設施互動（手水 gate → 主殿抽籤 → 授與所商店 → **奧社聽牌試煉**（§5.2）→ 御祈禱厄年 → 古札納所回收 → 御朱印帳 → 繪馬牆 → 石柱）；**開放時間閘**（§5.3）套在參拜系/御朱印。**奧社聽牌試煉獨立成子階段**：先落地共用麻將核心「`Common/MahjongHand.js`（port 自地城 ReadyHandLogic）+ 單元測試」（規格見 `tools/mahjong-hand-core/SPEC.md`，可離線、Opus 親寫），再補「出題器唯一解驗證」，最後疊翻牌回合引擎（TTL 對局表）與 Discord 按鈕方陣 UI。此 module 設計成可脫離神社獨立開放。
+- **Phase 2**：Discord 端設施互動（手水（temizuMult 折扣、非 gate，RITUAL §4）→ 主殿抽籤 → 授與所商店 → **奧社聽牌試煉**（§5.2）→ 御祈禱厄年 → 古札納所回收 → 御朱印帳 → 繪馬牆 → 石柱）；**開放時間閘**（§5.3）套在參拜系/御朱印。**奧社聽牌試煉獨立成子階段**：先落地共用麻將核心「`Common/MahjongHand.js`（port 自地城 ReadyHandLogic）+ 單元測試」（規格見 `tools/mahjong-hand-core/SPEC.md`，可離線、Opus 親寫），再補「出題器唯一解驗證」，最後疊翻牌回合引擎（TTL 對局表）與 Discord 按鈕方陣 UI。此 module 設計成可脫離神社獨立開放。
 - **Phase 3**：跨遊戲 wiring（麻將館/隨機事件/路權先接，逐一調係數並記錄）。
 - **Phase 4**：後台管理頁（遊戲館 NAV）：籤池增修、費用/權重/效期/厄運扣率、市集活動、繪馬審核、石柱榮譽榜、御朱印季節版上架。
 

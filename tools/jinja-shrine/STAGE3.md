@@ -48,7 +48,7 @@
 
 - **一般設施**:下拉選單可**直接跳**到 9 設施任一(換 `positions.json` 對應 location 的 CDN 圖 + 側欄該 row 已烤進圖)。
 - **奧社**:選「奧社」→ 進 `okusha_stair`(樓梯/試煉起點)location,顯示 `[挑戰聽牌試煉]` 按鈕;**通過 10 關**才切到 `okusha_top`(內殿)location 解鎖深參拜/限定品(見 §4 okusha)。
-- 手水 gate:主殿/奧社參拜前檢查當日已手水(§4 temizu),未洗 → 導去手水舍。
+- 手水**非 gate**:主殿/奧社**不擋**;手水只決定當日 `temizuMult`(RITUAL §4),折扣運氣提升,由 `applyTemizuMult` 在各 grant 點套用。
 
 ---
 
@@ -60,7 +60,7 @@
 | `kosatsu` 古札納所 | 回收御守 | `ShrineOmamoriService.recycle` | ✅ 已備 |
 | `gokitou` 御祈禱 | 除厄(選性別) | `ShrineHaraiService.harai` | ✅ 已備 |
 | `honden` 本殿 | 參拜抽籤 | **ShrineOmikujiService.draw(新)** — 讀 omikuji-pool→抽階→寫 fortune.buffs(分項 score→六軸 buff);抽到吉凶+和歌+定性詩文(**不顯數值**) | ⬜ 待建(S3-2) |
-| `temizu` 手水舍 | 今日清め | **手水 gate(新)** — 寫 fortune.lastTemizu=今日;每日一次免費 | ⬜ 待建(S3-1) |
+| `temizu` 手水舍 | 今日清め | **手水(新)** — 五步作法→寫 `fortune.temizuDate`+`temizuMult`;每日一次免費、**非 gate** | ⬜ 待建(S3-1) |
 | `ichiba` 市集 | 買(折扣)/賣(納回部分牙齒) | **市集 service(新)** — config 排程開市;賣=御守/神札→部分退牙 | ⬜ 待建(S3-3) |
 | `goshuin` 御朱印 | 御朱印帳 | **御朱印 service(新)** — 蓋印/收藏(季節版) | ⬜ 待建(S3-4) |
 | `okusha` 奧社 | 挑戰聽牌試煉 | **奧社聽牌試煉(新,大)** — MahjongHand 核心已備;翻牌回合引擎+TTL對局表+按鈕方陣 | ⬜ 待建(S3-5) |
@@ -83,7 +83,7 @@
 | 子任務 | 內容 | 主手 |
 |---|---|---|
 | **S3-0 面板骨架 + 導覽 + 3 現成操作** | Shrine.js:入口→ephemeral 面板→下拉導覽換圖+側欄同步→接 grant/recycle/harai 三個現成 service;開放時間閘;positions.json 載入 | Opus 架構 → Fable5 實作 |
-| **S3-1 手水舍 gate** | 每日清め(fortune.lastTemizu);主殿/奧社前置檢查 | Fable5 |
+| **S3-1 手水舍** | 五步作法→當日 `temizuMult`(fortune.temizuDate/temizuMult);**非 gate**、跨系統折扣 | Fable5 |
 | **S3-2 本殿參拜抽籤** | ShrineOmikujiService.draw + omikuji-pool 豐富籤池 seed;抽階→buff;吉凶詩文(無數值) | Opus 命門 + Fable5 |
 | **S3-3 市集買賣** | 開市排程 + 買折扣 + 賣道具納回部分牙齒 | Fable5 |
 | **S3-4 御朱印帳** | 蓋印/收藏(季節版) | Fable5 |
@@ -107,8 +107,8 @@
 | **S3-0a-i** | visit DAO + 面板純核心 | `ShrineFortuneDAO` 加 openVisit/closeVisit/appendBuff;`Shrine.js` 純 helper(resolveLocation/_panel/_shitsureiOnEnter/flavor/載入 positions);node:test 全綠 | **🔵 Fable5** | ✅ 純單測(最穩,先做) | positions.json ✅ |
 | **S3-0a-ii** | 面板互動接線 | `Shrine.js` commands(`!神社`)/buttons(shrenter/shrbow)/selects(shrnav) handler + discord.js 4 行註冊 | **🔵 Fable5** | ❌ 手動(restart) | S3-0a-i |
 | **S3-0b** | 3 現成操作 + 選擇子流程 | 授與所 grant(選 6 御守)/古札納所 recycle(列御守選)/御祈禱 harai(選性別);接 §4 已備 service | **🔵 Fable5** | 部分(service 已測) | S3-0a-ii |
-| **S3-1** | 手水五步儀式 | 5 按鈕打散 + 順序 state machine + 失礼扣 + temizuDone(當日);**命門=順序 enforcement**(RITUAL §3) | **Opus 命門** + Fable5 | 順序判定純測 ✅ / 互動手動 | S3-0a-ii |
-| **S3-2** | 本殿參拜抽籤 | **ShrineOmikujiService.draw(新命門)** 讀 omikuji-pool→抽階→六軸 buff;需 temizuDone;吉凶詩文**無數值** | **Opus 命門** + Fable5 | draw 純測 ✅ | S3-1 |
+| **S3-1** | 手水五步儀式 | 5 按鈕打散 + 全按完判順序(無提示) + 錯序失礼扣 + 當日 `temizuMult`(第一次定生死、多做不算);**命門=順序 enforcement**(RITUAL §3/§4) | **Opus 命門** + Fable5 | 順序判定純測 ✅ / 互動手動 | S3-0a-ii |
+| **S3-2** | 本殿參拜抽籤 | **ShrineOmikujiService.draw(新命門)** 讀 omikuji-pool→抽階→六軸 buff(× temizuMult);**非 gate**;吉凶詩文**無數值** | **Opus 命門** + Fable5 | draw 純測 ✅ | S3-1 |
 | **S3-3** | 市集買賣 | 開市排程 + 買折扣 + 賣道具納回部分牙齒 | **🔵 Fable5** | 部分 | S3-0a-ii |
 | **S3-4** | 御朱印帳 | 蓋印/收藏(季節版) | **🔵 Fable5** | 部分 | S3-0a-ii |
 | **S3-5** | 奧社聽牌試煉 | 翻牌回合引擎 + TTL 對局表 + 按鈕方陣 UI + MahjongHand 驗答(DESIGN §5.2) | **Opus 架構** + Fable5 | 純核心 ✅(MahjongHand 已備)/ 互動手動 | S3-0a-ii |

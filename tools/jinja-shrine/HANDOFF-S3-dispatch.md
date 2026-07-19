@@ -20,8 +20,18 @@
    - omikuji 用 `source:'omikuji'`、goshuin 用 `source:'goshuin'`。兩單都要「覆蓋制」→ 這支是唯一實作。
    - omikuji 另需 `clearKyo`（REMOVE pendingKyo + 濾掉 `source==='omikuji' && delta<0`）。
 2. **時間閘 helper `isOpen(facility, now)`** — 純比較台北小時對 `config.hours`（`sanpai:[9,17]`、`goshuin:[9,15]`）；**fail-safe：缺 hours → 全日開放**。omikuji 授與所預設全日、goshuin 受付 09–15。
-2b. **手水乘數 `applyTemizuMult(fortune, buffs, now)`（跨系統共用前置，見 `RITUAL.md §4`）** — 取當日 `fortune.temizuMult`（`temizuDate`≠今日 → 0.2）；把每筆 buff 的**正向 delta** `× mult`（負向不折）。**御神籤首抽 / 御守 / 御朱印 / 本殿参拜**四處 grant buff **前**都要過這支。三檔：未手水 0.2 / 錯序 0.5 / 正解 1.0（手水 S3-1 寫入，當日第一次定生死、不能重做）。**gate by `config.temizu.enabled`（預設 `false` → mult 恆 1.0）**：S3-1 手水 UI 上線前先關著（否則沒手水入口卻全被 80% off＝壞體驗），手水做好後才開 `true` 啟用折扣。config 缺 → mult=1.0（fail-safe）。
-3. **config 區塊**：`defaults.js` + `seed_shrine_config.js` 同時加 `omikuji{}`（HANDOFF-S3-omikuji §7）與 `goshuin{}`（S3-goshuin §4）+ `hours`。
+2b. **手水乘數 `applyTemizuMult(config, fortune, buffs, now) → buffs`（跨系統共用前置，見 `RITUAL.md §4`）** — **介面必帶 `config`**（否則實作者易漏 enabled gate）。邏輯：
+   - **① `config.temizu.enabled !== true` → 直接回原 buffs（mult=1.0，不折）。** 這是上線保護：S3-1 手水 UI 上線前先 `false`，否則沒手水入口卻全被 80% off＝壞體驗；手水做好才開 `true`。config 缺 temizu → 同視為 disabled（fail-safe）。
+   - ② enabled=true：取當日 `mult`＝`fortune.temizuDate===台北今日 ? fortune.temizuMult : config.temizu.mult.none(0.2)`（隔日/未做＝0.2）。
+   - ③ 把每筆 buff 的**正向 delta** `× mult`（`delta<0` 不折、原樣保留）。
+   - **唯一每日成效欄＝`fortune.temizuDate` + `fortune.temizuMult`**；**禁用舊語彙 `lastTemizuDate`/`temizuDone`**；`visit.temizuState` 只當未完成流程暫存。
+   - **套用四處**（grant buff 前都要過）：御神籤首抽、御朱印、本殿参拜＝走 `fortune.buffs[]`，直接 `applyTemizuMult` 後再寫。**御守＝特例（見下）**。
+2c. **御守 boost 折扣（特例，Codex point 5）** — 御守加成**不在 `fortune.buffs[]`**，而是存 omamori item 的 `boost`、`computeLuck` 讀 active omamori 直接加。故折扣**不能在 compute 端做**（會連舊御守一起打折），必須在**請御守當下**：`ShrineOmamoriService.grant` 存 item 前，把正向 `boost` 先 `× mult`（`boost = Math.round(boost * temizuMult)`）再存。→ 折扣鎖進該枚御守、跟著 365 天效期。**這要改既有 `ShrineOmamoriService.grant`**（S2-2 已上線碼），改動點僅一行乘算 + 注入 mult；既有測試需補一條「temizu.enabled=true 時 boost 被折」。
+3. **config 區塊**：`defaults.js` + `seed_shrine_config.js` 同時加 `omikuji{}`（HANDOFF-S3-omikuji §7）、`goshuin{}`（S3-goshuin §4）、`hours`、**`temizu{}`**：
+   ```js
+   temizu: { enabled: false, mult: { none: 0.2, wrong: 0.5, correct: 1.0 },
+             wrongPenalty: { axis: 'body', delta: -5, days: 3 } }  // 錯序一次性失礼扣幸運
+   ```
 4. **Shrine.js 面板**：兩系統各加設施操作鈕（授與所+「抽御神籤」、御朱印受付所+「蓋御朱印」「御朱印帳」），一起改一次 `facilityActionRow`/`handleAction`/handler 表。
 
 ---
