@@ -20,11 +20,33 @@
   header .sub{margin-left:auto; font-size:11px; color:var(--sub)}
 
   /* 掃描鈕 */
-  .scan{width:100%; border:none; border-radius:14px; padding:14px; margin-bottom:11px;
-    font-size:16px; font-weight:800; letter-spacing:.5px; color:#04222e;
-    background:linear-gradient(180deg,#5fd0ff,#38bdf8); box-shadow:0 3px 10px rgba(56,189,248,.35)}
+  .scanrow{display:flex; gap:9px; margin-bottom:11px}
+  .scan{flex:1; border:none; border-radius:14px; padding:14px; font-size:16px; font-weight:800;
+    letter-spacing:.5px; color:#04222e; background:linear-gradient(180deg,#5fd0ff,#38bdf8);
+    box-shadow:0 3px 10px rgba(56,189,248,.35)}
+  .scan.alt{flex:0 0 34%; background:var(--panel2); color:var(--ink); box-shadow:none; border:1px solid var(--line)}
   .scan:active{transform:translateY(1px)}
   .scan:disabled{opacity:.55; background:var(--panel2); color:var(--sub); box-shadow:none}
+
+  /* 即時掃描全螢幕層 */
+  .live{position:fixed; inset:0; z-index:100; background:#000; display:none}
+  .live.on{display:block}
+  .live video{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+  .live .frame{position:absolute; left:5%; right:5%; top:34%; height:24%;
+    border:2.5px solid #38bdf8; border-radius:12px; box-shadow:0 0 0 9999px rgba(0,0,0,.5);
+    transition:border-color .2s}
+  .live .frame.locked{border-color:var(--good)}
+  .live .lstatus{position:absolute; left:0; right:0; top:13%; text-align:center; color:#fff;
+    font-size:14px; font-weight:600; text-shadow:0 1px 3px #000; padding:0 20px}
+  .live .lclose{position:absolute; top:14px; right:14px; background:rgba(0,0,0,.5); color:#fff;
+    border:1px solid rgba(255,255,255,.35); border-radius:99px; padding:7px 14px; font-size:13px; font-weight:700}
+  .live .lresult{position:absolute; left:0; right:0; bottom:0; background:rgba(15,23,42,.94);
+    border-top:1px solid var(--line); padding:14px 14px calc(18px + env(safe-area-inset-bottom)); min-height:96px}
+  .live .lhead{font-size:16px; font-weight:800; color:var(--ink); margin-bottom:9px}
+  .live .lhead.good{color:var(--good)} .live .lhead.bad{color:var(--bad)}
+  .live .lwaits{display:flex; gap:6px; overflow-x:auto}
+  .live .lwaits .wt{flex:0 0 auto; width:34px}
+  .live .lwaits .wt .tile{border-radius:5px; box-shadow:0 0 0 2px var(--good); filter:none}
 
   /* 牌圖（2:3） */
   .tile{display:block; width:100%; height:auto; aspect-ratio:311/468; border-radius:6px;
@@ -79,8 +101,23 @@
   <span class="sub">台灣 16 張制</span>
 </header>
 
-<button id="scanBtn" class="scan">📷 拍照 / 選照片辨識牌</button>
+<div class="scanrow">
+  <button id="liveBtn" class="scan">🎥 即時掃描</button>
+  <button id="scanBtn" class="scan alt">📷 拍照</button>
+</div>
 <input id="fileIn" type="file" accept="image/*" capture="environment" hidden>
+
+<!-- 即時掃描全螢幕層 -->
+<div class="live" id="live">
+  <video id="cam" playsinline muted></video>
+  <div class="frame" id="frame"></div>
+  <div class="lstatus" id="lstatus">開啟相機中…</div>
+  <button class="lclose" id="lclose">✕ 關閉</button>
+  <div class="lresult" id="lresult">
+    <div class="lhead" id="lhead">把整排牌排進框內、拿穩</div>
+    <div class="lwaits" id="lwaits"></div>
+  </div>
+</div>
 
 <div class="result" id="result">
   <div class="status">
@@ -258,6 +295,70 @@
     img.src=URL.createObjectURL(f);
     fileIn.value='';
   });
+
+  // 🎥 即時掃描
+  var liveBtn=document.getElementById('liveBtn'), liveEl=document.getElementById('live'),
+      cam=document.getElementById('cam'), frameEl=document.getElementById('frame'),
+      lstatus=document.getElementById('lstatus'), lclose=document.getElementById('lclose'),
+      lhead=document.getElementById('lhead'), lwaits=document.getElementById('lwaits');
+  var liveOn=false, stream=null, grab=document.createElement('canvas'), gctx=grab.getContext('2d');
+  var lastKey='', stableN=0, LIVE_STABLE=2; // 連續 3 次一致才鎖定
+
+  async function startLive(){
+    liveEl.classList.add('on'); lstatus.textContent='開啟相機中…';
+    lhead.className='lhead'; lhead.textContent='把整排牌排進框內、拿穩'; lwaits.innerHTML='';
+    lastKey=''; stableN=0; frameEl.classList.remove('locked');
+    try{
+      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});
+      cam.srcObject=stream; await cam.play();
+      liveOn=true; lstatus.textContent='載入辨識模型…（首次約 12MB）';
+      tick();
+    }catch(e){
+      liveOn=false; liveEl.classList.remove('on');
+      elHead.className='headline bad';
+      elHead.textContent='相機無法開啟（'+(e&&e.name?e.name:e)+'）· 改用 📷 拍照';
+    }
+  }
+  function stopLive(){
+    liveOn=false; liveEl.classList.remove('on');
+    if(stream){ stream.getTracks().forEach(function(t){t.stop();}); stream=null; }
+    cam.srcObject=null;
+  }
+  async function tick(){
+    if(!liveOn) return;
+    var vw=cam.videoWidth, vh=cam.videoHeight;
+    if(vw&&vh){
+      var sy=Math.round(vh*0.28), sh=Math.round(vh*0.40);   // 中央橫帶(對齊框)
+      grab.width=vw; grab.height=sh;
+      gctx.drawImage(cam, 0,sy,vw,sh, 0,0,vw,sh);
+      try{ var out=await MahjongDetect.detectTiles(grab, function(m){ lstatus.textContent=m; });
+           if(liveOn) handleLive(out.ids); }
+      catch(e){ /* 忽略單幀錯誤，續跑 */ }
+    }
+    if(liveOn) setTimeout(tick, 300);
+  }
+  function handleLive(ids){
+    lstatus.textContent='偵測到 '+ids.length+' 張 · 拿穩對齊框內';
+    var key=ids.slice().sort(function(a,b){return a-b;}).join(',');
+    if(key===lastKey) stableN++; else { stableN=0; lastKey=key; frameEl.classList.remove('locked'); }
+    if(stableN<LIVE_STABLE || ids.length===0) return;      // 尚未穩定
+    frameEl.classList.add('locked');
+    hand=ids.slice(0,MAX); render();                        // 同步進主手牌
+    lwaits.innerHTML='';
+    if(ids.length%3===1){
+      var w=MahjongHand.waitingTiles(hand);
+      if(w.length){ lhead.className='lhead good'; lhead.textContent='聽牌！聽 '+w.length+' 種：';
+        w.forEach(function(id){ var e=document.createElement('div'); e.className='wt'; e.appendChild(tileImg(id)); lwaits.appendChild(e); }); }
+      else { lhead.className='lhead bad'; lhead.textContent='尚未聽牌（'+ids.length+' 張）'; }
+    } else if(ids.length%3===2){
+      lhead.className=MahjongHand.isHu(hand)?'lhead good':'lhead';
+      lhead.textContent=MahjongHand.isHu(hand)?'胡了！':'還沒胡（'+ids.length+' 張）';
+    } else {
+      lhead.className='lhead'; lhead.textContent='偵測到 '+ids.length+' 張 · 判聽需 3k+1 張';
+    }
+  }
+  liveBtn.addEventListener('click', startLive);
+  lclose.addEventListener('click', stopLive);
 
   buildPalette(); render();
 })();
