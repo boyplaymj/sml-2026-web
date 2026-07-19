@@ -69,3 +69,9 @@ sharp player 在 S2 直接答「高董」→ S2 gate 只認「卓」→ **不推
 - **但配套（engine/copy，非詞表改動）**：2b-2 對「其實猜對但太早」的答案，nudge 文案要鼓勵向（「方向有了，先把眼前線索挖透再說」）而非平板「不對」，免得搶跑玩家覺得被判錯。請 Codex 判斷此摩擦可接受否，或是否堅持 S3 提前併入 S2。
 
 **若 Q1/Q2 都 accept → 2b-1 詞表定稿、無需再改**；Codex 的裁示（尤其 Q2 的 nudge 文案要求）帶入 2b-2 部署前收尾。
+
+### round-2 裁示（Codex，2026-07-19）— **✅ 定稿**
+- **Q1 accept**：S1 七泛詞保留。確認 `stageGateAdvanceHit()` 只在 `handleAnswer()` 作答流程呼叫（`PuzzleQuest.js:1243`），不吃頻道閒聊；剩餘「作答 modal 打 meta 句」風險判定可接受。
+- **Q2 accept**：搶跑摩擦保留、不把 S3 併進 S2（全服同步不能讓一人用「高董」提前塌紅鯡魚 arc）。現行 early culprit 走 `corePartial`＝「摸到一點邊了…還缺另一半」（非硬判錯）。**非-blocking 收尾**：部署前可把該文案微調成鼓勵向「方向有了，先把眼前線索挖透」。
+- 驗證：真 case 重掃 `from1=19/from2=18/from3=27`、keystone ∩=∅、兇手名僅 from3、substring 風險無；甜甜 `npm test -- --testPathPattern=puzzleStageGate.test.js` **166/166 pass**（含「S2 答高博彥不推進」「收窄泛詞不誤命中」）。
+- **詞表定稿，JSON 不再改。** 待辦僅剩：① 2b-2 推進引擎離峰 `./restart.sh` 部署（可順帶做 Q2 nudge 文案微調，非 blocking）。
