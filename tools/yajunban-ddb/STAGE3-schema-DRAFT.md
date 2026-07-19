@@ -118,7 +118,7 @@
 | 裝備/替換技能槽 | M#BUILD | UpdateItem,槽數≤stage 條件 |
 | 轉職(job_guild/job_tier) | M#BUILD | **TransactWrite**(驗種族禁忌/階段/任務) |
 | 碎片兌換數值(stats +1) | M#CORE.stats(+PERMANENT 碎片) | **TransactWrite**(扣碎片+加數值) |
-| 進化(stage+1 + 新 slots + talent_points+1) | M#CORE + M#BUILD | 條件寫(stage 未變+門檻達標);跨顆用 Transact |
+| 進化(stage+1 + 進化給點) | M#CORE + M#BUILD | **TransactWrite**(2 leg);CORE leg `SET stage=:new` 條件 `stage=:cur AND xp≥ AND survival_hours≥ AND charm≥ AND friendship≥ AND reputation≥ AND born_at≤:cutoff AND sick_type=:none`;BUILD leg `ADD talent_points_available :per, talent_point_grants {evo:<stage>}` 條件 `attribute_exists(userId) AND NOT contains(evo:<stage>)`;`ClientRequestToken=evolve#uid#<newStage>`。恰一次升階由 CORE `stage=:cur` 保證。⚠️ **不寫 slots**(插槽解鎖=`f(stage)` 純衍生,外觀圖生成另片)。見 [GROWTH-evolution-DRAFT.md](./GROWTH-evolution-DRAFT.md) |
 | 裝備/生成插槽(slots[x]) | M#BUILD | UpdateItem(可 batch) |
 
 ---
