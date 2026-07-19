@@ -55,6 +55,7 @@
 
 ## STAGE 4 — 既有 Lambda 接帳本 + kill switch（Claude，小改）
 - `sml-chat-capture`：每次 `yt()` 前呼叫 STAGE 2b 的 `reserveUnits(1)`；`!allowed` 則跳過該次呼叫。維持 1 次/分。抓取器寫入沿用既有 `capWrite`（已是 updateMask 逐欄，符合 finding 2）。
+- ⚠️**videoId 換片重置（Claude STAGE 3 覆核發現）**：偵測器 activate 新片時只寫 `{videoId,enabled}`、**不碰** liveChatId/pageToken（writer 契約）。因此 capture 必須在**偵測到 `videoId` 與自己 liveChatId 所屬的片不同時，先清掉 liveChatId+pageToken 再重解**，否則新片會沿用上一場的 stale liveChatId（雖會靠 400 於 ~1 分自癒、期間不誤寫訊息，但應主動重置）。做法：capture 記住上次處理的 videoId，發現變了就 reset liveChatId/pageToken。
 - `sml-yt-chat-bridge`：同上 + 頂上供應時把 `MIN_POLL` 5s→10s（最壞用量砍半）。
 - **共用 `reserveUnits` 由單一模組匯出**，三個 Lambda（detect/capture/bridge）都 import 同一份，杜絕各自實作漏計。
 - **Codex 查驗**：無任何 v3 路徑繞過 `reserveUnits`；capture 仍 1/分；bridge 間隔已放寬；writer 只碰自己欄位。
