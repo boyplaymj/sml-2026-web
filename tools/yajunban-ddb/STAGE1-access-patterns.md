@@ -63,7 +63,7 @@
 |---|---|---|---|---|---|---|
 | 讀天賦樹配置(已點+可點) | 開天賦樹介面/進化後 | 讀 | `talent_points_available`、`talent_nodes`(bitmap/set)、`stage`、`soul_behavior`、`career_history` | 中 | 最終一致 | 單筆 |
 | 讀天賦樹結構定義(100格盤) | 渲染介面 | 讀 | 靜態天賦定義表(節點id/階層/雙閘門/前置/門檻) | 中 | 最終一致 | 設定表(快取) |
-| 配點(消耗天賦點解鎖節點) | 玩家點天賦 | 寫 | `talent_points_available`(原子扣)、`talent_nodes`(加節點) | 中 | 強一致 | **TransactWrite**(點數≥1+前置滿足) |
+| 配點(消耗天賦點解鎖節點) | 玩家點天賦 | 寫 | `talent_points_available`(原子扣)、`talent_nodes`(加節點) | 中 | 強一致 | **單一 conditional UpdateItem**(兩鍵同 M#BUILD:ADD 節點+扣點,條件 點數≥cost+前置 contains+未持有;非跨顆故免 Transact,GROWTH-talent-DRAFT D1) |
 | 雙閘門檢查(階段深度+靈魂軟親和) | 配點前驗證 | 讀 | `stage`、`soul_behavior`、目標節點階層/親和 | 中 | 強一致 | 單筆(隨配點條件) |
 | 進化/菌核躍動給天賦點 | 進化 or 隱藏 EXP 達標 | 寫 | `talent_points_available`(ADD +1)、`stage` | 低 | 強一致 | 單筆(ADD) |
 | 效果套用(戰鬥讀被動天賦) | 每場戰鬥結算 | 讀 | `talent_nodes`+靜態平衡表 | 高 | 最終一致 | 單筆+設定表 |

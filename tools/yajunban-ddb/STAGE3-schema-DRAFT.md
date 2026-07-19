@@ -110,7 +110,7 @@
 | 移動(pos/khui/khui_last_ts) | M#CORE | UpdateItem,`SET khui=現值−1, khui_last_ts=now`,防菌氣超支條件 |
 | A 層被動吸收(survival_hours/xp,絕不寫 friendship) | M#CORE | UpdateItem ADD,節流 |
 | lazy 衰退(friendship −1 / satiety / mood / khui) | M#CORE(多為讀時算,必要才寫) | 時間戳差計算 |
-| 配點(talent_points −1 + talent_nodes ADD 節點) | M#BUILD | **TransactWrite**(點數≥1+前置) |
+| 配點(talent_points −cost + talent_nodes ADD 節點) | M#BUILD | **單一 conditional UpdateItem**(兩鍵同顆→原子,免 Transact;TransactWrite 只在進化耦合 CORE+BUILD 時。GROWTH-talent-DRAFT D1) |
 | 學技能/升級(skill_bag + 扣道具) | M#BUILD(+背包表) | **TransactWrite** |
 | 裝備/替換技能槽 | M#BUILD | UpdateItem,槽數≤stage 條件 |
 | 轉職(job_guild/job_tier) | M#BUILD | **TransactWrite**(驗種族禁忌/階段/任務) |
