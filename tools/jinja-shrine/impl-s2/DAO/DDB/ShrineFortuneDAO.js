@@ -33,6 +33,18 @@ class ShrineFortuneDAO extends BaseDAO {
     return true;
   }
 
+  // 持久化性別(SET #g;gender 是 DDB 保留字 → #g alias)。御祈禱驗證通過即寫,與付費無關。
+  async setGender (discordId, gender) {
+    await this.ddb.send(new UpdateCommand({
+      TableName: this.tableName,
+      Key: { discordId: String(discordId) },
+      UpdateExpression: 'SET #g = :g',
+      ExpressionAttributeNames: { '#g': 'gender' },
+      ExpressionAttributeValues: { ':g': gender }
+    }));
+    return true;
+  }
+
   // 記錄除厄:一次 UpdateCommand 原子寫 yakuHaraiYear(+可選 gender)。
   // gender 傳入(male/female)才寫;否則只寫年。gender 是 DDB 保留字 → #g alias。
   async setYakuHarai (discordId, year, gender) {

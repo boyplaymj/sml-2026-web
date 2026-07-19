@@ -48,25 +48,32 @@ class ShrineHaraiService {
       const birthday = (viewer && viewer.birthday) ? String(viewer.birthday).replace(/-/g, '') : null;
       if (!birthday || !/^\d{8}$/.test(birthday)) return { ok: false, reason: 'birthday_required' };
 
-      // 4) 算厄年(用引擎同源 taipeiYear + computeYaku);非厄年 → 不收費
+      // 4) 取 fortune + 持久化 gender(驗證通過即寫,與付費/是否除厄無關)。
+      //    gender 是引擎啟用厄年系統的鑰匙 → 若只在付費成功才寫,厄年但牙齒不足者
+      //    提供性別卻拿 insufficient、gender 永不落地、引擎永遠跳過其厄年(Codex S2-4 Blocking)。
+      const fortune = await fortuneDAO.getByPlayer(discordId);
+      if (!fortune || fortune.gender !== gender) {
+        await fortuneDAO.setGender(discordId, gender);
+      }
+
+      // 5) 算厄年(用引擎同源 taipeiYear + computeYaku);非厄年 → 不收費(但 gender 已存)
       const year = taipeiYear(nowEpoch);
       const kazoe = year - parseInt(birthday.slice(0, 4), 10) + 1;
       const yk = computeYaku(kazoe, gender);
       if (yk.level === 'none') return { ok: false, reason: 'not_in_yakudoshi' };
 
-      // 5) 同年冪等:本年已除厄且不可重複 → already_haraied(不收費)
-      const fortune = await fortuneDAO.getByPlayer(discordId);
+      // 6) 同年冪等:本年已除厄且不可重複 → already_haraied(不收費;gender 已存)
       if (fortune && fortune.yakuHaraiYear === year && !rechargeable) return { ok: false, reason: 'already_haraied' };
 
-      // 6) 先查餘額(不足不扣不寫)
+      // 7) 先查餘額(不足不扣不寫;gender 已存)
       const detail = await viewerDetailDAO.selectOne({ discordId: String(discordId) });
       const balance = (detail && typeof detail.point === 'number') ? detail.point : 0;
       if (balance < fee) return { ok: false, reason: 'insufficient', need: fee, have: balance };
 
-      // 7) 扣款
+      // 8) 扣款
       await viewerDetailDAO.givePoint([String(discordId)], -fee, 'point', '御祈禱除厄');
 
-      // 8) 寫 yakuHaraiYear(+gender);失敗退款
+      // 9) 寫 yakuHaraiYear(+gender);失敗退款
       try {
         await fortuneDAO.setYakuHarai(discordId, year, gender);
       } catch (err) {
