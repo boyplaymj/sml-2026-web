@@ -2,7 +2,7 @@
 # ④神社印(中央紅方印刻社名) ⑤日期(左直排)。季節靠社紋色+副印區分。$0程式合成。
 from PIL import Image, ImageDraw, ImageFont
 import math
-SR="fonts/NotoSerifTC.otf"
+SR="fonts/JinXiHaoLong.otf"   # 金梅浩龍書法體(使用者提供;御朱印用字全覆蓋)
 def F(s): return ImageFont.truetype(SR,s)
 # id, 中央大書, 社紋內字, 季節副印, accent色, 底
 V=[
