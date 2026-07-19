@@ -74,11 +74,11 @@
 
 <div class="result" id="result">
   <div class="status">
-    <span>手牌 <b id="cnt">0</b> / 16 張</span>
+    <span>手牌 <b id="cnt">0</b> 張</span>
     <span id="phase"></span>
     <span class="pill" id="pill">請點牌</span>
   </div>
-  <div class="headline" id="headline">從下方點你的整手牌（湊滿 16 張自動判聽）</div>
+  <div class="headline" id="headline">點你的整手牌 · 有吃碰槓只點暗牌即可</div>
   <div class="waits" id="waits"></div>
 </div>
 
@@ -94,15 +94,14 @@
 <div id="palette"></div>
 
 <footer>
-  台灣 16 張制 · 湊滿 <b>16 張</b>判聽、<b>17 張</b>判胡 · 免役即胡<br>
-  <span class="note">有吃碰槓也把明牌一起點進來湊足 16 張 · 花牌/暗槓 P0 未支援 · 判定核心 MahjongHand.js（6000 手驗證）</span>
+  台灣 16 張制 · <b>3k+1 張</b>（16/13/10/7…）判聽、<b>3k+2 張</b>判胡 · 免役即胡<br>
+  <span class="note">吃碰槓露出後只點暗牌（暗牌 13/10/7 張也能判聽）· 花牌/暗槓 P0 未支援 · 判定核心 MahjongHand.js（6000 手驗證）</span>
 </footer>
 
 <script src="mahjongHand.js"></script>
 <script>
 (function(){
-  var TARGET=16;          // 台灣門清聽牌張數
-  var MAX=17;             // 允許摸進第 17 張判胡
+  var MAX=17;             // 門清最多 16 張，摸進第 17 張可判胡；副露暗牌更少
   var LABEL={101:'東',201:'南',301:'西',401:'北',501:'中',601:'發',701:'白'};
   function label(id){
     if(id>=1&&id<=9)   return id+'萬';
@@ -177,17 +176,11 @@
   function renderResult(){
     var n=hand.length; elCnt.textContent=n; elWaits.innerHTML=''; setPill('');
     if(n===0){ elPhase.textContent=''; setPill('請點牌');
-      elHead.className='headline'; elHead.textContent='從下方點你的整手牌（湊滿 16 張自動判聽）'; return; }
+      elHead.className='headline'; elHead.textContent='點你的整手牌 · 有吃碰槓只點暗牌即可'; return; }
 
-    if(n<TARGET){                                   // 配牌中：不亂判、只報進度
-      elPhase.textContent='配牌中';
-      setPill(n+' / 16','var(--sub)');
-      elHead.className='headline';
-      elHead.textContent='再點 '+(TARGET-n)+' 張湊滿 16 張，就自動幫你判聽';
-      return;
-    }
-    if(n===TARGET){                                 // 16 張 → 判聽
-      elPhase.textContent='判聽（16 張等一張）';
+    var mod=n%3;
+    if(mod===1){                                    // 3k+1 → 判聽（含副露短手 13/10/7/4…）
+      elPhase.textContent='判聽（'+n+' 張等一張）';
       var waits=MahjongHand.waitingTiles(hand);
       if(waits.length>0){
         setPill('聽 '+waits.length+' 種','var(--good)');
@@ -199,18 +192,22 @@
         });
       } else {
         setPill('未聽','var(--bad)');
-        elHead.className='headline bad'; elHead.textContent='沒聽 · 這 16 張還湊不成聽牌型（詐聽）';
+        elHead.className='headline bad'; elHead.textContent='尚未聽牌 · 這手還沒進聽（差不只一張）';
       }
-      return;
-    }
-    // n===17 → 判胡
-    elPhase.textContent='判胡（17 張完成型）';
-    if(MahjongHand.isHu(hand)){
-      setPill('胡','var(--good)');
-      elHead.className='headline good'; elHead.textContent='胡了！完整一手（5 面子 + 1 將）';
-    } else {
-      setPill('未胡','var(--warn)');
-      elHead.className='headline warn'; elHead.textContent='還沒胡 · 這 17 張湊不成「面子＋將」';
+    } else if(mod===2){                             // 3k+2 → 判胡
+      elPhase.textContent='判胡（'+n+' 張完成型）';
+      if(MahjongHand.isHu(hand)){
+        setPill('胡','var(--good)');
+        elHead.className='headline good'; elHead.textContent='胡了！完整一手（面子 ×N + 將 ×1）';
+      } else {
+        setPill('未胡','var(--warn)');
+        elHead.className='headline warn'; elHead.textContent='還沒胡 · 湊不成「面子＋將」結構';
+      }
+    } else {                                        // 3k → 非判聽/判胡張數
+      elPhase.textContent='';
+      setPill(n+' 張','var(--sub)');
+      elHead.className='headline warn';
+      elHead.textContent='目前 '+n+' 張 · 判聽需 3k+1 張（'+(n+1)+' 張）· 再點 1 張';
     }
   }
 
