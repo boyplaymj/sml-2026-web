@@ -46,32 +46,32 @@ def compose(rank,idx):
     # ── 標題方框 ──
     hx0,hx1,hy0,hy1=int(W*.16),int(W*.84),int(H*.085),int(H*.205)
     d.rectangle([hx0,hy0,hx1,hy1],outline=ink,width=3)
-    n=len(rank); rsz={1:118,2:104,3:82}.get(n,80); rf=F(rsz)
+    n=len(rank); rsz={1:96,2:84,3:66}.get(n,64); rf=F(rsz)
     ws=[d.textbbox((0,0),c,font=rf,stroke_width=2)[2]-d.textbbox((0,0),c,font=rf,stroke_width=2)[0] for c in rank]
     gap=int(rsz*.08); tw=sum(ws)+gap*(n-1); x=(W-tw)//2; ycen=(hy0+hy1)//2
     for c,wd in zip(rank,ws): cchar(d,x+wd/2,ycen,c,rf,rcol,2); x+=wd+gap
     # 甜甜神社(標題框右上外側直題小)
-    vcol(d,int(W*.90),int(H*.09),"甜甜神社",F(24),(120,105,92),int(H*.04))
+    vcol(d,int(W*.90),int(H*.095),"甜甜神社",F(20),(120,105,92),int(H*.038))
     # ── 詩文直格 4 欄(右起左行),含欄線 ──
     gx0,gx1=int(W*.155),int(W*.845); gy0,gy1=int(H*.245),int(H*.585)
     d.rectangle([gx0,gy0,gx1,gy1],outline=line,width=2)
     for k in range(1,4):
         lx=gx0+(gx1-gx0)*k//4; d.line([(lx,gy0),(lx,gy1)],fill=line,width=1)
-    poem=POEMS[rank]; cw=(gx1-gx0)/4; cell=(gy1-gy0)/5; csz=62
+    poem=POEMS[rank]; cw=(gx1-gx0)/4; cell=(gy1-gy0)/5; csz=48
     for i,ln in enumerate(poem):
         cx=int(gx1-cw*(i+0.5))   # 右→左
         vcol(d,cx,gy0+int(cell*0.1),ln,F(csz),ink,cell)
     # ── 下半:六分項解說直排(右起左行) ──
     ix0,ix1=int(W*.155),int(W*.845); iy0,iy1=int(H*.61),int(H*.90)
     d.line([(ix0,iy0),(ix1,iy0)],fill=line,width=1)
-    items=INTERP[rank]; icw=(ix1-ix0)/6; icell=int(H*.036); isz=27; lsz=27
+    items=INTERP[rank]; icw=(ix1-ix0)/6; icell=int(H*.034); isz=21; lsz=22
     for i,(cat,txt) in enumerate(items):
         cx=int(ix1-icw*(i+0.5))  # 右→左
         # 類名(紅,2字) + 解(墨,4字)
         vcol(d,cx,iy0+int(H*.012),cat,F(lsz),red if ji else (60,50,45),icell)
         vcol(d,cx,iy0+int(H*.012)+icell*2+6,txt,F(isz),ink,icell)
     # 朱印(底右角小)
-    ss=70; sx=int(W*.75); sy=int(H*.905); sq=Image.new("RGB",(ss,ss),red); bg.paste(sq,(sx,sy))
-    cchar(d,sx+ss/2,sy+ss/2,"福" if ji else "祓",F(50),(250,245,235))
+    ss=58; sx=int(W*.76); sy=int(H*.91); sq=Image.new("RGB",(ss,ss),red); bg.paste(sq,(sx,sy))
+    cchar(d,sx+ss/2,sy+ss/2,"福" if ji else "祓",F(40),(250,245,235))
     out=f"omikuji_art/out/v4_{idx:02d}_{rank}.png"; bg.save(out); print("ok",out)
 for i,rk in enumerate(ORDER,1): compose(rk,i)
