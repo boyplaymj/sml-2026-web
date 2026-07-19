@@ -40,6 +40,7 @@ SUBSEAL_IMG={
   "shogatsu": ("goshuin_art/assets/seal_hatsu.png",  (201,162,58)),   # 初春=金色
   "sakura":   ("goshuin_art/assets/seal_sakura.png", (211,96,140)),   # 春櫻=櫻花桃紅
   "nagoshi":  ("goshuin_art/assets/seal_nagoshi.png",(46,104,168)),   # 夏越=水藍
+  "momiji":   ("goshuin_art/assets/seal_momiji.png", (198,88,36)),    # 紅葉=楓橙
 }
 def tint(img,color):  # 把不透明像素全塗成指定色(保留alpha)
     r,g,b=color; px=img.load(); w,h=img.size
