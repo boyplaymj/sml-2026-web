@@ -36,7 +36,10 @@ V=[
 ]
 W=680
 # 季節印用「印鑑圖片」並重新上色的版本(可逐版本擴充):vid -> (印圖, 顏色RGB)
-SUBSEAL_IMG={ "shogatsu": ("goshuin_art/assets/seal_hatsu.png", (201,162,58)) }  # 初春=金色
+SUBSEAL_IMG={
+  "shogatsu": ("goshuin_art/assets/seal_hatsu.png",  (201,162,58)),   # 初春=金色
+  "sakura":   ("goshuin_art/assets/seal_sakura.png", (211,96,140)),   # 春櫻=櫻花桃紅
+}
 def tint(img,color):  # 把不透明像素全塗成指定色(保留alpha)
     r,g,b=color; px=img.load(); w,h=img.size
     for y in range(h):
