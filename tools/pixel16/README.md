@@ -42,6 +42,18 @@ shift_ramp(g, 'enamel', 'gold')
 cd tools/pixel16 && python3 mascot_tooth_16.py   # 產物在 out/(不入庫)
 ```
 
+## 零件庫 `parts/`(飛輪:越做越快)
+通用形狀沉澱在 `parts/shapes.py`,新資產直接 import 拼裝,不重畫:
+- `bar(ramp)` — 發亮金屬條/錠(金錠/鋼錠/銀錠)。
+- `drum(ramp, band)` — 圓桶(油桶/水桶),圓柱體積 + 箍。
+
+實戰範例 `cargo_train.py`(火車大亨 🚂 貨運道具:煤炭/金錠/鋼錠/鐵桶/木箱):
+金錠畫一次,`shift_ramp('gold','steel')` 就秒出鋼錠 —— 一個形狀兩種礦石。
+```bash
+cd tools/pixel16 && python3 cargo_train.py
+```
+做新遊戲時,把成功的形狀往 `parts/` 加,第二款起就是拼裝。
+
 ## 8bit vs 16bit 怎麼選
 - **Discord emoji、小圖示、可愛吉祥物** → `pixel8`(小巧、辨識度高、色塊乾淨)。
 - **道具/怪物/招牌 sprite,要金屬感、材質、份量** → `pixel16`。
