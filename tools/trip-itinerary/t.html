@@ -16,138 +16,191 @@
     --ink-soft:#3f5a5f;
     --muted:#6b8388;
     --line:#d7e6e8;
-    --brand:#0b7285;      /* 拉普拉斯 teal */
+    --brand:#0b7285;
     --brand-deep:#095a69;
-    --accent:#ff8f3c;     /* 溫暖橘,對比 teal */
+    --accent:#ff8f3c;
     --accent-soft:#fff1e4;
     --done:#8aa2a6;
     --warn:#c2410c;
     --warn-bg:#fff3e9;
-    --ring:rgba(11,114,133,.28);
     --shadow:0 1px 2px rgba(19,42,46,.06),0 8px 24px rgba(19,42,46,.07);
     --r:18px;
     --safe-t:env(safe-area-inset-top,0px);
     --safe-b:env(safe-area-inset-bottom,0px);
+    --z-nav:30;--z-sticky:40;--z-fab:45;--z-modal:80;--z-toast:90;
   }
   *{box-sizing:border-box}
   html{-webkit-text-size-adjust:100%}
   body{
     margin:0;
     font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Segoe UI",Roboto,"Hiragino Sans",sans-serif;
-    background:var(--bg);
-    color:var(--ink);
-    line-height:1.6;
-    -webkit-font-smoothing:antialiased;
-    text-rendering:optimizeLegibility;
+    background:var(--bg);color:var(--ink);line-height:1.6;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
   }
   a{color:var(--brand-deep)}
+  img{display:block}
 
-  /* ---------- sticky header ---------- */
-  header{
-    position:sticky;top:0;z-index:40;
+  /* ---------- sticky app bar (topbar + day nav as one unit) ---------- */
+  .appbar{position:sticky;top:0;z-index:var(--z-sticky)}
+  .topbar{
+    display:flex;align-items:center;gap:12px;
+    padding:calc(var(--safe-t) + 10px) 14px 11px;
     background:linear-gradient(160deg,var(--brand) 0%,var(--brand-deep) 100%);
-    color:#fff;
-    padding:calc(var(--safe-t) + 16px) 18px 14px;
-    box-shadow:0 6px 18px rgba(9,90,105,.22);
+    color:#fff;box-shadow:0 6px 18px rgba(9,90,105,.22);
   }
-  .h-title{font-size:1.22rem;font-weight:800;letter-spacing:-.01em;margin:0;text-wrap:balance}
-  .h-sub{font-size:.82rem;opacity:.9;margin:3px 0 0;font-weight:500}
-  .prog-wrap{margin-top:12px;display:flex;align-items:center;gap:10px}
-  .prog-track{flex:1;height:9px;border-radius:99px;background:rgba(255,255,255,.24);overflow:hidden}
-  .prog-fill{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#ffd9a8,var(--accent));
-    transition:width .6s cubic-bezier(.22,1,.36,1)}
-  .prog-num{font-size:.82rem;font-weight:700;font-variant-numeric:tabular-nums;min-width:66px;text-align:right}
+  .back{
+    flex:0 0 auto;width:36px;height:36px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(255,255,255,.16);color:#fff;text-decoration:none;
+    font-size:1.2rem;line-height:1;transition:background .2s,transform .15s;
+  }
+  .back:active{transform:scale(.92)}
+  .tb-text{flex:1;min-width:0}
+  .tb-text h1{font-size:1.1rem;font-weight:800;margin:0;letter-spacing:-.01em;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tb-text p{font-size:.76rem;opacity:.9;margin:2px 0 0;font-weight:500;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tb-prog{
+    flex:0 0 auto;font-size:.78rem;font-weight:800;font-variant-numeric:tabular-nums;
+    background:rgba(255,255,255,.16);border-radius:99px;padding:5px 11px;white-space:nowrap;
+  }
+  .tb-prog[hidden]{display:none}
 
-  /* ---------- day nav ---------- */
-  nav{
-    position:sticky;top:0;z-index:30;
+  .daynav{
+    display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;
+    padding:9px 12px;
     background:rgba(238,246,247,.92);
-    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
     border-bottom:1px solid var(--line);
-    padding:9px 12px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;
   }
-  nav::-webkit-scrollbar{display:none}
-  nav:empty{display:none}
+  .daynav::-webkit-scrollbar{display:none}
+  .daynav:empty{display:none}
   .chip{
     flex:0 0 auto;border:1px solid var(--line);background:var(--surface);
-    color:var(--ink-soft);border-radius:99px;padding:6px 13px;font-size:.82rem;font-weight:700;
-    cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px;
-    transition:transform .15s ease,background .2s,color .2s,border-color .2s;
+    color:var(--ink-soft);border-radius:12px;padding:6px 12px;cursor:pointer;
+    white-space:nowrap;display:flex;flex-direction:column;align-items:flex-start;line-height:1.15;
+    transition:transform .15s ease,background .2s,color .2s,border-color .2s,box-shadow .2s;
   }
+  .chip b{font-size:.82rem;font-weight:800}
+  .chip .chip-d{font-size:.66rem;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
   .chip:active{transform:scale(.94)}
-  .chip .cnt{font-size:.72rem;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
-  .chip.today{border-color:var(--accent);background:var(--accent-soft);color:var(--warn)}
-  .chip.complete{background:var(--brand);border-color:var(--brand);color:#fff}
-  .chip.complete .cnt{color:rgba(255,255,255,.85)}
+  .chip.active{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:var(--shadow)}
+  .chip.active .chip-d{color:rgba(255,255,255,.82)}
+  .chip.complete{border-color:var(--brand)}
 
-  main{max-width:640px;margin:0 auto;padding:14px 12px calc(120px + var(--safe-b))}
+  main{max-width:680px;margin:0 auto;padding:16px 12px calc(60px + var(--safe-b))}
 
-  /* ---------- day block ---------- */
-  .day{margin:0 0 22px;scroll-margin-top:64px}
-  .day-head{
-    display:flex;align-items:center;gap:12px;padding:4px 4px 12px;
+  /* ---------- collapsible day ---------- */
+  .day{margin:0 0 18px;scroll-margin-top:118px}
+  .day-cover{
+    position:relative;display:block;width:100%;padding:0;border:none;cursor:pointer;
+    aspect-ratio:16/10;border-radius:var(--r);overflow:hidden;color:#fff;text-align:left;
+    background:var(--brand);box-shadow:var(--shadow);-webkit-tap-highlight-color:transparent;
   }
-  .day-badge{
-    flex:0 0 auto;width:52px;height:52px;border-radius:15px;
-    background:var(--brand);color:#fff;display:flex;flex-direction:column;
-    align-items:center;justify-content:center;line-height:1;box-shadow:var(--shadow);
-  }
-  .day-badge .d1{font-size:.6rem;font-weight:700;opacity:.85;letter-spacing:.04em}
-  .day-badge .d2{font-size:1.4rem;font-weight:800;margin-top:2px}
-  .day-meta .dt{font-size:.78rem;color:var(--muted);font-weight:700;margin:0}
-  .day-meta .th{font-size:1.04rem;font-weight:800;color:var(--ink);margin:2px 0 0;letter-spacing:-.01em;text-wrap:balance}
-  .day-badge.today{background:var(--accent)}
-
-  .card{
-    background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
-    box-shadow:var(--shadow);overflow:hidden;
-  }
-
-  /* ---------- item ---------- */
-  .item{
-    display:flex;gap:12px;padding:13px 15px;cursor:pointer;position:relative;
-    border-top:1px solid var(--line);
-    -webkit-tap-highlight-color:transparent;user-select:none;
-    transition:background .18s;
-  }
-  .item:first-child{border-top:none}
-  .item:active{background:var(--surface-2)}
-  .box{
-    flex:0 0 auto;width:24px;height:24px;border-radius:8px;margin-top:2px;
-    border:2px solid var(--line);background:var(--surface);
+  .day-cover>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+    transition:transform .5s cubic-bezier(.22,1,.36,1)}
+  .day-cover:active>img{transform:scale(1.03)}
+  .day-cover .scrim{position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(4,20,22,0) 34%,rgba(4,20,22,.35) 62%,rgba(4,20,22,.82) 100%)}
+  .day-cover.nohero .scrim{background:linear-gradient(180deg,rgba(4,20,22,0) 40%,rgba(4,20,22,.34) 100%)}
+  .day-cover .cap{position:absolute;left:0;right:0;bottom:0;padding:16px 16px 15px}
+  .day-cover .dt{font-size:.72rem;font-weight:800;letter-spacing:.06em;opacity:.94;
+    text-shadow:0 1px 8px rgba(0,0,0,.4)}
+  .day-cover .th{font-size:1.18rem;font-weight:800;margin:3px 0 0;letter-spacing:-.01em;
+    text-wrap:balance;text-shadow:0 2px 14px rgba(0,0,0,.55)}
+  .chev{
+    position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;
+    background:rgba(4,20,22,.34);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
     display:flex;align-items:center;justify-content:center;
-    transition:background .2s,border-color .2s,transform .2s cubic-bezier(.34,1.56,.64,1);
+    transition:transform .4s cubic-bezier(.22,1,.36,1);
   }
-  .box svg{width:15px;height:15px;stroke:#fff;stroke-width:3.4;fill:none;
+  .chev svg{width:16px;height:16px;stroke:#fff;stroke-width:2.6;fill:none}
+  .day.open .chev{transform:rotate(180deg)}
+
+  .day-panel{display:grid;grid-template-rows:0fr;
+    transition:grid-template-rows .42s cubic-bezier(.22,1,.36,1)}
+  .day.open .day-panel{grid-template-rows:1fr}
+  .day-panel>.panel-inner{overflow:hidden;min-height:0}
+
+  /* ---------- vertical timeline ---------- */
+  .timeline{position:relative;padding:16px 4px 4px}
+  .timeline::before{content:"";position:absolute;left:23px;top:26px;bottom:26px;width:2px;
+    background:linear-gradient(180deg,var(--brand),rgba(11,114,133,.22));border-radius:2px}
+  .node{position:relative;padding:0 2px 20px 54px}
+  .node:last-child{padding-bottom:4px}
+  .node-dot{
+    position:absolute;left:8px;top:-1px;width:32px;height:32px;border-radius:50%;
+    background:var(--surface);border:2px solid var(--line);
+    display:flex;align-items:center;justify-content:center;font-size:1.02rem;
+    box-shadow:0 2px 7px rgba(19,42,46,.12);z-index:1;padding:0;
+  }
+  button.node-dot{cursor:pointer;-webkit-tap-highlight-color:transparent}
+  button.node-dot svg{width:15px;height:15px;stroke:#fff;stroke-width:3.4;fill:none;
     stroke-dasharray:20;stroke-dashoffset:20;transition:stroke-dashoffset .25s ease .05s}
-  .body{flex:1;min-width:0}
+
+  .node-body{padding-top:2px}
   .top-line{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
   .time{
     font-size:.72rem;font-weight:800;color:var(--brand-deep);
     background:var(--surface-2);border:1px solid var(--line);border-radius:6px;
     padding:1px 7px;font-variant-numeric:tabular-nums;white-space:nowrap;
   }
-  .ttl{font-size:.97rem;font-weight:700;color:var(--ink);letter-spacing:-.005em}
-  .desc{font-size:.85rem;color:var(--ink-soft);margin:3px 0 0}
+  .ttl{font-size:.98rem;font-weight:700;color:var(--ink);letter-spacing:-.005em}
+  .ttl .tag{margin-left:5px}
+  .desc{font-size:.86rem;color:var(--ink-soft);margin:3px 0 0}
   .desc a{word-break:break-all}
-  .tag{margin-left:6px}
-
   .note{
     margin:8px 0 0;font-size:.8rem;color:var(--warn);background:var(--warn-bg);
     border-radius:10px;padding:7px 10px;display:flex;gap:6px;line-height:1.45;
   }
   .note b{font-weight:800}
+  .photos{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .photos img{
+    height:96px;width:auto;max-width:160px;object-fit:cover;border-radius:12px;
+    border:1px solid var(--line);cursor:pointer;box-shadow:var(--shadow);
+    transition:transform .15s ease,filter .2s;
+  }
+  .photos img:active{transform:scale(.97);filter:brightness(.94)}
 
-  /* done state */
-  .item.done .box{background:var(--brand);border-color:var(--brand)}
-  .item.done .box svg{stroke-dashoffset:0}
-  .item.done .ttl,.item.done .desc{color:var(--done);text-decoration:line-through;text-decoration-color:rgba(138,162,166,.7)}
-  .item.done .time{opacity:.5}
-  .item.done{background:linear-gradient(0deg,var(--surface-2),var(--surface))}
+  /* ---------- lodging card ---------- */
+  .node.stay .node-dot{border-color:var(--accent);background:var(--accent-soft)}
+  .stay-card{background:var(--accent-soft);border:1px solid #ffd7b2;border-radius:14px;padding:12px 14px;margin-top:1px}
+  .stay-h{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .stay-tag{font-size:.7rem;font-weight:800;color:#fff;background:var(--accent);
+    border-radius:6px;padding:2px 8px;white-space:nowrap}
+  .stay-name{font-size:1rem;font-weight:800;color:var(--ink);letter-spacing:-.01em}
+  .stay-sub{font-size:.83rem;color:var(--ink-soft);margin:6px 0 0}
+  .stay-addr{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:10px;
+    font-size:.83rem;font-weight:700;color:var(--warn);text-decoration:none;
+    background:#fff;border:1px solid #ffd7b2;border-radius:10px;padding:8px 11px}
+  .stay-addr .map-go{margin-left:auto;font-size:.75rem;font-weight:800;opacity:.85;white-space:nowrap}
+  .stay-addr:active{transform:scale(.99)}
+  .stay-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+  .badge{font-size:.76rem;font-weight:800;color:var(--brand-deep);background:#fff;
+    border:1px solid var(--line);border-radius:99px;padding:3px 11px}
+  .stay-card .photos{margin-top:10px}
+  .stay-card .note{margin-top:9px}
 
-  /* ---------- footer bar ---------- */
+  /* done state (plan mode only) */
+  .node.done button.node-dot{background:var(--brand);border-color:var(--brand)}
+  .node.done button.node-dot svg{stroke-dashoffset:0}
+  .node.done .ttl,.node.done .desc{color:var(--done);text-decoration:line-through;
+    text-decoration-color:rgba(138,162,166,.7)}
+  .node.done .time{opacity:.5}
+
+  /* ---------- back link ---------- */
+  .backlink{text-align:center;padding:22px 16px 6px}
+  .backlink a{
+    display:inline-block;font-size:.9rem;font-weight:800;color:var(--brand-deep);
+    text-decoration:none;background:var(--surface);border:1px solid var(--line);
+    border-radius:99px;padding:11px 22px;box-shadow:var(--shadow);
+    transition:transform .15s ease;
+  }
+  .backlink a:active{transform:scale(.96)}
+
+  /* ---------- floating actions (plan mode) ---------- */
   .fab{
-    position:fixed;left:0;right:0;bottom:0;z-index:35;
+    position:fixed;left:0;right:0;bottom:0;z-index:var(--z-fab);
     padding:10px 14px calc(10px + var(--safe-b));
     background:linear-gradient(0deg,var(--bg) 62%,rgba(238,246,247,0));
     display:none;gap:10px;justify-content:center;pointer-events:none;
@@ -156,83 +209,280 @@
   .fab button{
     pointer-events:auto;border:none;border-radius:99px;font-size:.9rem;font-weight:800;
     padding:12px 18px;cursor:pointer;box-shadow:var(--shadow);
-    transition:transform .15s ease,filter .2s;display:flex;align-items:center;gap:7px;
+    transition:transform .15s ease;display:flex;align-items:center;gap:7px;
   }
   .fab button:active{transform:scale(.95)}
   .btn-today{background:var(--accent);color:#fff}
   .btn-reset{background:var(--surface);color:var(--ink-soft);border:1px solid var(--line)}
 
-  /* ---------- back to list ---------- */
-  .backlink{
-    text-align:center;padding:26px 16px 8px;
+  /* ---------- lightbox ---------- */
+  .lightbox{
+    position:fixed;inset:0;z-index:var(--z-modal);
+    background:rgba(6,20,22,.93);display:flex;align-items:center;justify-content:center;
+    padding:24px;opacity:0;pointer-events:none;transition:opacity .25s ease;
   }
-  .backlink a{
-    display:inline-block;font-size:.9rem;font-weight:800;color:var(--brand-deep);
-    text-decoration:none;background:var(--surface);border:1px solid var(--line);
-    border-radius:99px;padding:10px 20px;box-shadow:var(--shadow);
+  .lightbox.show{opacity:1;pointer-events:auto}
+  .lightbox img{max-width:100%;max-height:100%;border-radius:12px;
+    box-shadow:0 24px 70px rgba(0,0,0,.55);
+    transform:scale(.96);transition:transform .3s cubic-bezier(.22,1,.36,1)}
+  .lightbox.show img{transform:scale(1)}
+  .lb-close{
+    position:fixed;top:calc(var(--safe-t) + 12px);right:16px;
+    width:42px;height:42px;border-radius:50%;border:none;cursor:pointer;
+    background:rgba(255,255,255,.16);color:#fff;font-size:1.4rem;line-height:1;
+    display:flex;align-items:center;justify-content:center;
   }
-  .backlink a:active{transform:scale(.96)}
 
-  /* ---------- loading / error state ---------- */
-  .state{
-    max-width:640px;margin:0 auto;padding:64px 24px;text-align:center;color:var(--ink-soft);
-  }
+  /* ---------- states ---------- */
+  .state{max-width:640px;margin:0 auto;padding:64px 24px;text-align:center;color:var(--ink-soft)}
   .state .big{font-size:2.6rem;margin:0 0 10px;line-height:1}
   .state h2{font-size:1.1rem;font-weight:800;color:var(--ink);margin:0 0 6px}
   .state p{font-size:.9rem;margin:0 0 18px}
-  .state a{
-    display:inline-block;font-size:.9rem;font-weight:800;color:#fff;
-    text-decoration:none;background:var(--brand);border-radius:99px;padding:11px 22px;
-    box-shadow:var(--shadow);
-  }
-  .spinner{
-    width:38px;height:38px;margin:0 auto 14px;border-radius:50%;
-    border:4px solid var(--line);border-top-color:var(--brand);
-    animation:spin .8s linear infinite;
-  }
+  .state a{display:inline-block;font-size:.9rem;font-weight:800;color:#fff;text-decoration:none;
+    background:var(--brand);border-radius:99px;padding:11px 22px;box-shadow:var(--shadow)}
+  .spinner{width:38px;height:38px;margin:0 auto 14px;border-radius:50%;
+    border:4px solid var(--line);border-top-color:var(--brand);animation:spin .8s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
 
-  .done-all{text-align:center;padding:22px 16px 6px;color:var(--muted);font-size:.85rem}
-  .done-all b{color:var(--brand-deep)}
-
-  /* celebration */
-  .cheer{
-    position:fixed;inset:0;z-index:50;pointer-events:none;display:none;
-    align-items:center;justify-content:center;
-  }
+  /* celebration (plan mode) */
+  .cheer{position:fixed;inset:0;z-index:var(--z-toast);pointer-events:none;display:none;
+    align-items:center;justify-content:center}
   .cheer.show{display:flex}
-  .cheer .msg{
-    background:var(--brand);color:#fff;padding:16px 26px;border-radius:99px;
+  .cheer .msg{background:var(--brand);color:#fff;padding:16px 26px;border-radius:99px;
     font-weight:800;font-size:1.05rem;box-shadow:0 12px 40px rgba(9,90,105,.4);
-    animation:pop .5s cubic-bezier(.34,1.56,.64,1)
-  }
+    animation:pop .5s cubic-bezier(.34,1.56,.64,1)}
   @keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
 
+  @media (min-width:560px){
+    .day-cover{aspect-ratio:2/1}
+    .day-cover .th{font-size:1.34rem}
+  }
   @media (prefers-reduced-motion:reduce){
     *{transition:none!important;animation:none!important}
-    .box svg{stroke-dashoffset:0!important;transition:none}
-    .item:not(.done) .box svg{stroke-dashoffset:20!important}
+    button.node-dot svg{stroke-dashoffset:0!important}
+    .node:not(.done) button.node-dot svg{stroke-dashoffset:20!important}
     .spinner{display:none}
+  }
+
+  /* ================================================================
+     diary 編輯風（mode:"diary"）— 樣式對照 preview.html
+     全部用 dy- 前綴 / body.diary 範圍，絕不污染 plan 版既有 class
+     ================================================================ */
+  body.diary{
+    --dy-paper:#ffffff;--dy-bg:#f4f7f6;--dy-ink:#16292c;--dy-ink-soft:#40575b;
+    --dy-muted:#5d7377;--dy-line:#e2ecec;--dy-teal:#0b6d7e;--dy-teal-deep:#0e3a3f;
+    --dy-amber:#e8863a;--dy-amber-soft:#fdf1e6;--dy-r:16px;
+    --dy-serif:"Noto Serif TC",serif;
+    background:var(--dy-bg);color:var(--dy-ink);line-height:1.75;
+    font-family:"Noto Sans TC",-apple-system,BlinkMacSystemFont,"PingFang TC","Segoe UI",sans-serif;
+  }
+  body.diary .appbar,body.diary .fab,body.diary .cheer{display:none}
+  body.diary main{max-width:none;padding:0}
+  body.diary img{max-width:100%}
+
+  .dy-float-back{
+    position:fixed;top:calc(var(--safe-t) + 12px);left:12px;z-index:50;
+    width:38px;height:38px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(9,30,33,.4);color:#fff;text-decoration:none;font-size:1.15rem;line-height:1;
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    transition:background .2s,transform .15s;
+  }
+  .dy-float-back:active{transform:scale(.92)}
+
+  /* 迷你目錄：預設一根垂直色條，點一下展開清單（只寫標題、捲動高亮、點擊快速跳） */
+  body.diary .dy-chapter,body.diary #dy-ov{scroll-margin-top:14px}
+  .dy-toc{
+    position:fixed;right:8px;top:50%;transform:translateY(-50%);z-index:55;
+    opacity:0;pointer-events:none;transition:opacity .3s ease;
+  }
+  .dy-toc.show{opacity:1}
+  .dy-toc.show .dy-toc-bar{pointer-events:auto}
+  /* 收合態：垂直色條（含目前位置白滑塊） */
+  .dy-toc-bar{
+    position:relative;width:6px;height:136px;border-radius:99px;border:none;cursor:pointer;padding:0;
+    background:linear-gradient(180deg,var(--dy-teal),var(--dy-teal-deep));
+    box-shadow:0 2px 10px rgba(11,109,126,.4);-webkit-tap-highlight-color:transparent;
+    transition:width .2s ease,transform .15s ease;display:block;
+  }
+  .dy-toc-bar:active{transform:scaleX(1.15)}
+  .dy-toc.open .dy-toc-bar{width:8px}
+  @media (hover:hover){ .dy-toc-bar:hover{width:8px} }
+  .dy-toc-bar .pos{
+    position:absolute;left:50%;transform:translateX(-50%);width:10px;height:20px;border-radius:99px;
+    background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.35);top:0;
+    transition:top .35s cubic-bezier(.22,1,.36,1);
+  }
+  /* 展開清單：絕對定位在色條左側，預設隱藏 */
+  .dy-toc-list{
+    position:absolute;right:16px;top:50%;transform:translateY(-50%) translateX(12px);
+    display:flex;flex-direction:column;align-items:flex-end;gap:4px;
+    opacity:0;pointer-events:none;transition:opacity .25s ease,transform .3s cubic-bezier(.22,1,.36,1);
+  }
+  .dy-toc.open .dy-toc-list{opacity:1;transform:translateY(-50%);pointer-events:auto}
+  .dy-toc-item{
+    display:block;background:none;border:none;cursor:pointer;padding:0;max-width:100%;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .dy-toc-item .t{
+    display:block;font-size:.66rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    max-width:52vw;padding:3px 10px;border-radius:999px;line-height:1.5;
+    background:rgba(255,255,255,.9);color:var(--dy-muted);
+    box-shadow:0 1px 5px rgba(16,41,44,.14);opacity:.5;
+    transition:background .2s,color .2s,opacity .2s,transform .12s;
+    backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  }
+  .dy-toc-item.active .t{background:var(--dy-teal);color:#fff;opacity:1;box-shadow:0 2px 9px rgba(11,109,126,.42)}
+  .dy-toc-item:active .t{transform:scale(.96)}
+  @media (hover:hover){ .dy-toc-item:hover .t{opacity:1;color:var(--dy-teal-deep)} }
+  @media (max-width:359px){ .dy-toc-item .t{max-width:46vw;font-size:.62rem} }
+
+  /* ---------- cover ---------- */
+  .dy-cover{position:relative;height:100svh;min-height:560px;overflow:hidden;
+    display:flex;align-items:flex-end;color:#fff;background:var(--dy-teal-deep)}
+  .dy-cover>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+    transform:scale(1.04)}
+  .dy-veil{position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(14,58,63,.42) 0%,rgba(14,58,63,.05) 34%,rgba(9,30,33,.5) 72%,rgba(9,30,33,.9) 100%)}
+  .dy-cover-in{position:relative;padding:0 26px calc(58px + var(--safe-t));max-width:720px;margin:0 auto;width:100%}
+  .dy-kicker{font-size:.74rem;font-weight:700;letter-spacing:.34em;
+    text-transform:uppercase;opacity:.9;margin:0 0 16px}
+  .dy-cover-in h1{font-family:var(--dy-serif);font-weight:900;font-size:clamp(2.9rem,13vw,4.6rem);
+    line-height:1.02;letter-spacing:.01em;margin:0;text-shadow:0 2px 28px rgba(0,0,0,.4)}
+  .dy-sub{font-size:1rem;font-weight:500;margin:20px 0 4px;opacity:.96}
+  .dy-dates{font-family:var(--dy-serif);font-size:.95rem;font-weight:500;opacity:.82;
+    margin:0;letter-spacing:.05em}
+  .dy-cue{position:absolute;left:50%;bottom:20px;transform:translateX(-50%);
+    color:rgba(255,255,255,.8);font-size:1.1rem;animation:dyBob 1.8s ease-in-out infinite}
+  @keyframes dyBob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(7px)}}
+
+  /* ---------- overview + map ---------- */
+  .dy-wrap{max-width:720px;margin:0 auto;padding:0 20px}
+  .dy-overview{padding:56px 0 40px}
+  .dy-sec-t{font-family:var(--dy-serif);font-weight:700;font-size:1.6rem;letter-spacing:.02em;
+    text-align:center;margin:0 0 6px}
+  .dy-divider{width:44px;height:3px;background:var(--dy-amber);border-radius:3px;margin:8px auto 0}
+  .dy-sec-lead{text-align:center;color:var(--dy-muted);font-size:.9rem;margin:0 0 26px}
+  body.diary #map{height:340px;border-radius:var(--dy-r);overflow:hidden;
+    box-shadow:0 2px 6px rgba(16,41,44,.08),0 18px 40px rgba(16,41,44,.12);
+    border:1px solid var(--dy-line);z-index:1}
+  body.diary .leaflet-container{font-family:inherit}
+  .dy-pin{background:var(--dy-teal);color:#fff;font-weight:800;font-size:.78rem;
+    width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+  .dy-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:22px}
+  .dy-stat{background:var(--dy-paper);border:1px solid var(--dy-line);border-radius:14px;padding:14px 6px;text-align:center}
+  .dy-stat b{display:block;font-family:var(--dy-serif);font-weight:900;font-size:1.34rem;color:var(--dy-teal-deep);line-height:1}
+  .dy-stat span{display:block;font-size:.72rem;color:var(--dy-muted);margin-top:6px;font-weight:500}
+
+  /* ---------- chapter ---------- */
+  .dy-chapter{padding:46px 0 8px}
+  .dy-ch-head{max-width:720px;margin:0 auto;padding:0 20px}
+  .dy-ch-kicker{font-size:.76rem;font-weight:700;letter-spacing:.2em;color:var(--dy-amber);
+    text-transform:uppercase;margin:0 0 10px}
+  .dy-ch-title{font-family:var(--dy-serif);font-weight:900;font-size:clamp(1.8rem,6.4vw,2.4rem);
+    line-height:1.16;letter-spacing:.01em;margin:0;text-wrap:balance}
+  .dy-ch-intro{font-size:1rem;color:var(--dy-ink-soft);margin:16px 0 0;text-wrap:pretty;max-width:60ch}
+
+  /* ---------- timeline moments ---------- */
+  .dy-moments{max-width:720px;margin:26px auto 0;padding:0 20px;position:relative}
+  .dy-tl{position:relative}
+  .dy-tl::before{content:"";position:absolute;left:9px;top:6px;bottom:14px;width:2.5px;
+    background:linear-gradient(180deg,var(--dy-teal),rgba(11,109,126,.22));border-radius:3px}
+  .dy-moment{position:relative;padding:0 0 36px 42px}
+  .dy-dot{position:absolute;left:1px;top:2px;width:18px;height:18px;border-radius:50%;
+    background:var(--dy-paper);border:3px solid var(--dy-teal);box-shadow:0 0 0 4px var(--dy-bg);z-index:1}
+  .dy-dot.dy-staydot{border-color:var(--dy-amber)}
+  .dy-m-time{font-size:.74rem;font-weight:700;color:var(--dy-teal);letter-spacing:.02em;
+    font-variant-numeric:tabular-nums}
+  .dy-m-ttl{font-family:var(--dy-serif);font-weight:700;font-size:1.16rem;margin:2px 0 0;line-height:1.4}
+  .dy-m-desc{font-size:.92rem;color:var(--dy-ink-soft);margin:7px 0 0;text-wrap:pretty}
+  .dy-fig{margin:16px 0 0}
+  .dy-m-photo{width:100%;max-height:74vh;object-fit:cover;border-radius:var(--dy-r);cursor:pointer;
+    box-shadow:0 2px 6px rgba(16,41,44,.08),0 16px 34px rgba(16,41,44,.12)}
+  .dy-fig figcaption{font-family:var(--dy-serif);font-style:italic;font-size:.83rem;color:var(--dy-muted);
+    margin-top:9px;text-align:center}
+  .dy-m-photo.dy-portrait{width:auto;max-width:330px;max-height:78vh;margin-left:auto;margin-right:auto}
+
+  /* multi-photo gallery（>4 張 → 前 3 + 第 4 格 +N 更多） */
+  .dy-gallery{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+  .dy-gallery a,.dy-gallery .dy-more{position:relative;display:block;border-radius:13px;overflow:hidden;
+    aspect-ratio:3/4;cursor:pointer}
+  .dy-gallery img{width:100%;height:100%;object-fit:cover}
+  .dy-gallery .dy-more{display:flex;align-items:center;justify-content:center;background:var(--dy-teal-deep);color:#fff;
+    font-family:var(--dy-serif);font-weight:700;font-size:1.1rem;text-decoration:none}
+  .dy-gallery .dy-more img{position:absolute;inset:0;opacity:.42}
+  .dy-gallery .dy-more span{position:relative;z-index:1}
+
+  /* 直式影片 / IG Reels 版位 */
+  .dy-media{display:flex;gap:14px;flex-wrap:wrap;margin-top:18px;align-items:flex-start}
+  .dy-vframe{position:relative;width:min(258px,74%);aspect-ratio:9/16;border-radius:16px;overflow:hidden;
+    box-shadow:0 2px 6px rgba(16,41,44,.1),0 16px 34px rgba(16,41,44,.16);background:#0e3a3f}
+  .dy-vframe>img{width:100%;height:100%;object-fit:cover;opacity:.92}
+  .dy-vframe video{display:block;width:100%;height:100%;object-fit:cover;background:#0e3a3f}
+  .dy-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+  .dy-play span{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.94);
+    display:flex;align-items:center;justify-content:center;color:var(--dy-teal-deep);font-size:1.2rem;padding-left:5px}
+  .dy-vlabel{position:absolute;left:10px;top:10px;font-size:.66rem;font-weight:800;color:#fff;
+    background:rgba(14,58,63,.72);border-radius:6px;padding:3px 8px;pointer-events:none}
+  .dy-reelframe{position:relative;width:min(258px,74%);aspect-ratio:9/16;border-radius:16px;overflow:hidden;
+    border:2px dashed #c9b3d6;background:linear-gradient(160deg,#3a2a4a,#5b3d6e);color:#fff;
+    display:flex;align-items:center;justify-content:center;text-align:center;padding:16px;text-decoration:none}
+  .dy-reelframe.dy-embed{border:1px solid var(--dy-line);background:#fff;padding:0}
+  .dy-reelframe iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
+  .dy-rl{font-weight:700;font-size:.95rem}
+  .dy-rl small{display:block;font-weight:500;opacity:.86;font-size:.74rem;margin-top:8px;line-height:1.5}
+
+  /* full-bleed interlude */
+  .dy-interlude{margin:34px 0;position:relative}
+  .dy-interlude img{width:100%;height:64vh;max-height:520px;object-fit:cover;cursor:pointer}
+  .dy-interlude figcaption{position:absolute;left:0;right:0;bottom:0;color:#fff;text-align:left;
+    font-style:normal;font-family:var(--dy-serif);font-weight:700;font-size:1.14rem;
+    padding:40px 24px 20px;margin:0;
+    background:linear-gradient(0deg,rgba(9,30,33,.82),rgba(9,30,33,0))}
+
+  /* stay card（diary 獨立命名，避開 plan 版 .stay-card/.stay-h/.badge） */
+  .dy-stay-card{background:var(--dy-amber-soft);border:1px solid #f6d6b6;border-radius:var(--dy-r);padding:16px 18px;margin-top:6px}
+  .dy-stay-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .dy-stay-tag{font-size:.7rem;font-weight:800;color:#fff;background:var(--dy-amber);border-radius:6px;padding:3px 9px}
+  .dy-stay-name{font-family:var(--dy-serif);font-weight:700;font-size:1.08rem;color:var(--dy-ink)}
+  .dy-stay-sub{font-size:.86rem;color:var(--dy-ink-soft);margin:8px 0 0}
+  .dy-stay-addr{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:.85rem;font-weight:700;
+    color:#b5641f;text-decoration:none;background:#fff;border:1px solid #f6d6b6;border-radius:11px;padding:10px 12px}
+  .dy-go{margin-left:auto;font-size:.78rem;white-space:nowrap;opacity:.9}
+  .dy-badge{display:inline-block;margin-top:11px;font-size:.78rem;font-weight:800;color:var(--dy-teal-deep);
+    background:#fff;border:1px solid var(--dy-line);border-radius:99px;padding:4px 12px}
+
+  .dy-teaser{text-align:center;color:var(--dy-muted);font-size:.9rem;padding:30px 20px 0}
+  .dy-footer{text-align:center;padding:44px 20px calc(40px + var(--safe-b));color:var(--dy-muted);font-size:.82rem}
+  .dy-footer b{color:var(--dy-teal-deep)}
+  body.diary .backlink{padding:30px 16px 0}
+
+  @media (min-width:760px){
+    body.diary #map{height:420px}
+    .dy-interlude img{height:70vh}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .dy-cover>img{transform:none}
   }
 </style>
 </head>
 <body>
 
-<header>
-  <h1 class="h-title" id="tTitle">載入行程中…</h1>
-  <p class="h-sub" id="tSub"></p>
-  <div class="prog-wrap">
-    <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
-    <div class="prog-num" id="progNum">－ / －</div>
-  </div>
-</header>
+<div class="appbar">
+  <header class="topbar">
+    <a class="back" href="index.html" aria-label="回列表">←</a>
+    <div class="tb-text">
+      <h1 id="tTitle">載入行程中…</h1>
+      <p id="tSub"></p>
+    </div>
+    <span class="tb-prog" id="tbProg" hidden>－ / －</span>
+  </header>
+  <nav class="daynav" id="dayNav"></nav>
+</div>
 
-<nav id="dayNav"></nav>
 <main id="app">
-  <div class="state" id="loading">
-    <div class="spinner" aria-hidden="true"></div>
-    <p>行程載入中…</p>
-  </div>
+  <div class="state"><div class="spinner" aria-hidden="true"></div><p>行程載入中…</p></div>
 </main>
 
 <div class="fab" id="fab">
@@ -240,10 +490,15 @@
   <button class="btn-reset" id="resetBtn">↺ 重設</button>
 </div>
 
-<div class="cheer" id="cheer"><div class="msg">🎉 全部完成!平安返台 ✈️</div></div>
+<div class="cheer" id="cheer"><div class="msg">🎉 全部完成！平安返台 ✈️</div></div>
+
+<div class="lightbox" id="lightbox" aria-hidden="true">
+  <button class="lb-close" id="lbClose" aria-label="關閉">✕</button>
+  <img id="lbImg" src="" alt="">
+</div>
 
 <script>
-/* ===== P3 data-driven:行程資料從 API 抓 ===== */
+/* ===== data-driven：行程資料從 API 抓 ===== */
 const API_BASE = "https://f9ayvn4doc.execute-api.ap-southeast-1.amazonaws.com";
 
 /* id 從 query、私密 key 只從 fragment(#k=xxx)取 —— key 絕不進 querystring/伺服器 log */
@@ -267,7 +522,8 @@ function esc(s){
 function showError(title,msg){
   document.getElementById("tTitle").textContent = "旅遊行程誌";
   document.getElementById("tSub").textContent = "";
-  document.getElementById("progNum").textContent = "－ / －";
+  document.getElementById("tbProg").hidden = true;
+  document.getElementById("fab").classList.remove("show");
   nav.innerHTML = "";
   app.innerHTML = `
     <div class="state">
@@ -279,169 +535,544 @@ function showError(title,msg){
 }
 
 async function loadTrip(){
-  if(!TRIP_ID){
-    showError("沒有指定行程","網址缺少 ?id=,請從行程列表進入。");
-    return;
-  }
+  if(!TRIP_ID){ showError("沒有指定行程","網址缺少 ?id=，請從行程列表進入。"); return; }
   let res;
   try{
     const opt = { headers: {} };
     if(PRIVATE_KEY) opt.headers["X-Trip-Key"] = PRIVATE_KEY;  // key 只走 header
     res = await fetch(API_BASE + "/trips/" + encodeURIComponent(TRIP_ID), opt);
-  }catch(e){
-    showError("連線失敗","網路不穩或伺服器暫時無回應,稍後再試一次。");
-    return;
-  }
-  if(res.status === 404){
-    showError("這份行程不存在或未公開","確認一下連結有沒有貼完整,或它可能還是草稿。");
-    return;
-  }
-  if(!res.ok){
-    showError("載入失敗","伺服器回應異常("+res.status+"),稍後再試一次。");
-    return;
-  }
+  }catch(e){ showError("連線失敗","網路不穩或伺服器暫時無回應，稍後再試一次。"); return; }
+  if(res.status === 404){ showError("這份行程不存在或未公開","確認一下連結有沒有貼完整，或它可能還是草稿。"); return; }
+  if(!res.ok){ showError("載入失敗","伺服器回應異常("+res.status+")，稍後再試一次。"); return; }
   let data;
   try{ data = await res.json(); }catch(e){ showError("載入失敗","資料格式異常。"); return; }
-  if(!data || !data.trip || !Array.isArray(data.trip.days)){
-    showError("載入失敗","資料格式異常。"); return;
-  }
+  if(!data || !data.trip || !Array.isArray(data.trip.days)){ showError("載入失敗","資料格式異常。"); return; }
   renderTrip(data.trip);
 }
 
-/* ===== 以下渲染引擎(沿用 tohoku-0826.html) ===== */
-let TRIP=null, KEY="", state={}, TODAY=-1, totalItems=0;
+/* ===== 渲染引擎 ===== */
+let TRIP=null, KEY="", state={}, TODAY=-1, totalItems=0, DIARY=false;
+
+const FALLBACKS = [
+  "linear-gradient(135deg,#0b7285,#0e93a9)",
+  "linear-gradient(135deg,#b45309,#ea9314)",
+  "linear-gradient(135deg,#9d174d,#db2777)",
+  "linear-gradient(135deg,#3730a3,#5b57d6)",
+  "linear-gradient(135deg,#166534,#22a352)",
+  "linear-gradient(135deg,#075985,#0ea5e9)",
+  "linear-gradient(135deg,#6b21a8,#9333ea)",
+  "linear-gradient(135deg,#9f1239,#e11d48)",
+];
+const CHEV = `<svg viewBox="0 0 24 24"><polyline points="6,9 12,15 18,9"/></svg>`;
+const CHECK = `<svg viewBox="0 0 20 20"><polyline points="4,11 8,15 16,5"/></svg>`;
 
 function renderTrip(trip){
   TRIP = trip;
   KEY = "trip:" + TRIP.id;
+  DIARY = TRIP.mode === "diary";
+  if(DIARY) return renderDiary(TRIP);   /* diary 走編輯風長捲軸；plan 維持下方既有渲染 */
   try{ state = JSON.parse(localStorage.getItem(KEY)||"{}") }catch(e){ state={} }
 
   document.title = TRIP.title + "・旅遊行程誌";
   document.getElementById("tTitle").textContent = TRIP.title;
   document.getElementById("tSub").textContent = TRIP.subtitle || "";
-  app.innerHTML = "";
-  nav.innerHTML = "";
+  app.innerHTML = ""; nav.innerHTML = "";
 
-  // 今天是第幾天(對比 M/D)
   const now = new Date();
   const md = (now.getMonth()+1)+"/"+now.getDate();
-  TODAY = TRIP.days.findIndex(d=>d.date===md);
+  TODAY = DIARY ? -1 : TRIP.days.findIndex(d=>d.date===md);
 
   totalItems = 0;
   TRIP.days.forEach((d,di)=>{
-    const day=document.createElement("section");
-    day.className="day"; day.id="day"+di;
+    const day = document.createElement("section");
+    day.className = "day open"; day.id = "day"+di;
     const isToday = di===TODAY;
+    const hasHero = !!d.hero;
 
-    const head=document.createElement("div");
-    head.className="day-head";
-    head.innerHTML=`
-      <div class="day-badge${isToday?' today':''}">
-        <span class="d1">DAY</span><span class="d2">${esc(d.no)}</span>
-      </div>
-      <div class="day-meta">
-        <p class="dt">${esc(d.date)}(${esc(d.wd)})${isToday?' ・ 今天':''}</p>
-        <p class="th">${esc(d.theme)}</p>
-      </div>`;
-    day.appendChild(head);
+    const btn = document.createElement("button");
+    btn.className = "day-cover" + (hasHero ? "" : " nohero");
+    btn.setAttribute("aria-expanded","true");
+    btn.setAttribute("aria-controls","panel"+di);
+    if(!hasHero) btn.style.background = FALLBACKS[di % FALLBACKS.length];
+    btn.innerHTML = `
+      ${hasHero ? `<img src="${esc(d.hero)}" alt="" loading="lazy">` : ""}
+      <span class="scrim"></span>
+      <span class="chev">${CHEV}</span>
+      <span class="cap">
+        <span class="dt">DAY ${esc(d.no)} ・ ${esc(d.date)}（${esc(d.wd)}）${isToday?' ・ 今天':''}</span>
+        <div class="th">${esc(d.theme)}</div>
+      </span>`;
+    day.appendChild(btn);
 
-    const card=document.createElement("div");
-    card.className="card";
+    const panel = document.createElement("div");
+    panel.className = "day-panel"; panel.id = "panel"+di;
+    const inner = document.createElement("div"); inner.className = "panel-inner";
+    const tl = document.createElement("div"); tl.className = "timeline";
+
     (d.items||[]).forEach((it,ii)=>{
       totalItems++;
-      const id=di+"-"+ii;
-      const done=!!state[id];
-      const row=document.createElement("div");
-      row.className="item"+(done?" done":"");
-      row.dataset.id=id;
-      row.innerHTML=`
-        <div class="box"><svg viewBox="0 0 20 20"><polyline points="4,11 8,15 16,5"/></svg></div>
-        <div class="body">
+      const id = di+"-"+ii;
+      const done = !!state[id] && !DIARY;
+      const node = document.createElement("div");
+      node.className = "node" + (done ? " done" : "");
+      node.dataset.id = id;
+
+      const marker = DIARY
+        ? `<span class="node-dot">${esc(it.tag||"📍")}</span>`
+        : `<button class="node-dot" type="button" aria-label="標記完成">${CHECK}</button>`;
+      const tagInline = (!DIARY && it.tag) ? ` <span class="tag">${esc(it.tag)}</span>` : "";
+      const photos = (Array.isArray(it.photos) && it.photos.length)
+        ? `<div class="photos">${it.photos.map(p=>`<img src="${esc(p)}" loading="lazy" alt="">`).join("")}</div>`
+        : "";
+
+      let body;
+      if(it.stay){
+        if(it.stay) node.classList.add("stay");
+        const mapUrl = it.addr ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(it.ttl+" "+it.addr)}` : "";
+        body = `
+          <div class="stay-card">
+            <div class="stay-h"><span class="stay-tag">🛏️ 住宿</span><span class="stay-name">${esc(it.ttl)}</span></div>
+            ${it.desc?`<p class="stay-sub">${esc(it.desc)}</p>`:""}
+            ${it.addr?`<a class="stay-addr" href="${esc(mapUrl)}" target="_blank" rel="noopener">📍 ${esc(it.addr)}<span class="map-go">在地圖開啟 ›</span></a>`:""}
+            ${it.parking?`<div class="stay-badges"><span class="badge">🅿️ 附停車場</span></div>`:""}
+            ${it.note?`<div class="note">⚠️<div><b>提醒：</b>${esc(it.note)}</div></div>`:""}
+            ${photos}
+          </div>`;
+      }else{
+        body = `
           <div class="top-line">
             ${it.time?`<span class="time">${esc(it.time)}</span>`:""}
-            <span class="ttl">${esc(it.ttl)}${it.tag?`<span class="tag">${esc(it.tag)}</span>`:""}</span>
+            <span class="ttl">${esc(it.ttl)}${tagInline}</span>
           </div>
           ${it.desc?`<p class="desc">${esc(it.desc)}</p>`:""}
-          ${it.note?`<div class="note">⚠️<div><b>提醒:</b>${esc(it.note)}</div></div>`:""}
-        </div>`;
-      row.addEventListener("click",e=>{
-        if(e.target.tagName==="A") return;
-        toggle(id,row);
+          ${it.note?`<div class="note">⚠️<div><b>提醒：</b>${esc(it.note)}</div></div>`:""}
+          ${photos}`;
+      }
+      node.innerHTML = `${marker}<div class="node-body">${body}</div>`;
+
+      node.querySelectorAll(".photos img").forEach(img=>{
+        img.addEventListener("click",()=>openLightbox(img.getAttribute("src")));
       });
-      card.appendChild(row);
+      if(!DIARY){
+        node.querySelector(".node-dot").addEventListener("click",()=>toggle(id,node));
+      }
+      tl.appendChild(node);
     });
-    day.appendChild(card);
+
+    inner.appendChild(tl); panel.appendChild(inner); day.appendChild(panel);
     app.appendChild(day);
 
-    // nav chip
-    const chip=document.createElement("button");
-    chip.className="chip"+(isToday?" today":"");
-    chip.dataset.di=di;
-    chip.innerHTML=`Day ${esc(d.no)}<span class="cnt"></span>`;
+    btn.addEventListener("click",()=>{
+      const open = day.classList.toggle("open");
+      btn.setAttribute("aria-expanded", open?"true":"false");
+    });
+
+    const chip = document.createElement("button");
+    chip.className = "chip"; chip.dataset.di = di;
+    chip.innerHTML = `<b>Day ${esc(d.no)}</b><span class="chip-d">${esc(d.date)}</span>`;
     chip.addEventListener("click",()=>{
+      day.classList.add("open");
+      btn.setAttribute("aria-expanded","true");
+      setActiveChip(di);
       document.getElementById("day"+di).scrollIntoView({behavior:"smooth",block:"start"});
     });
     nav.appendChild(chip);
   });
 
-  // 頁尾:回列表
-  const back=document.createElement("div");
-  back.className="backlink";
-  back.innerHTML=`<a href="index.html">← 看更多行程</a>`;
+  const back = document.createElement("div");
+  back.className = "backlink";
+  back.innerHTML = `<a href="index.html">← 看更多行程</a>`;
   app.appendChild(back);
 
-  document.getElementById("fab").classList.add("show");
-  render();
-  // 開場自動捲到今天
-  if(TODAY>0) setTimeout(()=>document.getElementById("day"+TODAY).scrollIntoView({block:"start"}),300);
+  if(DIARY){
+    document.getElementById("fab").classList.remove("show");
+    document.getElementById("tbProg").hidden = true;
+  }else{
+    document.getElementById("fab").classList.add("show");
+    document.getElementById("tbProg").hidden = false;
+    render();
+    if(TODAY>0) setTimeout(()=>document.getElementById("day"+TODAY).scrollIntoView({block:"start"}),300);
+  }
+  setActiveChip(TODAY>0?TODAY:0);
+  setupScrollSpy();
 }
 
-function toggle(id,row){
-  if(state[id]){ delete state[id]; row.classList.remove("done"); }
-  else{ state[id]=1; row.classList.add("done"); }
+/* ===== diary 編輯風渲染（mode:"diary"；視覺對照 preview.html）===== */
+let GALLERIES = [];
+
+function renderDiary(trip){
+  document.body.classList.add("diary");
+  document.title = trip.title + "・旅遊行程誌";
+  document.getElementById("tTitle").textContent = trip.title;
+  document.getElementById("tSub").textContent = trip.subtitle || "";
+  document.getElementById("tbProg").hidden = true;
+  document.getElementById("fab").classList.remove("show");
+  nav.innerHTML = "";
+  GALLERIES = [];
+
+  /* 編輯風襯線字體：僅 diary 需要，動態載入 */
+  if(!document.getElementById("dyFonts")){
+    const f = document.createElement("link");
+    f.id = "dyFonts"; f.rel = "stylesheet";
+    f.href = "https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap";
+    document.head.appendChild(f);
+  }
+
+  let html = "";
+
+  /* 1. cover */
+  html += `<header class="dy-cover">
+    ${trip.cover ? `<img src="${esc(trip.cover)}" alt="">` : ""}
+    <div class="dy-veil"></div>
+    <div class="dy-cover-in">
+      ${trip.kicker ? `<p class="dy-kicker">${esc(trip.kicker)}</p>` : ""}
+      <h1>${esc(trip.title)}</h1>
+      ${trip.subtitle ? `<p class="dy-sub">${esc(trip.subtitle)}</p>` : ""}
+      ${trip.dates ? `<p class="dy-dates">${esc(trip.dates)}</p>` : ""}
+    </div>
+    <div class="dy-cue">↓</div>
+  </header>`;
+
+  /* 2. overview（缺 overview 就整段略過） */
+  const ov = (trip.overview && typeof trip.overview === "object") ? trip.overview : null;
+  if(ov){
+    const stats = (Array.isArray(ov.stats) ? ov.stats : []).slice(0,4);
+    const hasMap = (Array.isArray(ov.stops) && ov.stops.length > 0) ||
+                   (typeof ov.polyline === "string" && ov.polyline.length > 0);
+    html += `<section class="dy-overview" id="dy-ov"><div class="dy-wrap">
+      <h2 class="dy-sec-t">旅程總覽</h2>
+      <div class="dy-divider"></div>
+      ${ov.lead ? `<p class="dy-sec-lead">${esc(ov.lead)}</p>` : ""}
+      ${hasMap ? `<div id="map"></div>` : ""}
+      ${stats.length ? `<div class="dy-stats" style="grid-template-columns:repeat(${stats.length},1fr)">${
+        stats.map(s=>`<div class="dy-stat"><b>${esc(s.v)}</b><span>${esc(s.label)}</span></div>`).join("")
+      }</div>` : ""}
+    </div></section>`;
+  }
+
+  /* 3–5. 每日 chapter + moments + interlude */
+  trip.days.forEach((d,di)=>{
+    const kicker = d.kicker || `Day ${d.no} · ${d.date}（${d.wd}）`;
+    html += `<article class="dy-chapter" id="chap${di}">
+      <div class="dy-ch-head">
+        <p class="dy-ch-kicker">${esc(kicker)}</p>
+        <h2 class="dy-ch-title">${esc(d.theme)}</h2>
+        ${d.intro ? `<p class="dy-ch-intro">${esc(d.intro)}</p>` : ""}
+      </div>
+      <div class="dy-moments"><div class="dy-tl">${(d.items||[]).map(it=>diaryMoment(it)).join("")}</div></div>`;
+    if(d.interlude && d.interlude.img){
+      html += `<figure class="dy-interlude">
+        <img src="${esc(d.interlude.img)}" alt="" loading="lazy" data-lb="${esc(d.interlude.img)}">
+        ${d.interlude.cap ? `<figcaption>${esc(d.interlude.cap)}</figcaption>` : ""}
+      </figure>`;
+    }
+    html += `</article>`;
+    const nx = trip.days[di+1];
+    if(nx && nx.theme) html += `<div class="dy-teaser">— Day ${esc(nx.no)} · ${esc(nx.theme)} —</div>`;
+  });
+
+  /* 6. 回列表 + footer */
+  html += `<div class="backlink"><a href="index.html">← 回列表</a></div>
+    <footer class="dy-footer"><b>${esc(trip.title)}</b><br>旅遊行程誌</footer>`;
+
+  app.innerHTML = html;
+
+  /* 低調浮動「← 回列表」（diary 不出 appbar） */
+  if(!document.querySelector(".dy-float-back")){
+    const fb = document.createElement("a");
+    fb.className = "dy-float-back"; fb.href = "index.html";
+    fb.setAttribute("aria-label","回列表"); fb.textContent = "←";
+    document.body.appendChild(fb);
+  }
+
+  wireDiaryMedia();
+  buildDiaryToc(trip, ov);
+  if(ov && document.getElementById("map")) ensureLeaflet(()=>initDiaryMap(ov));
+}
+
+/* 迷你目錄：預設垂直色條，點一下展開清單；捲動高亮＋滑塊指示＋點擊快速跳＋捲過封面才淡入 */
+function buildDiaryToc(trip, ov){
+  document.querySelector(".dy-toc")?.remove();
+  const data = [];
+  if(ov && document.getElementById("dy-ov")) data.push({id:"dy-ov", label:"總覽"});
+  trip.days.forEach((d,di)=>data.push({id:"chap"+di, label:d.theme || ("Day "+d.no)}));
+  if(!data.length) return;
+
+  const toc = document.createElement("nav");
+  toc.className = "dy-toc"; toc.setAttribute("aria-label","目錄");
+  toc.innerHTML =
+    `<button class="dy-toc-bar" type="button" aria-label="展開目錄" aria-expanded="false"><span class="pos"></span></button>`+
+    `<div class="dy-toc-list">`+
+    data.map(x=>`<button class="dy-toc-item" type="button" data-t="${esc(x.id)}" title="${esc(x.label)}"><span class="t">${esc(x.label)}</span></button>`).join("")+
+    `</div>`;
+  document.body.appendChild(toc);
+
+  const bar = toc.querySelector(".dy-toc-bar");
+  const pos = toc.querySelector(".pos");
+  const setOpen = (on)=>{ toc.classList.toggle("open", on); bar.setAttribute("aria-expanded", on?"true":"false"); };
+
+  /* 點色條開合 */
+  bar.addEventListener("click",e=>{ e.stopPropagation(); setOpen(!toc.classList.contains("open")); });
+  /* 點清單外收合 */
+  document.addEventListener("click",e=>{ if(toc.classList.contains("open") && !toc.contains(e.target)) setOpen(false); });
+
+  const items = {}, order = [];
+  toc.querySelectorAll(".dy-toc-item").forEach(b=>{
+    items[b.dataset.t] = b; order.push(b.dataset.t);
+    b.addEventListener("click",()=>{
+      const el = document.getElementById(b.dataset.t);
+      if(el) el.scrollIntoView({behavior:"smooth",block:"start"});
+      setOpen(false);   /* 選完自動收回 */
+    });
+  });
+
+  /* 色條上的白滑塊：對應目前章節在整段的位置 */
+  function setPos(id){
+    const i = order.indexOf(id); if(i<0) return;
+    const barH = bar.clientHeight || 136, segH = pos.offsetHeight || 20;
+    pos.style.top = (order.length>1 ? (i/(order.length-1))*(barH-segH) : 0) + "px";
+  }
+
+  if(!("IntersectionObserver" in window)){ toc.classList.add("show"); setPos(order[0]); return; }
+
+  /* 捲動高亮：哪個章節進入視窗中段就亮該項＋移動滑塊 */
+  const spy = new IntersectionObserver(ents=>{
+    ents.forEach(en=>{
+      if(!en.isIntersecting) return;
+      const b = items[en.target.id]; if(!b) return;
+      Object.values(items).forEach(x=>x.classList.remove("active"));
+      b.classList.add("active");
+      if(toc.classList.contains("open")) b.scrollIntoView({block:"nearest"});
+      setPos(en.target.id);
+    });
+  },{rootMargin:"-45% 0px -50% 0px",threshold:0});
+  data.forEach(x=>{ const el=document.getElementById(x.id); if(el) spy.observe(el); });
+
+  /* 捲過封面才淡入（封面在畫面時整個目錄隱藏，避免蓋大標；順便收合） */
+  const cover = document.querySelector(".dy-cover");
+  if(cover){
+    new IntersectionObserver(ents=>{
+      ents.forEach(en=>{
+        const show = !en.isIntersecting;
+        toc.classList.toggle("show", show);
+        if(!show) setOpen(false);
+      });
+    },{threshold:0}).observe(cover);
+  }else{
+    toc.classList.add("show");
+  }
+  setPos(order[0]);
+}
+
+/* 單一 moment：依 item 欄位選版位（stay → gallery → portrait → video → reel → 純文字+單圖） */
+function diaryMoment(it){
+  if(it.stay){
+    const mapUrl = it.addr ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((it.ttl||"")+" "+it.addr)}` : "";
+    return `<div class="dy-moment">
+      <span class="dy-dot dy-staydot"></span>
+      ${it.time ? `<p class="dy-m-time">${esc(it.time)}</p>` : ""}
+      <div class="dy-stay-card">
+        <div class="dy-stay-h"><span class="dy-stay-tag">🛏️ 住宿</span><span class="dy-stay-name">${esc(it.ttl)}</span></div>
+        ${it.desc ? `<p class="dy-stay-sub">${esc(it.desc)}</p>` : ""}
+        ${it.addr ? `<a class="dy-stay-addr" href="${esc(mapUrl)}" target="_blank" rel="noopener">📍 ${esc(it.addr)}<span class="dy-go">在地圖開啟 ›</span></a>` : ""}
+        ${it.parking ? `<div><span class="dy-badge">🅿️ 附停車場</span></div>` : ""}
+      </div>
+    </div>`;
+  }
+
+  const head = `
+    ${it.time ? `<p class="dy-m-time">${esc(it.time)}</p>` : ""}
+    ${it.ttl ? `<h3 class="dy-m-ttl">${esc(it.ttl)}</h3>` : ""}
+    ${it.desc ? `<p class="dy-m-desc">${esc(it.desc)}</p>` : ""}`;
+  let media = "";
+
+  const gal = Array.isArray(it.gallery) ? it.gallery.filter(p=>typeof p==="string" && p) : [];
+  if(gal.length){
+    const gi = GALLERIES.push(gal) - 1;
+    const tile = p => `<a href="#" data-lb="${esc(p)}"><img src="${esc(p)}" alt="" loading="lazy"></a>`;
+    let tiles;
+    if(gal.length > 4){
+      tiles = gal.slice(0,3).map(tile).join("") +
+        `<a href="#" class="dy-more"><img src="${esc(gal[3])}" alt=""><span>+${gal.length-3}</span></a>`;
+    }else{
+      tiles = gal.map(tile).join("");
+    }
+    media = `<div class="dy-gallery" data-g="${gi}">${tiles}</div>`;
+  }else if(it.portrait){
+    const p = (Array.isArray(it.photos) && it.photos[0]) || "";
+    if(p) media = `<figure class="dy-fig">
+      <img class="dy-m-photo dy-portrait" src="${esc(p)}" alt="" loading="lazy" data-lb="${esc(p)}">
+      ${it.caption ? `<figcaption>${esc(it.caption)}</figcaption>` : ""}
+    </figure>`;
+  }else if(it.video && (it.video.src || it.video.poster)){
+    const v = it.video;
+    media = `<div class="dy-media"><div class="dy-vframe">
+      ${v.src
+        ? `<video src="${esc(v.src)}"${v.poster ? ` poster="${esc(v.poster)}"` : ""} controls playsinline preload="none"></video>`
+        : `${v.poster ? `<img src="${esc(v.poster)}" alt="">` : ""}<div class="dy-play"><span>▶</span></div>`}
+      <span class="dy-vlabel">▶ 影片</span>
+    </div></div>`;
+  }else if(it.reel && typeof it.reel === "string"){
+    const m = it.reel.match(/instagram\.com\/(?:reel|reels|p)\/([A-Za-z0-9_-]+)/);
+    media = m
+      ? `<div class="dy-media"><div class="dy-reelframe dy-embed"><iframe src="https://www.instagram.com/reel/${esc(m[1])}/embed/" loading="lazy" allowfullscreen scrolling="no"></iframe></div></div>`
+      : `<div class="dy-media"><a class="dy-reelframe" href="${esc(it.reel)}" target="_blank" rel="noopener"><div class="dy-rl">IG Reels<small>點我開啟 Reels ›<br>（9:16 直式）</small></div></a></div>`;
+  }else if(Array.isArray(it.photos) && it.photos[0]){
+    const p = it.photos[0];
+    media = `<figure class="dy-fig">
+      <img class="dy-m-photo" src="${esc(p)}" alt="" loading="lazy" data-lb="${esc(p)}">
+      ${it.caption ? `<figcaption>${esc(it.caption)}</figcaption>` : ""}
+    </figure>`;
+  }
+
+  return `<div class="dy-moment"><span class="dy-dot"></span>${head}${media}</div>`;
+}
+
+/* diary 圖片點擊 → 既有 openLightbox；gallery +N 點擊展開全部 */
+function bindDiaryLightbox(root){
+  root.querySelectorAll("[data-lb]").forEach(el=>{
+    if(el.dataset.lbBound) return;
+    el.dataset.lbBound = "1";
+    el.addEventListener("click",e=>{ e.preventDefault(); openLightbox(el.getAttribute("data-lb")); });
+  });
+}
+function wireDiaryMedia(){
+  bindDiaryLightbox(app);
+  app.querySelectorAll(".dy-more").forEach(btn=>{
+    btn.addEventListener("click",e=>{
+      e.preventDefault();
+      const g = btn.closest(".dy-gallery");
+      const imgs = GALLERIES[+g.dataset.g] || [];
+      g.innerHTML = imgs.map(p=>`<a href="#" data-lb="${esc(p)}"><img src="${esc(p)}" alt="" loading="lazy"></a>`).join("");
+      bindDiaryLightbox(g);
+    });
+  });
+}
+
+/* ----- Leaflet 動態注入（t.html 平常不載地圖，只有 diary 需要）----- */
+function ensureLeaflet(cb){
+  if(window.L){ cb(); return; }
+  if(!document.getElementById("dyLeafletCss")){
+    const css = document.createElement("link");
+    css.id = "dyLeafletCss"; css.rel = "stylesheet";
+    css.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+    document.head.appendChild(css);
+  }
+  const js = document.createElement("script");
+  js.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+  js.onload = cb;
+  document.head.appendChild(js);
+}
+
+/* 解碼 OSRM polyline（precision 5）→ [[lat,lng],...]（照抄 preview.html） */
+function decodePoly(str){
+  let idx=0,lat=0,lng=0,coords=[];
+  while(idx<str.length){
+    let b,shift=0,result=0;
+    do{ b=str.charCodeAt(idx++)-63; result|=(b&0x1f)<<shift; shift+=5; }while(b>=0x20);
+    lat += (result&1)?~(result>>1):(result>>1); shift=0; result=0;
+    do{ b=str.charCodeAt(idx++)-63; result|=(b&0x1f)<<shift; shift+=5; }while(b>=0x20);
+    lng += (result&1)?~(result>>1):(result>>1);
+    coords.push([lat/1e5,lng/1e5]);
+  }
+  return coords;
+}
+
+function initDiaryMap(ov){
+  const el = document.getElementById("map");
+  if(!el || !window.L) return;
+  const map = L.map("map",{scrollWheelZoom:false,attributionControl:true});
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",{
+    attribution:"&copy; OpenStreetMap &copy; CARTO", maxZoom:19
+  }).addTo(map);
+  let line = null;
+  if(typeof ov.polyline === "string" && ov.polyline){
+    try{
+      const coords = decodePoly(ov.polyline);
+      if(coords.length > 1)
+        line = L.polyline(coords,{color:"#0b6d7e",weight:4,opacity:.92,lineJoin:"round",lineCap:"round"}).addTo(map);
+    }catch(e){ /* polyline 壞掉就只放 pin */ }
+  }
+  const pts = [];
+  (Array.isArray(ov.stops) ? ov.stops : []).forEach(s=>{
+    if(!s || !Array.isArray(s.ll) || s.ll.length !== 2) return;
+    const ll = [Number(s.ll[0]), Number(s.ll[1])];
+    if(!isFinite(ll[0]) || !isFinite(ll[1])) return;
+    pts.push(ll);
+    L.marker(ll,{icon:L.divIcon({className:"",html:`<div class="dy-pin">${esc(s.no)}</div>`,iconSize:[26,26],iconAnchor:[13,13]})})
+      .addTo(map).bindPopup(`<b>Day ${esc(s.no)}</b> · ${esc(s.name)}`);
+  });
+  if(line) map.fitBounds(line.getBounds(),{padding:[38,38]});
+  else if(pts.length) map.fitBounds(L.latLngBounds(pts),{padding:[38,38]});
+  else map.setView([43,141.5],7);
+}
+
+function setupScrollSpy(){
+  if(!("IntersectionObserver" in window)) return;
+  const io = new IntersectionObserver(entries=>{
+    entries.forEach(en=>{
+      if(en.isIntersecting) setActiveChip(+en.target.id.replace("day",""));
+    });
+  },{rootMargin:"-46% 0px -50% 0px",threshold:0});
+  document.querySelectorAll(".day").forEach(s=>io.observe(s));
+}
+function setActiveChip(di){
+  document.querySelectorAll("#dayNav .chip").forEach(c=>{
+    const on = +c.dataset.di===di;
+    c.classList.toggle("active",on);
+    if(on) c.scrollIntoView({inline:"center",block:"nearest"});
+  });
+}
+
+/* ----- lightbox ----- */
+const lb = document.getElementById("lightbox");
+const lbImg = document.getElementById("lbImg");
+function openLightbox(src){ lbImg.src = src; lb.classList.add("show"); lb.setAttribute("aria-hidden","false"); }
+function closeLightbox(){ lb.classList.remove("show"); lb.setAttribute("aria-hidden","true"); setTimeout(()=>{ if(!lb.classList.contains("show")) lbImg.src=""; },300); }
+lb.addEventListener("click",e=>{ if(e.target===lb || e.target.id==="lbClose") closeLightbox(); });
+document.getElementById("lbClose").addEventListener("click",closeLightbox);
+document.addEventListener("keydown",e=>{ if(e.key==="Escape" && lb.classList.contains("show")) closeLightbox(); });
+
+/* ----- plan-mode progress ----- */
+function toggle(id,node){
+  if(state[id]){ delete state[id]; node.classList.remove("done"); }
+  else{ state[id]=1; node.classList.add("done"); }
   localStorage.setItem(KEY,JSON.stringify(state));
   render();
 }
-
 function render(){
+  if(DIARY) return;
   let done=0;
-  const perDay=TRIP.days.map(()=>({d:0,t:0}));
+  const perDay = TRIP.days.map(()=>({d:0,t:0}));
   TRIP.days.forEach((d,di)=>{
     (d.items||[]).forEach((_,ii)=>{
       perDay[di].t++;
       if(state[di+"-"+ii]){ done++; perDay[di].d++; }
     });
   });
-  const pct=totalItems?Math.round(done/totalItems*100):0;
-  document.getElementById("progFill").style.width=pct+"%";
-  document.getElementById("progNum").textContent=`${done} / ${totalItems} ・ ${pct}%`;
-
+  const pct = totalItems?Math.round(done/totalItems*100):0;
+  document.getElementById("tbProg").textContent = `${done} / ${totalItems}`;
   document.querySelectorAll("#dayNav .chip").forEach(chip=>{
     const di=+chip.dataset.di, p=perDay[di];
-    chip.querySelector(".cnt").textContent=`${p.d}/${p.t}`;
     chip.classList.toggle("complete", p.d===p.t && p.t>0);
-    chip.classList.toggle("today", di===TODAY && !(p.d===p.t&&p.t>0));
   });
-
   if(done===totalItems && totalItems>0) celebrate();
 }
-
 let cheered=false;
 function celebrate(){
   if(cheered) return; cheered=true;
   const c=document.getElementById("cheer"); c.classList.add("show");
   setTimeout(()=>c.classList.remove("show"),2200);
 }
-
 document.getElementById("jumpToday").addEventListener("click",()=>{
   const i = TODAY>=0?TODAY:0;
   const el=document.getElementById("day"+i);
-  if(el) el.scrollIntoView({behavior:"smooth",block:"start"});
+  if(el){ el.classList.add("open"); el.scrollIntoView({behavior:"smooth",block:"start"}); }
 });
 document.getElementById("resetBtn").addEventListener("click",()=>{
-  if(confirm("確定要清空所有打勾嗎?")){
+  if(confirm("確定要清空所有打勾嗎？")){
     state={}; localStorage.removeItem(KEY); cheered=false;
-    document.querySelectorAll(".item").forEach(r=>r.classList.remove("done"));
+    document.querySelectorAll(".node").forEach(r=>r.classList.remove("done"));
     render();
   }
 });

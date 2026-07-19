@@ -44,15 +44,65 @@ function keyMatches (plain, storedHash) {
 }
 
 // ── 公開序列化：白名單重組（非刪欄位）。遞迴略過 private item，永不吐 note/hash ──
+// overview 淺清洗：stops 只留 {no,name,ll:[num,num]}、polyline 限 string、stats 限 {v,label} 最多 4
+function cleanOverview (ov) {
+  if (!ov || typeof ov !== 'object' || Array.isArray(ov)) return null;
+  const out = {};
+  if (typeof ov.lead === 'string') out.lead = ov.lead;
+  if (typeof ov.polyline === 'string') out.polyline = ov.polyline;
+  if (Array.isArray(ov.stops)) {
+    out.stops = ov.stops
+      .filter(s => s && typeof s === 'object' && Array.isArray(s.ll) && s.ll.length === 2 &&
+        s.ll.every(n => typeof n === 'number' && isFinite(n)))
+      .map(s => ({
+        no: typeof s.no === 'number' ? s.no : Number(s.no) || 0,
+        name: typeof s.name === 'string' ? s.name : '',
+        ll: [s.ll[0], s.ll[1]]
+      }));
+  }
+  if (Array.isArray(ov.stats)) {
+    out.stats = ov.stats
+      .filter(s => s && typeof s === 'object' && !Array.isArray(s))
+      .slice(0, 4)
+      .map(s => ({
+        v: typeof s.v === 'string' ? s.v : String(s.v ?? ''),
+        label: typeof s.label === 'string' ? s.label : String(s.label ?? '')
+      }));
+  }
+  return out;
+}
 function toPublic (t) {
+  const overview = cleanOverview(t.overview);
   return {
     id: t.id, slug: t.slug, title: t.title, subtitle: t.subtitle,
     region: t.region, tags: t.tags || [], cover: t.cover,
+    mode: t.mode === 'diary' ? 'diary' : 'plan',
+    kicker: typeof t.kicker === 'string' ? t.kicker : '',
+    dates: typeof t.dates === 'string' ? t.dates : '',
+    ...(overview ? { overview } : {}),
     updatedAt: t.updatedAt,
     days: (t.days || []).map(d => ({
-      no: d.no, date: d.date, wd: d.wd, theme: d.theme,
+      no: d.no, date: d.date, wd: d.wd, theme: d.theme, hero: d.hero || '',
+      kicker: typeof d.kicker === 'string' ? d.kicker : '',
+      intro: typeof d.intro === 'string' ? d.intro : '',
+      ...(d.interlude && typeof d.interlude === 'object' && typeof d.interlude.img === 'string' && d.interlude.img
+        ? { interlude: { img: d.interlude.img, cap: typeof d.interlude.cap === 'string' ? d.interlude.cap : '' } }
+        : {}),
       items: (d.items || []).filter(it => !it.private).map(it => ({
-        time: it.time || '', ttl: it.ttl, desc: it.desc || '', tag: it.tag || ''
+        time: it.time || '', ttl: it.ttl, desc: it.desc || '', tag: it.tag || '',
+        photos: Array.isArray(it.photos) ? it.photos.filter(p => typeof p === 'string') : [],
+        stay: !!it.stay, addr: it.addr || '', parking: !!it.parking,
+        gallery: Array.isArray(it.gallery) ? it.gallery.filter(p => typeof p === 'string') : [],
+        portrait: !!it.portrait,
+        caption: typeof it.caption === 'string' ? it.caption : '',
+        ...(it.video && typeof it.video === 'object' &&
+            (typeof it.video.src === 'string' || typeof it.video.poster === 'string')
+          ? { video: {
+                src: typeof it.video.src === 'string' ? it.video.src : '',
+                poster: typeof it.video.poster === 'string' ? it.video.poster : ''
+              } }
+          : {}),
+        reel: typeof it.reel === 'string' ? it.reel : ''
       }))
     }))
   };
@@ -186,7 +236,13 @@ exports.handler = async (event) => {
           id: t.id, type: 'trip', slug: t.slug || t.id,
           title: t.title || '', subtitle: t.subtitle || '',
           region: t.region || '', tags: Array.isArray(t.tags) ? t.tags : [],
-          cover: t.cover || '', visibility: t.visibility === 'public' ? 'public' : 'draft',
+          cover: t.cover || '', mode: t.mode === 'diary' ? 'diary' : 'plan',
+          kicker: typeof t.kicker === 'string' ? t.kicker : '',
+          dates: typeof t.dates === 'string' ? t.dates : '',
+          // overview（diary 總覽地圖區）：天/項目層新欄位隨 days 整包進 DB，trip 層要顯式存
+          ...(t.overview && typeof t.overview === 'object' && !Array.isArray(t.overview)
+            ? { overview: t.overview } : {}),
+          visibility: t.visibility === 'public' ? 'public' : 'draft',
           privateKeyHash, days: Array.isArray(t.days) ? t.days : [],
           createdAt: prev?.createdAt || nowIso(), updatedAt: nowIso()
         };
