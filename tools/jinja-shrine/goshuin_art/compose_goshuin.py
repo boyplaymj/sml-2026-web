@@ -39,22 +39,20 @@ def compose(vid,big,crestch,sub,acc,bg_):
     bg=Image.open(f"omikuji_art/bg/plain_{bg_}.png").convert("RGB")
     r=W/bg.width; H=int(bg.height*r); bg=bg.resize((W,H)); d=ImageDraw.Draw(bg)
     ink=(26,22,20); red=(172,32,32)
-    crest(d,int(W*.50),int(H*.11),46,crestch,acc)          # ① 社紋
-    vcol(d,int(W*.85),int(H*.19),"奉拝",F(34),ink,int(H*.05)) # ② 奉拝(右上)
-    vcol(d,int(W*.145),int(H*.20),"〇年〇月〇日",F(34),ink,int(H*.055)) # ⑤ 日期(左)
-    # ④ 神社印(中央)= 實體篆刻印鑑圖(使用者提供),去背貼上
-    seal=Image.open("goshuin_art/assets/seal.png").convert("RGBA")
-    sw=250; seal=seal.resize((sw,sw)); scx,scy=int(W*.50),int(H*.47)
-    bg.paste(seal,(scx-sw//2,scy-sw//2),seal)
-    # ③ 社名(中央大書,墨,粗描邊,壓印上)
+    vcol(d,int(W*.85),int(H*.20),"奉拝",F(34),ink,int(H*.05)) # ② 奉拝(右上)
+    vcol(d,int(W*.145),int(H*.22),"〇年〇月〇日",F(34),ink,int(H*.055)) # ⑤ 日期(左)
+    # 印鑑(兩顆,大小不同、位置錯開)
+    seal1=Image.open("goshuin_art/assets/seal.png").convert("RGBA")   # 大顆=中央神社印
+    seal2=Image.open("goshuin_art/assets/seal2.png").convert("RGBA")  # 小顆=上方鈐印
+    s2=118; seal2=seal2.resize((s2,s2)); bg.paste(seal2,(int(W*.50)-s2//2,int(H*.075)),seal2) # 上方小印
+    s1=250; seal1=seal1.resize((s1,s1)); scx,scy=int(W*.50),int(H*.49)
+    bg.paste(seal1,(scx-s1//2,scy-s1//2),seal1)                       # 中央大印
+    # ③ 社名(中央大書,墨,粗描邊,壓大印上)
     n=len(big); csz={2:150,3:118,4:96}.get(n,92)
-    vcol(d,int(W*.50),int(H*.47)-int(csz*(n-1)/2)-int(csz*.1),big,F(csz),ink,int(csz*1.06),stroke=3,scol=ink)
-    # 季節副印(右下方,accent白字)
+    vcol(d,int(W*.50),scy-int(csz*(n-1)/2)-int(csz*.1),big,F(csz),ink,int(csz*1.06),stroke=3,scol=ink)
+    # 季節副印(左下方,accent白字方印)
     if sub:
-        ss=88; sx,sy=int(W*.70),int(H*.79); d.rectangle([sx,sy,sx+ss,sy+ss],fill=acc)
-        vcol(d,sx+ss//2,sy+8,sub,F(38),(250,247,240),int((ss-16)/2))
-    # 下方圓印
-    bx,by,br=int(W*.30),int(H*.82),52
-    d.ellipse([bx-br,by-br,bx+br,by+br],fill=red); cchar(d,bx,by,"印",F(56),(250,245,235))
+        ss=84; sx,sy=int(W*.20),int(H*.80); d.rectangle([sx,sy,sx+ss,sy+ss],fill=acc)
+        vcol(d,sx+ss//2,sy+8,sub,F(36),(250,247,240),int((ss-16)/2))
     out=f"goshuin_art/out/{vid}.png"; bg.save(out); print("ok",vid)
 for v in V: compose(*v)
