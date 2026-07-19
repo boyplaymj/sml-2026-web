@@ -4,3 +4,7 @@ omikuji_art/out/
 omikuji_art/_contact*.png
 # 毛筆字型可 re-download（見 compose.py 註記），太大不進 git
 fonts/
+
+# 御朱印素材(圖走圖床)
+goshuin_art/out/
+goshuin_art/_contact*.png
