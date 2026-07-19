@@ -2,9 +2,16 @@
 # ④神社印(中央紅方印刻社名) ⑤日期(左直排)。季節靠社紋色+副印區分。$0程式合成。
 # 印鑑來源:使用者提供之篆刻印鑑(Discord附件)→ goshuin_art/assets/seal.png(白底去背);素材不進git
 from PIL import Image, ImageDraw, ImageFont
+from fontTools.ttLib import TTFont as _TT
 import math
-SR="fonts/JinXiHaoLong.otf"   # 金梅浩龍書法體(使用者提供;御朱印用字全覆蓋)
+SR="fonts/JinXiHaoLong.otf"   # 金梅浩龍書法體(中央社名大書;御朱印用字全覆蓋)
+SIDE="fonts/SideFont.ttf"     # ZHLYSS_T(使用者提供;側邊小字:奉拝/日期/副印)
 def F(s): return ImageFont.truetype(SR,s)
+def FS(s): return ImageFont.truetype(SIDE,s)
+_side_cmap=set(_TT(SIDE).getBestCmap().keys())
+def sfont(ch,sz): return FS(sz) if ord(ch) in _side_cmap else F(sz)  # 側字缺(〇奧宮)→回退書法體
+def vcol_s(d,cx,y0,s,sz,fill,cell):  # 側邊小字:逐字挑字型
+    for i,ch in enumerate(s): cchar(d,cx,y0+cell*i+cell/2,ch,sfont(ch,sz),fill)
 # id, 中央大書, 社紋內字, 季節副印, accent色, 底
 V=[
  ("honsha","甜甜神社","牌",None,(176,30,30),"warm"),
@@ -41,8 +48,8 @@ def compose(vid,big,crestch,sub,acc,bg_):
     sw,sh=src.size; src=src.crop((int(sw*.13),int(sh*.11),int(sw*.87),int(sh*.89)))
     H=int(W*210/148); bg=src.resize((W,H)); d=ImageDraw.Draw(bg)
     ink=(26,22,20); red=(172,32,32)
-    vcol(d,int(W*.85),int(H*.20),"奉拝",F(34),ink,int(H*.05)) # ② 奉拝(右上)
-    vcol(d,int(W*.145),int(H*.22),"〇年〇月〇日",F(34),ink,int(H*.055)) # ⑤ 日期(左)
+    vcol_s(d,int(W*.85),int(H*.20),"奉拝",34,ink,int(H*.05)) # ② 奉拝(右上,側字型)
+    vcol_s(d,int(W*.145),int(H*.22),"〇年〇月〇日",34,ink,int(H*.055)) # ⑤ 日期(左,側字型)
     # 印鑑(兩顆,大小不同、位置錯開)
     seal1=Image.open("goshuin_art/assets/seal.png").convert("RGBA")   # 大顆=中央神社印
     seal2=Image.open("goshuin_art/assets/seal2.png").convert("RGBA")  # 小顆=上方鈐印
@@ -55,6 +62,6 @@ def compose(vid,big,crestch,sub,acc,bg_):
     # 季節副印(左下方,accent白字方印)
     if sub:
         ss=84; sx,sy=int(W*.20),int(H*.80); d.rectangle([sx,sy,sx+ss,sy+ss],fill=acc)
-        vcol(d,sx+ss//2,sy+8,sub,F(36),(250,247,240),int((ss-16)/2))
+        vcol_s(d,sx+ss//2,sy+8,sub,36,(250,247,240),int((ss-16)/2))
     out=f"goshuin_art/out/{vid}.png"; bg.save(out); print("ok",vid)
 for v in V: compose(*v)
