@@ -19,7 +19,7 @@
 ## 資料契約（Firestore `sml_config`）
 - `ytLiveDetect` { mode: auto|off, channelId, lastCandidates[], lastCheck, missCount, lastActiveProbe, lastIdleProbe } — 偵測器狀態（`missCount`=ACTIVE 連續無 activeLiveChatId 次數；`lastActiveProbe`/`lastIdleProbe`=上次 ACTIVE backstop / IDLE 週期重探時間）。**只有偵測器寫**。
 - `ytApiBudget` { quotaDatePt: "YYYY-MM-DD"(**太平洋時間 America/Los_Angeles**), reportDateTw: "YYYY-MM-DD"(台灣,僅營運報表), units: int, stoppedAt: int|null } — 每日用量帳本。**日切鍵用 `quotaDatePt`**，因 YouTube 官方 quota 於**午夜 PT 歸零**（非台灣午夜）；`reportDateTw` 只給後台看，不參與保護判斷。（三驗 finding 2）**只透過 `reserveUnits` 原子更新**（Firestore transaction 或 `currentDocument.updateTime` CAS + 有限重試），禁止裸 read-modify-write；跨 PT 日期在同一原子交易內歸零。PT 日期由呼叫端用 `Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles'})` 算（DST-aware）。（修 finding 4）
-- `chatCapture`（沿用）{ enabled, videoId, liveChatId, pageToken, lastPoll, lastCount, ended } — **偵測器只 merge 寫 `{videoId, enabled}`；抓取器只 merge 寫 `{liveChatId, pageToken, lastPoll, lastCount, ended}`**（`ended`=抓取器連續 400 判定聊天永久結束的 terminal 信號，偵測器只讀不寫）。
+- `chatCapture`（沿用）{ enabled, videoId, liveChatId, pageToken, lastPoll, lastCount, ended, liveChatVideoId } — **偵測器只 merge 寫 `{videoId, enabled}`；抓取器只 merge 寫 `{liveChatId, pageToken, lastPoll, lastCount, ended, liveChatVideoId}`**（`ended`=抓取器連續 400 的 terminal 信號，偵測器只讀不寫；`liveChatVideoId`=此 liveChatId 屬於哪支片，capture 用來偵測換片重置）。
 - `chatBridge`（納入契約）{ enabled, videoId, liveChatId, pageToken } — **偵測器只 merge 寫 `{videoId, enabled}`**；overlay 各層只寫自己的 `{liveChatId, pageToken, 心跳}`。
 - 常數/門檻：`RSS_CANDIDATES=5`（IDLE 一次查前 5 候選，共 1 單位）；`detectInterval=2 分`（IDLE RSS 掃描，RSS 本身 0 額度）；`idleProbeInterval=5 分`（IDLE 即使候選集不變也週期性重探，抓「待機頁變 live」）；`activeProbeInterval=15 分`（ACTIVE backstop probe）；kill switch = **原子預扣後 `units + cost > 9000` 即 deny**（非事後判斷）；bridge 輪詢由 5s 放寬到 10s。
 
@@ -54,6 +54,9 @@
 - **Codex 查驗**：無 search.list、v3 全走 `reserveUnits`、updateMask 只含允許欄位、多候選 videos.list 仍 1 單位、ACTIVE probe 頻率符 `activeProbeInterval`、結束走 active-id 連 2 次確認。
 
 ## STAGE 4 — 既有 Lambda 接帳本 + kill switch（Claude，小改）
+> **拆 4a/4b**：`sml-yt-chat-bridge/index.js` 有別 session 未提交編輯 → 先做 4a(capture)、4b(bridge) 待其乾淨。
+> **共用模組**：`reserveUnits`/`budgetCompute` 已收斂到 `tools/lambda/_shared/ytBudget.js`（單一來源，內含 `makeBudgetDeps` 真實 CAS transport 工廠）；detect 的 `lib/budget.js` 改為 re-export shim。三個 Lambda import 同一份。STAGE 5 部署各 zip 需打包 `_shared/`。
+> **✅ 4a 已完成**：capture 每個 v3（videos.list 解析 + liveChatMessages.list）前 `reserveUnits(1)`、deny 即 skip；新增 `liveChatVideoId` 欄位做換片重置。detect 58 測試經 shim 仍全綠、capture `node -c` 過。
 - `sml-chat-capture`：每次 `yt()` 前呼叫 STAGE 2b 的 `reserveUnits(1)`；`!allowed` 則跳過該次呼叫。維持 1 次/分。抓取器寫入沿用既有 `capWrite`（已是 updateMask 逐欄，符合 finding 2）。
 - ⚠️**videoId 換片重置（Claude STAGE 3 覆核發現）**：偵測器 activate 新片時只寫 `{videoId,enabled}`、**不碰** liveChatId/pageToken（writer 契約）。因此 capture 必須在**偵測到 `videoId` 與自己 liveChatId 所屬的片不同時，先清掉 liveChatId+pageToken 再重解**，否則新片會沿用上一場的 stale liveChatId（雖會靠 400 於 ~1 分自癒、期間不誤寫訊息，但應主動重置）。做法：capture 記住上次處理的 videoId，發現變了就 reset liveChatId/pageToken。
 - `sml-yt-chat-bridge`：同上 + 頂上供應時把 `MIN_POLL` 5s→10s（最壞用量砍半）。
