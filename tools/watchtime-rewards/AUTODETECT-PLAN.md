@@ -42,7 +42,9 @@
 ## STAGE 2 — 用量帳本 + kill switch 🟣Fable5
 - **2a 純函式** `budgetCompute(doc, nowQuotaDatePt, cost)` → `{ nextDoc, allowed }`：跨 **PT 日期**先歸零再**預扣**，`allowed = (units_after_rollover + cost) <= 9000`；deny 時 nextDoc 標 `stoppedAt`；同時更新 `reportDateTw`（傳入或算）。
 - **2b 原子套用** `reserveUnits(cost)`：以 Firestore transaction 或 `currentDocument.updateTime` CAS + 有限重試套用 2a，回 `allowed`。**所有 v3 呼叫者唯一入口**。PT 日期字串由 helper 用 `Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles'})` 產（DST-aware）。
+- **cost 硬驗證（STAGE 2 Codex finding）**：`cost` 必為 `Number.isSafeInteger(cost) && cost>0`，否則 **fail-closed**（`allowed:false, error:'invalid-cost'`、不動帳本、不做 Firestore I/O）。擋掉 `0`(免費打 v3)、負值(退額度)、字串(污染 units)。因這是唯一保護入口，caller 傳錯 cost 也不能破防。補測 `0/-1/'1'/1.5/NaN/Infinity/null/undefined`。
 - 單元測試（2a）：**PT 日切歸零**、累計不重複、**off-by-one：`8999+1`→allowed(=9000)、`8999+2`→deny、`9000+1`→deny**、**PT 邊界（同一 UTC 時刻在 PT 是 23:59 vs 00:01 → 換日/不換日；含 PST↔PDT DST 位移）**。（修 finding 3 + 三驗 finding 2）
+- **測試指令**：`node --test test/*.test.js`（Node 22 下 `node --test test/` 會失敗）。
 - **Codex 查驗**：預扣語意（非事後判斷）、CAS/transaction 併發不漏計、門檻精準、**日切鍵確為 PT 非台灣**。
 
 ## STAGE 3 — 偵測 Lambda `sml-yt-live-detect` 🟣Fable5
