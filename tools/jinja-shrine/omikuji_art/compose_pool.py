@@ -1,8 +1,10 @@
 # 逐籤出圖(33張):讀 omikuji_pool.json,套 v6 定稿版式。圖文相符。
 import json
 from PIL import Image, ImageDraw, ImageFont
-SR="fonts/NotoSerifTC.otf"
+SR="fonts/NotoSerifTC.otf"        # 明朝(詩文/解說,全覆蓋、木刻籤印刷體)
+BR="fonts/JinXiHaoLong.otf"       # 金梅浩龍書法(階名大字,粗筆有氣勢)
 def F(s): return ImageFont.truetype(SR,s)
+def FB(s): return ImageFont.truetype(BR,s)
 POOL=json.load(open("omikuji_pool.json"))["pool"]
 JI=set(["大吉","吉","中吉","小吉","末吉","末小吉"])
 AXES=["商賣","爭事","學問","健康","戀愛","旅行"]
@@ -20,7 +22,7 @@ def compose(s):
     # 標題方框
     hx0,hx1,hy0,hy1=int(W*.22),int(W*.78),int(H*.095),int(H*.19)
     d.rectangle([hx0,hy0,hx1,hy1],outline=ink,width=3)
-    n=len(rank); rsz={1:78,2:68,3:54}.get(n,52); rf=F(rsz)
+    n=len(rank); rsz={1:82,2:72,3:56}.get(n,54); rf=FB(rsz)  # 階名=書法體
     ws=[d.textbbox((0,0),c,font=rf,stroke_width=2)[2]-d.textbbox((0,0),c,font=rf,stroke_width=2)[0] for c in rank]
     gap=int(rsz*.08); tw=sum(ws)+gap*(n-1); x=(W-tw)//2; ycen=(hy0+hy1)//2
     for c,wd in zip(rank,ws): cchar(d,x+wd/2,ycen,c,rf,rcol,2); x+=wd+gap
