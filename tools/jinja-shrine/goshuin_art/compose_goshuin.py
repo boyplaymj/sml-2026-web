@@ -1,17 +1,17 @@
-# 御朱印圖(7款):washi底+明朝社名大書+副題+大朱印(圓)+季節配色小印(方)。$0程式合成。
-# 字型(不進git):NotoSerifTC.otf 明朝
+# 御朱印圖(7款,對齊真品版式):中央書法大字壓大朱印 + 左邊日期 + 右邊社名 + 上/下小印。$0。
+# 字型(不進git):NotoSerifTC.otf 明朝(全繁覆蓋)
 from PIL import Image, ImageDraw, ImageFont
 SR="fonts/NotoSerifTC.otf"
 def F(s): return ImageFont.truetype(SR,s)
-# id, 副題, 大印2字, 季節小印1字, accent色, 底圖
+# id, 中央大字, 上小印字, accent色, 底
 V=[
- ("honsha","麻雀大明神","牌神","社",(176,30,30),"warm"),
- ("shogatsu","初詣・正月","初春","正",(198,150,30),"warm"),
- ("sakura","春櫻詣","櫻花","櫻",(206,92,132),"warm"),
- ("nagoshi","夏越大祓","祓除","夏",(46,96,160),"cool"),
- ("momiji","秋葉紅葉","紅楓","楓",(200,92,40),"warm"),
- ("okumiya","奧社牌神","奧社","奧",(122,64,150),"cool"),
- ("okumiya-season","奧社限定","限定","奧",(198,150,30),"cool"),
+ ("honsha","牌神","社",(176,30,30),"warm"),
+ ("shogatsu","初詣","正",(198,150,30),"warm"),
+ ("sakura","春櫻","櫻",(206,92,132),"warm"),
+ ("nagoshi","大祓","夏",(46,96,160),"cool"),
+ ("momiji","紅葉","楓",(200,92,40),"warm"),
+ ("okumiya","奧社","奧",(122,64,150),"cool"),
+ ("okumiya-season","奧社","限",(198,150,30),"cool"),
 ]
 W=680
 def cchar(d,cx,cy,ch,font,fill,stroke=0,scol=None):
@@ -19,24 +19,26 @@ def cchar(d,cx,cy,ch,font,fill,stroke=0,scol=None):
     d.text((cx-(b[2]-b[0])/2-b[0],cy-(b[3]-b[1])/2-b[1]),ch,font=font,fill=fill,stroke_width=stroke,stroke_fill=scol or fill)
 def vcol(d,cx,y0,s,font,fill,cell,stroke=0,scol=None):
     for i,ch in enumerate(s): cchar(d,cx,y0+cell*i+cell/2,ch,font,fill,stroke,scol)
-def compose(vid,sub,seal2,acc1,acc,bg_):
+def compose(vid,big,acc1,acc,bg_):
     bg=Image.open(f"omikuji_art/bg/plain_{bg_}.png").convert("RGB")
     r=W/bg.width; H=int(bg.height*r); bg=bg.resize((W,H)); d=ImageDraw.Draw(bg)
-    ink=(32,28,24); red=(170,30,30)
-    # 奉拝(右上直書小)
-    vcol(d,int(W*.85),int(H*.11),"奉拝",F(34),ink,int(H*.05))
-    # 社名(中央大書,直排;縮小上移避免被朱印蓋)
-    vcol(d,int(W*.42),int(H*.135),"甜甜神社",F(80),ink,int(H*.132),stroke=1,scol=ink)
-    # 副題(社名右側,中字直排)
-    vcol(d,int(W*.71),int(H*.185),sub,F(38),ink,int(H*.056))
-    # 大朱印(圓,底部,不壓社名)
-    cx,cy,rr=int(W*.42),int(H*.83),80
-    d.ellipse([cx-rr,cy-rr,cx+rr,cy+rr],outline=red,width=6)
-    d.ellipse([cx-rr+11,cy-rr+11,cx+rr-11,cy+rr-11],fill=red)
-    vcol(d,cx,cy-int(rr*.52),seal2,F(50),(250,245,235),int(rr*.62))
-    # 季節小印(方,右下,accent色白字)
-    ss=84; sx,sy=int(W*.70),int(H*.80)
-    d.rectangle([sx,sy,sx+ss,sy+ss],fill=acc)
-    cchar(d,sx+ss/2,sy+ss/2,acc1,F(60),(250,247,240))
+    ink=(28,24,22); red=(172,32,32)
+    # 右邊:奉拝 + 社名(甜甜神社)
+    vcol(d,int(W*.855),int(H*.085),"奉拝",F(30),ink,int(H*.045))
+    vcol(d,int(W*.855),int(H*.26),"甜甜神社",F(40),ink,int(H*.062))
+    # 左邊:日期(占位 slot)
+    vcol(d,int(W*.145),int(H*.18),"〇年〇月〇日",F(36),ink,int(H*.058))
+    # 上方小印(季節accent色,圓,白字)
+    tx,ty,tr=int(W*.50),int(H*.135),44
+    d.ellipse([tx-tr,ty-tr,tx+tr,ty+tr],fill=acc); cchar(d,tx,ty,acc1,F(46),(250,247,240))
+    # 中央:大朱印(方框)+ 書法大字壓印上
+    cx,cy,hf=int(W*.50),int(H*.47),128
+    d.rectangle([cx-hf,cy-hf,cx+hf,cy+hf],outline=red,width=9)
+    d.rectangle([cx-hf+16,cy-hf+16,cx+hf-16,cy+hf-16],outline=red,width=3)
+    # 大字(2字直排,墨,粗描邊;壓在紅框上)
+    vcol(d,cx,cy-int(hf*.60),big,F(150),ink,int(hf*1.20),stroke=3,scol=ink)
+    # 下方圓朱印(白字)
+    bx,by,br=int(W*.50),int(H*.80),66
+    d.ellipse([bx-br,by-br,bx+br,by+br],fill=red); cchar(d,bx,by,"甜",F(72),(250,245,235))
     out=f"goshuin_art/out/{vid}.png"; bg.save(out); print("ok",vid)
 for v in V: compose(*v)
