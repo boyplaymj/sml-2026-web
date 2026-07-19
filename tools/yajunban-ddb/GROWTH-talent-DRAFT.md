@@ -142,7 +142,9 @@ growth: {
 4. **✅ 各層測試**(不打 AWS):config 31 / MonsterDAO 101 / growth 20,全 yajunban 635 pass。
 
 > **一般天賦配點主迴圈 = code-complete**(step 1-3)。未 live(engine 階段攢著,未 wire discord.js/面板)。
-> **下一步候選**:(a) 讀天賦樹面板 DTO(逐節點 locked/available/owned 狀態,渲染用);(b) 進化給點 + 菌核躍動 give-point;(c) 💎數值天賦(`talent_unlockable`)另片;(d) 洗點(菌核回溶劑)+ 轉生免費預點。
+> **✅ (a) 天賦樹面板 DTO** `GrowthEngine.getTalentTree`:逐節點 owned/stage_locked/prereq_locked/available(+affinity/canAfford)、按臂分組+每臂親和、成本欄含軟閘。commit `abee9fc`(growth 37 測)。
+>   - ⚠️ **待複驗的玻璃箱取捨**:點數以「亮點條 `●●●`(pointsBar)」呈現而非裸整數。嚴格照 STAGE3「數字不透明」的話亮點仍可數 = 洩露 count;但可花費資源不給量,面板無法規劃。判斷=可花費點數屬「須給玩家budget」的例外、用亮點條折衷。若要更嚴(只給 hasPoints 布林)可退。
+> **下一步候選**:(b) 進化給點 + 菌核躍動 give-point;(c) 💎數值天賦(`talent_unlockable`)另片;(d) 洗點(菌核回溶劑)+ 轉生免費預點。
 
 ### 工程決策(✅ 已拍板 2026-07-19)
 - **D1 ✅ 單一 conditional UpdateItem**(非 TransactWrite):消耗(points−cost)與授予(nodes ADD)**同在 `M#BUILD` 兩鍵** → 一發 UpdateItem 即原子。TransactWrite 只在**進化**(同時動 CORE.stage + BUILD)才需要。已同步改 STAGE1 §1-2/§寫入路徑 + STAGE3 §寫入路徑 的標記(免分岔)。
