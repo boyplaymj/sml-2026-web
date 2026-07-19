@@ -1,5 +1,6 @@
 # 逐籤出圖(33張):讀 omikuji_pool.json,套 v6 定稿版式。圖文相符。
 import json
+import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 from fontTools.ttLib import TTFont as _TT
 SR="fonts/NotoSerifTC.otf"        # 明朝(保底回退;實際上ShiShiRuYi已全覆蓋不觸發)
@@ -8,6 +9,22 @@ def F(s): return ImageFont.truetype(SR,s)
 def FS(s): return ImageFont.truetype(SIDE,s)
 _sd=set(_TT(SIDE).getBestCmap().keys())
 def gf(ch,sz): return FS(sz) if ord(ch) in _sd else F(sz)  # 主用ZHLYSS,缺字(詩~13/解~12)回退明朝
+def washi(img,seed):  # 程式合成和紙質感:低頻染斑+細顆粒+橫向纖維+邊角暈影(每籤微變)
+    rng=np.random.default_rng(seed); a=np.asarray(img).astype(np.float32); h,w,_=a.shape
+    # 低頻染斑(纖維紙不均勻的暈色)
+    lo=rng.integers(0,256,(max(2,h//24),max(2,w//24))).astype(np.uint8)
+    mottle=(np.asarray(Image.fromarray(lo).resize((w,h),Image.BICUBIC)).astype(np.float32)-128)/128.0
+    a+=mottle[...,None]*7.0
+    # 橫向纖維(把窄噪聲橫拉)
+    fn=(rng.normal(0,1,(h,max(1,w//8)))*30+128).clip(0,255).astype(np.uint8)
+    fib=(np.asarray(Image.fromarray(fn).resize((w,h),Image.BILINEAR)).astype(np.float32)-128)/128.0
+    a+=fib[...,None]*5.0
+    # 細顆粒
+    a+=rng.normal(0,1,(h,w,1)).astype(np.float32)*2.6
+    # 邊角暈影(壓暗四角,像老紙)
+    yy,xx=np.mgrid[0:h,0:w]; d2=((xx-w/2)/(w/2))**2+((yy-h/2)/(h/2))**2
+    a*=(1-0.055*d2)[...,None]
+    return Image.fromarray(a.clip(0,255).astype(np.uint8),"RGB")
 POOL=json.load(open("omikuji_pool.json"))["pool"]
 JI=set(["大吉","吉","中吉","小吉","末吉","末小吉"])
 AXES=["商賣","爭事","學問","健康","戀愛","旅行"]
@@ -22,7 +39,9 @@ def gvcol(d,cx,y0,chars,sz,fill,cell,stroke=0):  # 逐字挑字型(ZHLYSS優先,
 def compose(s):
     rank=s["rank"]; ji=rank in JI
     bg=Image.open(f"omikuji_art/bg/{'plain_warm' if ji else 'plain_cool'}.png").convert("RGB")
-    r=W/bg.width; H=int(bg.height*r); bg=bg.resize((W,H)); d=ImageDraw.Draw(bg)
+    r=W/bg.width; H=int(bg.height*r); bg=bg.resize((W,H))
+    bg=washi(bg,abs(hash(s["omikujiId"]))%(2**32))  # 疊和紙質感(每籤微變)
+    d=ImageDraw.Draw(bg)
     ink=(28,26,24); red=(170,30,30); rcol=red if ji else (22,22,22); line=(110,95,80)
     # 標題方框
     hx0,hx1,hy0,hy1=int(W*.22),int(W*.78),int(H*.095),int(H*.19)
@@ -31,7 +50,7 @@ def compose(s):
     ws=[d.textbbox((0,0),c,font=rf,stroke_width=2)[2]-d.textbbox((0,0),c,font=rf,stroke_width=2)[0] for c in rank]
     gap=int(rsz*.08); tw=sum(ws)+gap*(n-1); x=(W-tw)//2; ycen=(hy0+hy1)//2
     for c,wd in zip(rank,ws): cchar(d,x+wd/2,ycen,c,rf,rcol,2); x+=wd+gap
-    gvcol(d,int(W*.885),int(H*.10),"甜甜神社",18,(120,105,92),int(H*.034))
+    gvcol(d,int(W*.815),int(H*.10),"甜甜神社",16,(120,105,92),int(H*.034))  # 框內右緣刊記
     # 詩文直格 4 欄(右起左行)
     gx0,gx1=int(W*.205),int(W*.795); gy0,gy1=int(H*.25),int(H*.55)
     d.rectangle([gx0,gy0,gx1,gy1],outline=line,width=2)
@@ -49,7 +68,7 @@ def compose(s):
         gvcol(d,cx,iy0+int(H*.012),ax,lsz,red if ji else (60,50,45),icell)
         gvcol(d,cx,iy0+int(H*.012)+icell*2+6,s["items"][ax]["text"],isz,ink,icell)
     # 朱印
-    ss=58; sx=int(W*.76); sy=int(H*.91); sq=Image.new("RGB",(ss,ss),red); bg.paste(sq,(sx,sy))
+    ss=54; sx=int(W*.73); sy=int(H*.85); sq=Image.new("RGB",(ss,ss),red); bg.paste(sq,(sx,sy))  # 框內右下落款印
     sc="福" if ji else "祓"; cchar(d,sx+ss/2,sy+ss/2,sc,gf(sc,40),(250,245,235))
     out=f"omikuji_art/out/pool_{s['omikujiId']}.png"; bg.save(out); return out
 for s in POOL: compose(s)
