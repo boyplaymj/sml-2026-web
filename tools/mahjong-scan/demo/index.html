@@ -9,68 +9,59 @@
   :root{
     --bg:#0f172a; --panel:#1e293b; --panel2:#273449; --line:#334155;
     --ink:#f1f5f9; --sub:#94a3b8; --accent:#38bdf8; --good:#4ade80; --warn:#fbbf24; --bad:#f87171;
-    --man:#1f2937; --sou:#15803d; --pin:#1d4ed8; --hon:#334155;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
   html,body{margin:0; background:var(--bg); color:var(--ink);
     font-family:-apple-system,"PingFang TC","Noto Sans TC","Segoe UI",system-ui,sans-serif}
-  body{max-width:560px; margin:0 auto; padding:14px 12px 40px; min-height:100vh}
-  header{display:flex; align-items:baseline; gap:8px; margin:2px 2px 12px}
+  body{max-width:560px; margin:0 auto; padding:12px 12px 34px}
+  header{display:flex; align-items:baseline; gap:8px; margin:2px 2px 11px}
   header h1{font-size:19px; margin:0; letter-spacing:.5px}
   header .tag{font-size:11px; color:var(--sub); border:1px solid var(--line); padding:1px 7px; border-radius:99px}
   header .sub{margin-left:auto; font-size:11px; color:var(--sub)}
 
-  /* 結果卡 */
+  /* 牌圖（2:3） */
+  .tile{display:block; width:100%; height:auto; aspect-ratio:311/468; border-radius:6px;
+    object-fit:contain; user-select:none; -webkit-user-drag:none;
+    filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}
+
+  /* 結果卡：固定高，避免每次點牌上方變高把調色盤推走 */
   .result{background:var(--panel); border:1px solid var(--line); border-radius:16px;
-    padding:14px 14px 12px; margin-bottom:12px; min-height:88px}
-  .result .status{font-size:12.5px; color:var(--sub); display:flex; align-items:center; gap:8px; margin-bottom:8px}
+    padding:13px 14px; margin-bottom:11px; height:132px; overflow:hidden;
+    display:flex; flex-direction:column}
+  .result .status{font-size:12.5px; color:var(--sub); display:flex; align-items:center; gap:8px; margin-bottom:7px}
   .result .status b{color:var(--ink); font-weight:600}
   .result .status .pill{margin-left:auto; font-size:11px; padding:2px 9px; border-radius:99px; border:1px solid var(--line)}
-  .result .headline{font-size:17px; font-weight:700; line-height:1.35; letter-spacing:.3px}
-  .result .headline.good{color:var(--good)}
-  .result .headline.warn{color:var(--warn)}
-  .result .headline.bad{color:var(--bad)}
-  .result .waits{display:flex; flex-wrap:wrap; gap:7px; margin-top:10px}
+  .result .headline{font-size:16px; font-weight:700; line-height:1.35; letter-spacing:.3px}
+  .result .headline.good{color:var(--good)} .result .headline.warn{color:var(--warn)} .result .headline.bad{color:var(--bad)}
+  .result .waits{display:flex; gap:6px; margin-top:9px; overflow-x:auto; padding-bottom:2px}
+  .result .waits .wt{flex:0 0 auto; width:38px}
+  .result .waits .wt .tile{border-radius:5px; box-shadow:0 0 0 2px var(--good); filter:none}
 
-  /* 手牌區 */
-  .handbar{display:flex; align-items:center; gap:8px; margin:0 2px 7px}
+  /* 手牌區：固定 2 排高、內部捲動 → 調色盤永遠不位移 */
+  .handbar{display:flex; align-items:center; gap:8px; margin:0 2px 6px}
   .handbar .lbl{font-size:12.5px; color:var(--sub)}
   .handbar .btns{margin-left:auto; display:flex; gap:7px}
   .handbar button{background:var(--panel2); color:var(--sub); border:1px solid var(--line);
     border-radius:9px; padding:5px 11px; font-size:12.5px; font-weight:600}
   .handbar button:active{transform:scale(.95)}
   .hand{background:var(--panel); border:1px dashed var(--line); border-radius:14px;
-    min-height:64px; padding:9px; display:flex; flex-wrap:wrap; gap:6px; align-content:flex-start; margin-bottom:16px}
-  .hand .empty{color:var(--sub); font-size:13px; margin:auto; opacity:.7}
+    height:120px; overflow-y:auto; padding:8px; display:flex; flex-wrap:wrap; gap:5px;
+    align-content:flex-start; margin-bottom:15px}
+  .hand .htile{flex:0 0 auto; width:33px} .hand .empty{color:var(--sub); font-size:13px; margin:auto; opacity:.7}
 
-  /* 牌 */
-  .tile{position:relative; width:38px; height:52px; border-radius:7px; background:#f8fafc;
-    box-shadow:0 1px 0 #cbd5e1, 0 2px 4px rgba(0,0,0,.35); display:flex; flex-direction:column;
-    align-items:center; justify-content:center; line-height:1; user-select:none; flex:0 0 auto}
-  .tile .n{font-size:19px; font-weight:800; margin-top:2px}
-  .tile .s{font-size:12px; font-weight:700; margin-top:1px; opacity:.9}
-  .tile.man{color:var(--man)} .tile.sou{color:var(--sou)} .tile.pin{color:var(--pin)}
-  .tile.hon .n{font-size:22px; margin-top:0}
-  .tile.hon.zhong{color:#dc2626} .tile.hon.fa{color:#15803d} .tile.hon.bai{color:#475569}
-  .tile.hon.wind{color:#1e293b}
-  .tile.sm{width:31px; height:43px}
-  .tile.sm .n{font-size:16px} .tile.sm .s{font-size:10px} .tile.sm.hon .n{font-size:18px}
-  .tile.wait{width:34px; height:47px; box-shadow:0 0 0 2px var(--good), 0 2px 5px rgba(0,0,0,.35)}
-  .tile.wait .n{font-size:17px}
-
-  /* 調色盤 */
-  .pal-group{margin-bottom:13px}
-  .pal-group .gh{font-size:11.5px; color:var(--sub); margin:0 3px 6px; letter-spacing:1px}
+  /* 調色盤：固定格線，不隨手牌變動 */
+  .pal-group{margin-bottom:11px}
+  .pal-group .gh{font-size:11.5px; color:var(--sub); margin:0 3px 5px; letter-spacing:2px}
   .pal{display:grid; grid-template-columns:repeat(9,1fr); gap:6px}
   .pal.honors{grid-template-columns:repeat(7,1fr)}
-  .pal .tile{width:100%; height:46px; cursor:pointer; transition:transform .06s}
-  .pal .tile:active{transform:translateY(1px) scale(.96)}
-  .pal .tile .cnt{position:absolute; top:-5px; right:-4px; background:var(--accent); color:#04222e;
-    font-size:10px; font-weight:800; min-width:15px; height:15px; border-radius:99px;
-    display:flex; align-items:center; justify-content:center; padding:0 3px}
-  .pal .tile.full{opacity:.4}
+  .cell{position:relative; cursor:pointer; transition:transform .06s}
+  .cell:active{transform:translateY(1px) scale(.95)}
+  .cell.full{opacity:.4}
+  .cell .cnt{position:absolute; top:-6px; right:-5px; background:var(--accent); color:#04222e;
+    font-size:11px; font-weight:800; min-width:17px; height:17px; border-radius:99px;
+    display:flex; align-items:center; justify-content:center; padding:0 4px; box-shadow:0 1px 3px rgba(0,0,0,.4)}
 
-  footer{margin-top:18px; font-size:11px; color:var(--sub); text-align:center; line-height:1.6}
+  footer{margin-top:16px; font-size:11px; color:var(--sub); text-align:center; line-height:1.6}
   footer .note{opacity:.75}
 </style>
 </head>
@@ -78,16 +69,16 @@
 <header>
   <h1>兩雀 · 聽什麼</h1>
   <span class="tag">P0 原型</span>
-  <span class="sub" id="modeSub">手動點牌</span>
+  <span class="sub">台灣 16 張制</span>
 </header>
 
 <div class="result" id="result">
   <div class="status">
-    <span>手牌 <b id="cnt">0</b> 張</span>
+    <span>手牌 <b id="cnt">0</b> / 16 張</span>
     <span id="phase"></span>
     <span class="pill" id="pill">請點牌</span>
   </div>
-  <div class="headline" id="headline">從下方點選你的手牌</div>
+  <div class="headline" id="headline">從下方點你的整手牌（湊滿 16 張自動判聽）</div>
   <div class="waits" id="waits"></div>
 </div>
 
@@ -103,131 +94,123 @@
 <div id="palette"></div>
 
 <footer>
-  台灣 16 張制 · 聽牌 = 手上 <b>16 / 13 / 10…</b> 張（3k+1）等一張 · 免役即胡<br>
-  <span class="note">花牌不參與胡型（P0 未列）· 槓 P0 不支援 · 判定核心 = MahjongHand.js（6000 手驗證）</span>
+  台灣 16 張制 · 湊滿 <b>16 張</b>判聽、<b>17 張</b>判胡 · 免役即胡<br>
+  <span class="note">有吃碰槓也把明牌一起點進來湊足 16 張 · 花牌/暗槓 P0 未支援 · 判定核心 MahjongHand.js（6000 手驗證）</span>
 </footer>
 
 <script src="mahjongHand.js"></script>
 <script>
 (function(){
-  // id → 顯示。萬1-9 / 索11-19 / 筒21-29 / 東101 南201 西301 北401 中501 發601 白701
-  var HONORS = {101:['東','wind'],201:['南','wind'],301:['西','wind'],401:['北','wind'],
-                501:['中','zhong'],601:['發','fa'],701:['白','bai']};
-  function meta(id){
-    if(id>=1&&id<=9)   return {n:id,      s:'萬', cls:'man'};
-    if(id>=11&&id<=19) return {n:id-10,   s:'索', cls:'sou'};
-    if(id>=21&&id<=29) return {n:id-20,   s:'筒', cls:'pin'};
-    var h=HONORS[id];  return {n:h[0], s:'', cls:'hon '+h[1]};
+  var TARGET=16;          // 台灣門清聽牌張數
+  var MAX=17;             // 允許摸進第 17 張判胡
+  var LABEL={101:'東',201:'南',301:'西',401:'北',501:'中',601:'發',701:'白'};
+  function label(id){
+    if(id>=1&&id<=9)   return id+'萬';
+    if(id>=11&&id<=19) return (id-10)+'索';
+    if(id>=21&&id<=29) return (id-20)+'筒';
+    return LABEL[id];
   }
-  function tileEl(id, extra){
-    var m=meta(id), el=document.createElement('div');
-    el.className='tile '+m.cls+(extra?(' '+extra):'');
-    el.innerHTML='<span class="n">'+m.n+'</span>'+(m.s?'<span class="s">'+m.s+'</span>':'');
-    return el;
+  function tileImg(id, cls){
+    var img=document.createElement('img');
+    img.className='tile'+(cls?(' '+cls):'');
+    img.src='tiles/'+id+'.png'; img.alt=label(id); img.draggable=false;
+    return img;
   }
 
   var hand=[]; // 牌 id 陣列
-  var MAX=16;
-
-  var elHand=document.getElementById('hand'),
-      elCnt=document.getElementById('cnt'),
-      elPhase=document.getElementById('phase'),
-      elPill=document.getElementById('pill'),
-      elHead=document.getElementById('headline'),
-      elWaits=document.getElementById('waits'),
-      elResult=document.getElementById('result');
+  var elHand=document.getElementById('hand'), elCnt=document.getElementById('cnt'),
+      elPhase=document.getElementById('phase'), elPill=document.getElementById('pill'),
+      elHead=document.getElementById('headline'), elWaits=document.getElementById('waits'),
+      palette=document.getElementById('palette');
 
   function countOf(id){ return hand.filter(function(x){return x===id;}).length; }
+  function setPill(txt,color){ elPill.textContent=txt;
+    elPill.style.color=color||''; elPill.style.borderColor=color||''; }
 
   function add(id){
-    if(hand.length>=MAX) { flash('已達 16 張上限'); return; }
-    if(countOf(id)>=4)   { flash('一種牌最多 4 張'); return; }
+    if(hand.length>=MAX){ flash('已達 '+MAX+' 張上限'); return; }
+    if(countOf(id)>=4){ flash('一種牌最多 4 張'); return; }
     hand.push(id); render();
   }
   function removeAt(i){ hand.splice(i,1); render(); }
+  function flash(msg){ setPill(msg,'var(--warn)'); setTimeout(render,900); }
 
-  function flash(msg){
-    elPill.textContent=msg; elPill.style.color='var(--warn)'; elPill.style.borderColor='var(--warn)';
-    setTimeout(render, 900);
-  }
-
-  var palette=document.getElementById('palette');
   function buildPalette(){
-    var groups=[
-      {h:'萬 子', ids:[1,2,3,4,5,6,7,8,9], honors:false},
-      {h:'索 子', ids:[11,12,13,14,15,16,17,18,19], honors:false},
-      {h:'筒 子', ids:[21,22,23,24,25,26,27,28,29], honors:false},
-      {h:'字 牌', ids:[101,201,301,401,501,601,701], honors:true}
-    ];
-    groups.forEach(function(g){
+    [{h:'萬 子',ids:[1,2,3,4,5,6,7,8,9]},
+     {h:'索 子',ids:[11,12,13,14,15,16,17,18,19]},
+     {h:'筒 子',ids:[21,22,23,24,25,26,27,28,29]},
+     {h:'字 牌',ids:[101,201,301,401,501,601,701],honors:true}
+    ].forEach(function(g){
       var wrap=document.createElement('div'); wrap.className='pal-group';
       wrap.innerHTML='<div class="gh">'+g.h+'</div>';
       var grid=document.createElement('div'); grid.className='pal'+(g.honors?' honors':'');
       g.ids.forEach(function(id){
-        var t=tileEl(id); t.dataset.id=id;
-        t.addEventListener('click', function(){ add(id); });
-        grid.appendChild(t);
+        var cell=document.createElement('div'); cell.className='cell'; cell.dataset.id=id;
+        cell.appendChild(tileImg(id));
+        cell.addEventListener('click', function(){ add(id); });
+        grid.appendChild(cell);
       });
       wrap.appendChild(grid); palette.appendChild(wrap);
     });
   }
-
   function updatePaletteCounts(){
-    var tiles=palette.querySelectorAll('.tile');
-    tiles.forEach(function(t){
-      var id=+t.dataset.id, c=countOf(id), badge=t.querySelector('.cnt');
-      if(c>0){ if(!badge){badge=document.createElement('span');badge.className='cnt';t.appendChild(badge);} badge.textContent=c; }
+    palette.querySelectorAll('.cell').forEach(function(cell){
+      var id=+cell.dataset.id, c=countOf(id), badge=cell.querySelector('.cnt');
+      if(c>0){ if(!badge){badge=document.createElement('span');badge.className='cnt';cell.appendChild(badge);} badge.textContent=c; }
       else if(badge){ badge.remove(); }
-      t.classList.toggle('full', c>=4);
+      cell.classList.toggle('full', c>=4);
     });
   }
 
   function renderHand(){
     elHand.innerHTML='';
     if(hand.length===0){ elHand.innerHTML='<span class="empty">尚未選牌</span>'; return; }
-    var sorted=hand.map(function(id,i){return {id:id,i:i};})
-                   .sort(function(a,b){return a.id-b.id;});
-    sorted.forEach(function(o){
-      var t=tileEl(o.id, 'sm');
-      t.addEventListener('click', function(){ removeAt(o.i); });
-      elHand.appendChild(t);
-    });
+    hand.map(function(id,i){return {id:id,i:i};})
+        .sort(function(a,b){return a.id-b.id;})
+        .forEach(function(o){
+          var img=tileImg(o.id,'htile');
+          img.addEventListener('click', function(){ removeAt(o.i); });
+          elHand.appendChild(img);
+        });
   }
 
   function renderResult(){
-    var n=hand.length; elCnt.textContent=n;
-    elPill.style.color=''; elPill.style.borderColor='';
-    elWaits.innerHTML='';
-    var mod=n%3;
-    // 張數階段提示
-    if(n===0){ elPhase.textContent=''; elPill.textContent='請點牌';
-      elHead.className='headline'; elHead.textContent='從下方點選你的手牌'; return; }
+    var n=hand.length; elCnt.textContent=n; elWaits.innerHTML=''; setPill('');
+    if(n===0){ elPhase.textContent=''; setPill('請點牌');
+      elHead.className='headline'; elHead.textContent='從下方點你的整手牌（湊滿 16 張自動判聽）'; return; }
 
-    if(mod===1){ // 3k+1 → 判聽
-      elPhase.textContent='判聽（'+n+' 張等一張）';
+    if(n<TARGET){                                   // 配牌中：不亂判、只報進度
+      elPhase.textContent='配牌中';
+      setPill(n+' / 16','var(--sub)');
+      elHead.className='headline';
+      elHead.textContent='再點 '+(TARGET-n)+' 張湊滿 16 張，就自動幫你判聽';
+      return;
+    }
+    if(n===TARGET){                                 // 16 張 → 判聽
+      elPhase.textContent='判聽（16 張等一張）';
       var waits=MahjongHand.waitingTiles(hand);
       if(waits.length>0){
-        elPill.textContent='聽 '+waits.length+' 種'; elPill.style.color='var(--good)'; elPill.style.borderColor='var(--good)';
+        setPill('聽 '+waits.length+' 種','var(--good)');
         elHead.className='headline good'; elHead.textContent='聽牌！等下面這些：';
-        waits.forEach(function(id){ elWaits.appendChild(tileEl(id,'wait')); });
+        waits.forEach(function(id){
+          var wt=document.createElement('div'); wt.className='wt';
+          wt.appendChild(tileImg(id)); wt.title=label(id);
+          elWaits.appendChild(wt);
+        });
       } else {
-        elPill.textContent='未聽'; elPill.style.color='var(--bad)'; elPill.style.borderColor='var(--bad)';
-        elHead.className='headline bad'; elHead.textContent='沒聽 · 這手還差不只一張（詐胡）';
+        setPill('未聽','var(--bad)');
+        elHead.className='headline bad'; elHead.textContent='沒聽 · 這 16 張還湊不成聽牌型（詐聽）';
       }
-    } else if(mod===2){ // 3k+2 → 判胡
-      elPhase.textContent='判胡（'+n+' 張完成型）';
-      if(MahjongHand.isHu(hand)){
-        elPill.textContent='胡'; elPill.style.color='var(--good)'; elPill.style.borderColor='var(--good)';
-        elHead.className='headline good'; elHead.textContent='胡了！這是完整的一手（5 面子 + 1 將）';
-      } else {
-        elPill.textContent='未胡'; elPill.style.color='var(--warn)'; elPill.style.borderColor='var(--warn)';
-        elHead.className='headline warn'; elHead.textContent='還沒胡 · 湊不成「面子＋將」結構';
-      }
-    } else { // mod===0 → 非合法聽/胡數，提示補到下一個 3k+1
-      elPhase.textContent='';
-      elPill.textContent=n+' 張'; elPill.style.color='var(--sub)'; elPill.style.borderColor='var(--line)';
-      elHead.className='headline warn';
-      elHead.textContent='目前 '+n+' 張（不是聽牌數）· 再點 1 張到 '+(n+1)+' 張即可判聽';
+      return;
+    }
+    // n===17 → 判胡
+    elPhase.textContent='判胡（17 張完成型）';
+    if(MahjongHand.isHu(hand)){
+      setPill('胡','var(--good)');
+      elHead.className='headline good'; elHead.textContent='胡了！完整一手（5 面子 + 1 將）';
+    } else {
+      setPill('未胡','var(--warn)');
+      elHead.className='headline warn'; elHead.textContent='還沒胡 · 這 17 張湊不成「面子＋將」';
     }
   }
 
@@ -235,7 +218,7 @@
 
   document.getElementById('clrBtn').addEventListener('click', function(){ hand=[]; render(); });
   document.getElementById('egBtn').addEventListener('click', function(){
-    // 範例（16 張三面聽）：一萬刻 + 456萬 + 123索 + 123筒 + 中將 + 78萬 → 聽 3/6/9萬
+    // 16 張三面聽：一萬刻 + 456萬 + 78萬 + 123索 + 123筒 + 中將 → 聽 3/6/9萬
     hand=[1,1,1, 4,5,6, 7,8, 11,12,13, 21,22,23, 501,501]; render();
   });
 
