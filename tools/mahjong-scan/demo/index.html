@@ -32,10 +32,21 @@
   .live{position:fixed; inset:0; z-index:100; background:#000; display:none}
   .live.on{display:block}
   .live video{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
-  .live .frame{position:absolute; left:5%; right:5%; top:34%; height:24%;
-    border:2.5px solid #38bdf8; border-radius:12px; box-shadow:0 0 0 9999px rgba(0,0,0,.5);
-    transition:border-color .2s}
-  .live .frame.locked{border-color:var(--good)}
+  /* 掃描框：暗遮罩挖空框內、四角括號、來回掃描線（像 QR 掃描器）；判讀區域＝此框 */
+  .live .frame{position:absolute; left:6%; right:6%; top:31%; height:28%;
+    border-radius:16px; box-shadow:0 0 0 9999px rgba(0,0,0,.55); overflow:hidden;
+    transition:box-shadow .2s}
+  .live .frame .c{position:absolute; width:26px; height:26px; border:3px solid var(--accent)}
+  .live .frame .c.tl{left:-1px; top:-1px; border-right:none; border-bottom:none; border-top-left-radius:15px}
+  .live .frame .c.tr{right:-1px; top:-1px; border-left:none;  border-bottom:none; border-top-right-radius:15px}
+  .live .frame .c.bl{left:-1px; bottom:-1px; border-right:none; border-top:none; border-bottom-left-radius:15px}
+  .live .frame .c.br{right:-1px; bottom:-1px; border-left:none;  border-top:none; border-bottom-right-radius:15px}
+  .live .frame .scanline{position:absolute; left:8px; right:8px; height:3px; top:6%;
+    background:linear-gradient(90deg,transparent,#5fd0ff,transparent);
+    box-shadow:0 0 9px 1px var(--accent); animation:scan 2.1s ease-in-out infinite}
+  @keyframes scan{0%{top:6%}50%{top:90%}100%{top:6%}}
+  .live .frame.locked .c{border-color:var(--good)}
+  .live .frame.locked .scanline{display:none}
   .live .lstatus{position:absolute; left:0; right:0; top:13%; text-align:center; color:#fff;
     font-size:14px; font-weight:600; text-shadow:0 1px 3px #000; padding:0 20px}
   .live .lclose{position:absolute; top:14px; right:14px; background:rgba(0,0,0,.5); color:#fff;
@@ -110,7 +121,10 @@
 <!-- 即時掃描全螢幕層 -->
 <div class="live" id="live">
   <video id="cam" playsinline muted></video>
-  <div class="frame" id="frame"></div>
+  <div class="frame" id="frame">
+    <i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>
+    <div class="scanline"></div>
+  </div>
   <div class="lstatus" id="lstatus">開啟相機中…</div>
   <button class="lclose" id="lclose">✕ 關閉</button>
   <div class="lresult" id="lresult">
@@ -324,13 +338,27 @@
     if(stream){ stream.getTracks().forEach(function(t){t.stop();}); stream=null; }
     cam.srcObject=null;
   }
+  // 把「螢幕上看到的掃描框」反算回原始影像像素，只裁框內餵給辨識。
+  // 影片用 object-fit:cover 填滿 → 顯示與原始非線性，須逆解 cover 縮放與置中裁切偏移。
+  function cropFrameToCanvas(){
+    var vw=cam.videoWidth, vh=cam.videoHeight;
+    if(!vw||!vh) return false;
+    var camR=cam.getBoundingClientRect(), frR=frameEl.getBoundingClientRect();
+    if(!camR.width||!camR.height) return false;
+    var scale=Math.max(camR.width/vw, camR.height/vh);       // cover：取較大縮放
+    var offX=(vw*scale - camR.width)/2, offY=(vh*scale - camR.height)/2; // 溢出被裁掉的一半
+    var vx1=((frR.left  -camR.left)+offX)/scale, vy1=((frR.top   -camR.top)+offY)/scale;
+    var vx2=((frR.right -camR.left)+offX)/scale, vy2=((frR.bottom-camR.top)+offY)/scale;
+    vx1=Math.max(0,vx1); vy1=Math.max(0,vy1); vx2=Math.min(vw,vx2); vy2=Math.min(vh,vy2);
+    var sw=Math.round(vx2-vx1), sh=Math.round(vy2-vy1);
+    if(sw<10||sh<10) return false;
+    grab.width=sw; grab.height=sh;
+    gctx.drawImage(cam, Math.round(vx1),Math.round(vy1),sw,sh, 0,0,sw,sh);
+    return true;
+  }
   async function tick(){
     if(!liveOn) return;
-    var vw=cam.videoWidth, vh=cam.videoHeight;
-    if(vw&&vh){
-      var sy=Math.round(vh*0.28), sh=Math.round(vh*0.40);   // 中央橫帶(對齊框)
-      grab.width=vw; grab.height=sh;
-      gctx.drawImage(cam, 0,sy,vw,sh, 0,0,vw,sh);
+    if(cropFrameToCanvas()){
       try{ var out=await MahjongDetect.detectTiles(grab, function(m){ lstatus.textContent=m; });
            if(liveOn) handleLive(out.ids); }
       catch(e){ /* 忽略單幀錯誤，續跑 */ }

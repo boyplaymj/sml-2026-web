@@ -1,24 +1,26 @@
-// 端上麻將牌辨識：onnxruntime-web 跑 YOLOv8(DrCheeseFace, MIT) → 台灣牌 id 陣列。
+// 端上麻將牌辨識：onnxruntime-web 跑 YOLOv8(自訓, Jon Chan 台灣牌資料集 v83) → 台灣牌 id 陣列。
 // 解碼(letterbox / argmax / NMS / label→id)＝Python 驗證版逐行 port，實測真牌桌照片準確。
-// 模型類別(38)：0b牌背 / 0m0p0s赤五 / 1-9m萬 / 1-9p筒 / 1-9s索 / 1-7z字牌
-//   riichi 字牌序：1z東 2z南 3z西 4z北 5z白 6z發 7z中
+// 模型類別(42)：1-9C萬 / 1-9B索 / 1-9D筒 / EW東 SW南 WW西 NW北 RD中 GD發 WD白 / 1-4F+1-4S 八花
+//   NAMES 順序＝模型 metadata 內嵌 names（0..41），labelToId 吃字串故與順序無關。
 (function (root) {
   'use strict';
-  var MODEL_URL = 'mahjong-yolov8.onnx';
+  var MODEL_URL = 'mahjong-tw-yolov8.onnx';
   var SIZE = 640, CONF = 0.35, IOU = 0.45;
-  var NAMES = ['0b','0m','0p','0s','1m','1p','1s','1z','2m','2p','2s','2z','3m','3p','3s','3z',
-    '4m','4p','4s','4z','5m','5p','5s','5z','6m','6p','6s','6z','7m','7p','7s','7z',
-    '8m','8p','8s','9m','9p','9s'];
+  var NAMES = ['1B','1C','1D','1F','1S','2B','2C','2D','2F','2S','3B','3C','3D','3F','3S',
+    '4B','4C','4D','4F','4S','5B','5C','5D','6B','6C','6D','7B','7C','7D','8B','8C','8D',
+    '9B','9C','9D','EW','GD','NW','RD','SW','WD','WW'];
 
-  // riichi label → 台灣牌 id（萬1-9 / 索11-19 / 筒21-29 / 中501 發601 白701）
+  // Jon Chan 台灣牌短碼 → 台灣牌 id（萬1-9 / 索11-19 / 筒21-29 / 字牌百位；花牌回 null）
+  //   C=萬(character) B=索(bamboo) D=筒(dot)；F/S=八花，判聽挑掉但 dets 仍留 label 供顯示
+  //   ⚠ 字牌須先攔：RD中/GD發/WD白 尾字亦為 D，會被筒子 s==='D' 分支誤判成 NaN
+  var HONORS = { EW:101, SW:201, WW:301, NW:401, RD:501, GD:601, WD:701 };
   function labelToId (l) {
-    if (l === '0b') return null;                 // 牌背，略
-    var n = +l[0], s = l[1];
-    if (s === 'm') return n > 0 ? n : 5;         // 0m 赤五 → 5萬
-    if (s === 'p') return (n > 0 ? n : 5) + 20;
-    if (s === 's') return (n > 0 ? n : 5) + 10;
-    if (s === 'z') return {1:101,2:201,3:301,4:401,5:701,6:601,7:501}[n]; // 白701 發601 中501
-    return null;
+    if (HONORS[l] != null) return HONORS[l];       // 東南西北中發白（先判，避免 *D 撞筒子）
+    var n = +l[0], s = l[1];                        // '5C' → n=5, s='C'
+    if (s === 'C') return n;                        // 萬 1-9
+    if (s === 'B') return n + 10;                   // 索 11-19
+    if (s === 'D') return n + 20;                   // 筒 21-29
+    return null;                                    // 花牌 1-4F / 1-4S：判聽不計
   }
 
   var _session = null;
@@ -69,9 +71,9 @@
     return keep;
   }
 
-  // 解碼 YOLOv8 輸出 (1,42,8400)：4 框 + 38 類
+  // 解碼 YOLOv8 輸出 (1,46,8400)：4 框 + 42 類（numCls 由 dims 動態算，換模型免改）
   function decode (out, r, dx, dy) {
-    var data = out.data, dims = out.dims;          // dims = [1,42,8400]
+    var data = out.data, dims = out.dims;          // dims = [1,46,8400]
     var nc = dims[1], na = dims[2], numCls = nc - 4;
     var dets = [];
     for (var a = 0; a < na; a++) {
