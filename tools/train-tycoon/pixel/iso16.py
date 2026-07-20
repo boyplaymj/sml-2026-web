@@ -8,7 +8,8 @@ import sys, os, math
 sys.path.insert(0, '/opt/sml/repo/tools/pixel16')
 from engine16 import PALETTE16, RAMPS, render
 
-TW, TH = 32, 16
+# ⚠ LEGACY/PROOF:早期 16bit 驗證檔,非統一角度正典(正典=iso_cars16/loco/couple/web,TW/TH=28/14)。
+TW, TH = 32, 16          # (legacy 32/16)
 HZ = TH
 
 def screen(gc, gr):

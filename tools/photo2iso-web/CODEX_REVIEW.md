@@ -1,6 +1,7 @@
 # Codex 複驗清單 — photo2iso 管線 + iso 車輛庫
 
-作者:Claude(Fable/Opus 混用)。狀態:**全部未 commit**。這是「照片→統一 iso 角度 16bit」工具鏈 + 火車大亨 iso 車輛庫。
+作者:Claude(Fable/Opus 混用)。狀態:**已 commit 於 `7421266`;Codex 首輪覆驗後的修正見後續 commit**。
+這是「照片→統一 iso 角度 16bit」工具鏈 + 火車大亨 iso 車輛庫。
 請獨立複驗以下內容,分「🔴阻斷 / 🟡應修 / 🟢確認即可」回報,並標出我漏掉的。
 
 ---
@@ -40,7 +41,7 @@
 ## 2. 🟢 請獨立查驗(我認為 OK,但要你背書)
 
 - **homography 正確性**:`coeffs(dst,src)` 解的是「輸出→來源」映射;`render()` 內對每個輸出像素用 `(cf[0]*x+cf[1]*y+cf[2])/(cf[6]*x+cf[7]*y+1)` 反查來源。驗證數學與邊界(w 分母趨 0)。
-- **iso 角度統一性**:所有幾何都走 `screen(c,r)=((c-r)*TW/2,(c+r)*TH/2)`(web 與 python 同式,TW=28/TH=14)。驗證 web 版與車輛庫的角度真的一致(這是整個專案的賣點)。
+- **iso 角度統一性**:**統一角度正典** = `photo2iso-web` + `iso_cars16.py` / `shape_demo16.py` / `loco_iso16.py` / `couple_train.py`,全走 `screen(c,r)=((c-r)*TW/2,(c+r)*TH/2)` 且 **TW/TH=28/14**。⚠ `iso8.py` / `iso8_polish.py` / `iso16.py` 是早期 **legacy/proof(32/16)**,已在檔頭標記,**不納入統一角度承諾**。請驗正典那組角度確實一致。
 - **`inQuad()`**:凸四邊形內測試(cross product 同號)。凹/反向 winding 會誤判 → 面畫錯。驗證錨點亂拖時的行為。
 - **PALETTE16 / RAMPS** 在 index.html 內嵌值與 `engine16.py` 完全一致(手抄,請比對有無漏字或錯值)。
 - **loco 圖層順序**(`loco_iso16.draw_loco`):已修「駕駛室穿幫」為嚴格由遠到近繪製(底架→駕駛室→鍋爐→配件→煙箱→動輪→排障器→煙)。請確認無殘留前後穿幫。

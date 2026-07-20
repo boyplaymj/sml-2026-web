@@ -6,7 +6,8 @@ import sys, os, math
 sys.path.insert(0, '/opt/sml/repo/tools/pixel8')
 from engine import PALETTE, render
 
-TW, TH = 32, 16          # iso tile 2:1
+# ⚠ LEGACY/PROOF:早期驗證檔,非統一角度正典(正典=iso_cars16/loco/couple/web,TW/TH=28/14)。
+TW, TH = 32, 16          # iso tile 2:1(legacy 32/16)
 HZ = TH                  # 每 1 格高 = 一個 tile 高
 
 def screen(gc, gr):

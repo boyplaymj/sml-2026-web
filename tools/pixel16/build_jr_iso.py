@@ -8,8 +8,12 @@ from PIL import Image, ImageDraw
 sys.path.insert(0, os.path.dirname(__file__))
 from photo2iso import warp_face, quantize16, screen, TH
 
-SRC = '/tmp/discord-att-4132784241.png'
-WALL = [(36, 110), (987, 110), (987, 358), (36, 358)]   # 照片木牆四角 TL,TR,BR,BL
+# 素材路徑:argv[1] > 環境變數 JR_SRC > 同資料夾 sample_jr.png。缺檔友善結束(不 crash)。
+SRC = (sys.argv[1] if len(sys.argv) > 1
+       else os.environ.get('JR_SRC')
+       or os.path.join(os.path.dirname(__file__), 'sample_jr.png'))
+# WALL 木牆四角(TL,TR,BR,BL)是為 1024×506 的 JR ワム 範例圖調的;換圖需重標。
+WALL = [(36, 110), (987, 110), (987, 358), (36, 358)]
 
 def lerp(a, b, t): return (a[0] + (b[0]-a[0])*t, a[1] + (b[1]-a[1])*t)
 
@@ -60,6 +64,11 @@ def build():
     return out.resize((W*6, HH*6), Image.NEAREST)
 
 if __name__ == '__main__':
-    outdir='/opt/sml/repo/tools/pixel16/out'; os.makedirs(outdir,exist_ok=True)
-    img=build(); img=img.crop(img.getbbox()); img.save(outdir+'/jr_iso.png')
+    if not os.path.exists(SRC):
+        print(f'⚠️ 找不到素材圖:{SRC}\n'
+              f'   用法:python3 build_jr_iso.py <JR側視圖路徑>(或設 JR_SRC 環境變數)。\n'
+              f'   WALL 錨點是為 1024×506 的 JR ワム 範例調的,換圖需重標。跳過。')
+        sys.exit(0)
+    outdir=os.path.join(os.path.dirname(__file__),'out'); os.makedirs(outdir,exist_ok=True)
+    img=build(); img=img.crop(img.getbbox()); img.save(os.path.join(outdir,'jr_iso.png'))
     print('ok jr_iso.png', img.size)

@@ -6,7 +6,9 @@ import sys, os, math
 sys.path.insert(0, '/opt/sml/repo/tools/pixel8')
 from engine import PALETTE, render, blank  # 共用鎖定調色盤 + 渲染
 
-TW, TH = 32, 16          # iso tile 2:1(像素)
+# ⚠ LEGACY/PROOF:早期驗證檔,非統一角度正典。統一角度正典=iso_cars16/loco_iso16/
+#   couple_train + photo2iso-web,皆 TW/TH=28/14。此檔 32/16 僅供最初 iso proof 保存。
+TW, TH = 32, 16          # iso tile 2:1(像素)(legacy 32/16)
 HZ = TH                  # 每 1 格高 = 一個 tile 高
 
 def screen(gc, gr, z=0.0):
