@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>photo2iso — 照片轉統一角度 16bit</title>
+<style>
+  :root{ --bg:#1e2230; --panel:#2a3042; --panel2:#323a50; --line:#3d4661; --txt:#e6ecf5; --mut:#96a0b4; --acc:#6cd6a2; --acc2:#58a0f2; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,"Noto Sans TC",sans-serif;background:var(--bg);color:var(--txt)}
+  header{padding:10px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  header h1{font-size:16px;margin:0;font-weight:700}
+  header .hint{color:var(--mut);font-size:12px}
+  .wrap{display:flex;gap:14px;padding:14px;align-items:flex-start;flex-wrap:wrap}
+  .col{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
+  .col h2{font-size:13px;margin:0 0 8px;color:var(--mut);font-weight:600}
+  #srcWrap{position:relative;line-height:0;background:#11141d;border-radius:6px;overflow:hidden}
+  #srcCanvas{max-width:520px;touch-action:none;cursor:crosshair;display:block}
+  #ovl{position:absolute;left:0;top:0;pointer-events:none}
+  #outCanvas{image-rendering:pixelated;background:
+      repeating-conic-gradient(#2b3040 0% 25%, #262b3a 0% 50%) 50%/20px 20px;border-radius:6px}
+  .row{display:flex;align-items:center;gap:8px;margin:7px 0;font-size:13px}
+  .row label{min-width:96px;color:var(--mut)}
+  input[type=range]{flex:1}
+  .val{min-width:34px;text-align:right;color:var(--acc)}
+  button{background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:7px;padding:7px 12px;font-size:13px;cursor:pointer}
+  button:hover{border-color:var(--acc)}
+  button.primary{background:var(--acc);color:#0f1a14;border-color:var(--acc);font-weight:700}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .seg button{border:0;border-radius:0;padding:5px 9px;font-size:12px;background:transparent}
+  .seg button.on{background:var(--acc2);color:#08131f;font-weight:700}
+  .facegrid{display:grid;grid-template-columns:auto auto;gap:4px 10px;align-items:center;font-size:12px}
+  .tag{display:inline-block;padding:1px 6px;border-radius:4px;background:#1b2130;color:var(--mut);font-size:11px}
+  .controls{max-width:300px}
+  .filedrop{border:1px dashed var(--line);border-radius:8px;padding:10px;text-align:center;color:var(--mut);font-size:12px;cursor:pointer}
+  small.note{color:var(--mut);font-size:11px;line-height:1.5;display:block;margin-top:6px}
+</style>
+</head>
+<body>
+<header>
+  <h1>🧊 photo2iso</h1>
+  <span class="hint">照片 → 統一 iso 角度 16bit。拖 7 個錨點框住物件的立方外框,右邊即時出圖。角度由 <code>screen(c,r)</code> 常數保證統一。</span>
+</header>
+
+<div class="wrap">
+  <!-- 來源 + 錨點 -->
+  <div class="col">
+    <h2>① 來源照片 · 拖曳錨點框住立方外框</h2>
+    <div id="srcWrap">
+      <canvas id="srcCanvas" width="520" height="360"></canvas>
+      <canvas id="ovl"></canvas>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <label class="filedrop" id="drop" style="flex:1">📂 點此或拖曳照片載入
+        <input type="file" id="file" accept="image/*" style="display:none"></label>
+      <button id="loadSample">載入範例</button>
+    </div>
+    <small class="note">
+      錨點:頂面 4 角(◤◥◢◣)+ 底部 3 角。把頂面貼齊物件頂、垂直棱貼齊物件邊。<br>
+      單面(側視照)時把「左面」對準物件、頂/右面設「自動生成」。
+    </small>
+  </div>
+
+  <!-- 輸出 -->
+  <div class="col">
+    <h2>② iso 16bit 輸出</h2>
+    <canvas id="outCanvas" width="360" height="330"></canvas>
+    <div class="row" style="margin-top:8px">
+      <button class="primary" id="export">⬇ 匯出 PNG</button>
+      <button id="copyState">複製錨點</button>
+    </div>
+  </div>
+
+  <!-- 控制 -->
+  <div class="col controls">
+    <h2>③ 參數</h2>
+    <div class="row"><label>盒長 L</label><input type="range" id="L" min="1.5" max="6" step="0.1" value="4.4"><span class="val" id="Lv">4.4</span></div>
+    <div class="row"><label>盒寬 D</label><input type="range" id="D" min="0.6" max="3" step="0.1" value="1.15"><span class="val" id="Dv">1.15</span></div>
+    <div class="row"><label>盒高 H</label><input type="range" id="H" min="0.4" max="4" step="0.1" value="1.15"><span class="val" id="Hv">1.15</span></div>
+    <div class="row"><label>像素密度</label><input type="range" id="res" min="0.6" max="2.2" step="0.1" value="1.3"><span class="val" id="resv">1.3</span></div>
+    <hr style="border-color:var(--line)">
+    <div class="row"><label>16色風格</label>
+      <div class="seg" id="modeSeg">
+        <button data-m="ramp" class="on">ramp吸附</button>
+        <button data-m="nearest">直接量化</button>
+        <button data-m="off">原色</button>
+      </div>
+    </div>
+    <div class="row"><label>色階段數</label><input type="range" id="bands" min="3" max="6" step="1" value="5"><span class="val" id="bandsv">5</span></div>
+    <div class="row"><label>降噪</label><input type="range" id="ss" min="1" max="3" step="1" value="2"><span class="val" id="ssv">2</span></div>
+    <div class="row"><label><input type="checkbox" id="outline" checked> 描邊</label>
+      <label style="min-width:auto"><input type="checkbox" id="wheels"> 轉向架</label></div>
+    <hr style="border-color:var(--line)">
+    <h2>每面來源</h2>
+    <div class="facegrid">
+      <span>頂面 top</span><div class="seg faceseg" data-f="top"><button data-v="photo" class="on">照片</button><button data-v="auto">自動</button></div>
+      <span>左面 left</span><div class="seg faceseg" data-f="left"><button data-v="photo" class="on">照片</button><button data-v="auto">自動</button></div>
+      <span>右面 right</span><div class="seg faceseg" data-f="right"><button data-v="photo" class="on">照片</button><button data-v="auto">自動</button></div>
+    </div>
+    <small class="note">自動面:用鄰近取樣色 + ramp 明暗補生(側視照專用)。</small>
+  </div>
+</div>
+
+<script>
+// ── PALETTE16 + ramps(同 engine16)───────────────────────────
+const PAL = {
+ '0':[13,13,22],'1':[34,32,52],'2':[58,54,82],'3':[94,90,120],'4':[139,138,165],'5':[203,204,219],
+ '6':[188,204,222],'7':[216,228,240],'8':[244,249,253],'9':[255,255,255],
+ 'a':[92,52,20],'b':[156,100,34],'c':[216,154,56],'d':[247,206,96],'e':[255,242,176],
+ 'f':[32,90,72],'g':[56,150,112],'h':[108,214,158],'i':[192,247,216],
+ 'j':[120,32,52],'k':[188,58,82],'l':[234,106,112],'m':[252,174,164],
+ 'n':[26,52,108],'o':[46,98,182],'p':[88,160,242],'q':[172,216,250],
+ 'r':[70,40,104],'s':[128,74,170],'t':[198,152,226],
+ 'u':[156,86,72],'v':[226,152,122],'w':[251,208,182],
+ 'x':[74,46,28],'y':[128,84,48],'z':[176,130,82]};
+const RAMPS = {steel:'012345',enamel:'6789',gold:'abcde',mint:'fghi',coral:'jklm',azure:'nopq',violet:'rst',skin:'uvw',wood:'xyz'};
+const PAL_ARR = Object.keys(PAL).map(k=>PAL[k]);
+const RAMP_ARR = Object.values(RAMPS).map(s=>s.split('').map(c=>PAL[c]));
+
+// iso 投影(常數)
+const TW=28, TH=14;
+function screen(c,r){ return [(c-r)*TW/2, (c+r)*TH/2]; }
+
+// ── DOM ─────────────────────────────────────────────────────
+const srcCanvas=document.getElementById('srcCanvas'), sctx=srcCanvas.getContext('2d');
+const ovl=document.getElementById('ovl'), octx=ovl.getContext('2d');
+const outCanvas=document.getElementById('outCanvas'), outctx=outCanvas.getContext('2d');
+let srcImg=null, srcData=null;         // 來源像素
+let dispScale=1;                        // 顯示縮放(canvas顯示 vs 原圖)
+const P = {                             // 錨點(原圖座標)7 點
+  t00:[80,60], t10:[430,60], t11:[470,150], t01:[40,150],
+  b10:[430,250], b11:[470,330], b01:[40,330]
+};
+const opts = { mode:'ramp', faces:{top:'photo',left:'photo',right:'photo'} };
+
+// ── 載入圖片 ────────────────────────────────────────────────
+function loadImage(img){
+  srcImg=img;
+  const maxW=520; dispScale=Math.min(1, maxW/img.width);
+  srcCanvas.width=Math.round(img.width*dispScale); srcCanvas.height=Math.round(img.height*dispScale);
+  ovl.width=srcCanvas.width; ovl.height=srcCanvas.height;
+  sctx.drawImage(img,0,0,srcCanvas.width,srcCanvas.height);
+  // 原圖像素(全解析度)供取樣;跨源汙染(file://)會丟例外 → 接住不讓 UI 卡死
+  try{
+    const off=document.createElement('canvas'); off.width=img.width; off.height=img.height;
+    const octx2=off.getContext('2d'); octx2.drawImage(img,0,0);
+    srcData=octx2.getImageData(0,0,img.width,img.height);
+  }catch(e){
+    srcData=null; drawMsg('⚠️ 無法讀取此圖像素(多半是以 file:// 開啟的跨源限制)。\n請改用「載入」按鈕選檔,或部署後以網址開啟。');
+    return;
+  }
+  // 預設錨點置中
+  const w=img.width,h=img.height;
+  P.t00=[w*0.12,h*0.12]; P.t10=[w*0.82,h*0.08]; P.t11=[w*0.92,h*0.32]; P.t01=[w*0.06,h*0.36];
+  P.b10=[w*0.82,h*0.72]; P.b11=[w*0.92,h*0.95]; P.b01=[w*0.06,h*0.98];
+  drawOverlay(); render();
+}
+document.getElementById('loadSample').onclick=()=>{ const i=new Image(); i.onload=()=>loadImage(i); i.src='sample.png'; };
+document.getElementById('file').onchange=e=>{ const f=e.target.files[0]; if(!f)return; const i=new Image(); i.onload=()=>loadImage(i); i.src=URL.createObjectURL(f); };
+const drop=document.getElementById('drop');
+drop.onclick=()=>document.getElementById('file').click();
+['dragover','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault(); if(ev==='drop'){const f=e.dataTransfer.files[0]; if(f){const i=new Image(); i.onload=()=>loadImage(i); i.src=URL.createObjectURL(f);}}}));
+
+// ── 錨點拖曳 ────────────────────────────────────────────────
+const ORDER=['t00','t10','t11','t01','b10','b11','b01'];
+const FACE_EDGES=[['t00','t10'],['t10','t11'],['t11','t01'],['t01','t00'],['t10','b10'],['t11','b11'],['t01','b01'],['b10','b11'],['b11','b01']];
+let drag=null;
+function toDisp(p){ return [p[0]*dispScale, p[1]*dispScale]; }
+function fromDisp(x,y){ return [x/dispScale, y/dispScale]; }
+function drawOverlay(){
+  octx.clearRect(0,0,ovl.width,ovl.height);
+  octx.lineWidth=1.5; octx.strokeStyle='rgba(108,214,158,.9)';
+  octx.beginPath();
+  FACE_EDGES.forEach(([a,b])=>{ const pa=toDisp(P[a]),pb=toDisp(P[b]); octx.moveTo(pa[0],pa[1]); octx.lineTo(pb[0],pb[1]); });
+  octx.stroke();
+  ORDER.forEach((k,i)=>{ const p=toDisp(P[k]);
+    octx.fillStyle=k[0]==='t'?'#6cd6a2':'#58a0f2';
+    octx.beginPath(); octx.arc(p[0],p[1],5.5,0,7); octx.fill();
+    octx.fillStyle='#0f1a14'; octx.font='9px sans-serif'; octx.textAlign='center'; octx.textBaseline='middle';
+    octx.fillText(i+1,p[0],p[1]);
+  });
+}
+function hit(x,y){ for(const k of ORDER){ const p=toDisp(P[k]); if(Math.hypot(p[0]-x,p[1]-y)<10) return k; } return null; }
+srcCanvas.addEventListener('pointerdown',e=>{ const r=srcCanvas.getBoundingClientRect(); drag=hit(e.clientX-r.left,e.clientY-r.top); });
+window.addEventListener('pointermove',e=>{ if(!drag)return; const r=srcCanvas.getBoundingClientRect();
+  P[drag]=fromDisp(e.clientX-r.left,e.clientY-r.top); drawOverlay(); render(); });
+window.addEventListener('pointerup',()=>drag=null);
+
+// ── Homography:輸出座標 → 來源座標(8係數)────────────────
+function solve(A,b){ // 高斯消去 n=8;退化(近奇異)回 null,不吐 NaN
+  const n=b.length, EPS=1e-9;
+  for(let i=0;i<n;i++){
+    let p=i; for(let r=i+1;r<n;r++) if(Math.abs(A[r][i])>Math.abs(A[p][i])) p=r;
+    if(Math.abs(A[p][i])<EPS) return null;              // 主元過小 → 奇異(錨點共線/退化)
+    [A[i],A[p]]=[A[p],A[i]]; [b[i],b[p]]=[b[p],b[i]];
+    for(let r=0;r<n;r++){ if(r===i)continue; const f=A[r][i]/A[i][i];
+      for(let c=i;c<n;c++) A[r][c]-=f*A[i][c]; b[r]-=f*b[i]; }
+  }
+  const out=b.map((v,i)=>v/A[i][i]);
+  return out.every(Number.isFinite)? out : null;
+}
+function coeffs(dst,src){ // dst(out) -> src(in)
+  const A=[],B=[];
+  for(let i=0;i<4;i++){ const[xo,yo]=dst[i],[xi,yi]=src[i];
+    A.push([xo,yo,1,0,0,0,-xi*xo,-xi*yo]); B.push(xi);
+    A.push([0,0,0,xo,yo,1,-yi*xo,-yi*yo]); B.push(yi); }
+  return solve(A,B);
+}
+function inQuad(x,y,q){ // 凸四邊形內
+  let s=0; for(let i=0;i<4;i++){ const a=q[i],b=q[(i+1)%4];
+    const cr=(b[0]-a[0])*(y-a[1])-(b[1]-a[1])*(x-a[0]); const sg=cr>0?1:-1;
+    if(i===0)s=sg; else if(sg!==s) return false; } return true;
+}
+function sample(sd,x,y){ // 雙線性
+  x=Math.max(0,Math.min(sd.width-1.001,x)); y=Math.max(0,Math.min(sd.height-1.001,y));
+  const x0=x|0,y0=y|0,fx=x-x0,fy=y-y0, d=sd.data, w=sd.width;
+  function px(ix,iy,k){ return d[(iy*w+ix)*4+k]; }
+  const o=[0,0,0];
+  for(let k=0;k<3;k++){ const a=px(x0,y0,k)*(1-fx)+px(x0+1,y0,k)*fx;
+    const b=px(x0,y0+1,k)*(1-fx)+px(x0+1,y0+1,k)*fx; o[k]=a*(1-fy)+b*fy; }
+  return o;
+}
+
+// ── 16色映射 ────────────────────────────────────────────────
+function lum(c){ return 0.299*c[0]+0.587*c[1]+0.114*c[2]; }
+function nearestPal(c){ let bi=0,bd=1e9; for(let i=0;i<PAL_ARR.length;i++){ const p=PAL_ARR[i];
+  const d=(p[0]-c[0])**2+(p[1]-c[1])**2+(p[2]-c[2])**2; if(d<bd){bd=d;bi=i;} } return PAL_ARR[bi]; }
+function rampSnap(c,bands){
+  // 選最近 ramp(以成員最小距),再把亮度量化成 bands 階 → 對映該 ramp 的顏色
+  let br=null,bd=1e9;
+  for(const ramp of RAMP_ARR){ for(const p of ramp){ const d=(p[0]-c[0])**2+(p[1]-c[1])**2+(p[2]-c[2])**2; if(d<bd){bd=d;br=ramp;} } }
+  const L=lum(c)/255;
+  const nb=Math.max(2, Math.min(bands, br.length));     // 實際亮度階數(bands 現在真的有作用)
+  const q=Math.round(L*(nb-1))/(nb-1);                   // 亮度量化到 nb 階(0..1)
+  const idx=Math.max(0, Math.min(br.length-1, Math.round(q*(br.length-1))));
+  return br[idx];
+}
+
+// 在輸出畫布顯示提示訊息(多行)
+function drawMsg(t){
+  outCanvas.width=440; outCanvas.height=90; outctx.clearRect(0,0,440,90);
+  outctx.fillStyle='#e6ecf5'; outctx.font='13px system-ui,"Noto Sans TC",sans-serif'; outctx.textBaseline='top';
+  let y=10;
+  for(const raw of t.split('\n')){ let line='';
+    for(const ch of raw){ if(outctx.measureText(line+ch).width>420){ outctx.fillText(line,10,y); line=ch; y+=19; } else line+=ch; }
+    outctx.fillText(line,10,y); y+=19; }
+}
+
+// ── 主 render ──────────────────────────────────────────────
+function faceDst(g,name){
+  const {t00,t10,t11,t01,b10,b11,b01}=g;
+  if(name==='top')  return [t00,t10,t11,t01];
+  if(name==='left') return [t01,t11,b11,b01];
+  if(name==='right')return [t10,t11,b11,b10];
+}
+function faceSrc(name){
+  if(name==='top')  return [P.t00,P.t10,P.t11,P.t01];
+  if(name==='left') return [P.t01,P.t11,P.b11,P.b01];
+  if(name==='right')return [P.t10,P.t11,P.b11,P.b10];
+}
+function autoColor(name){ // 自動面基色:面內 3x3 多點取樣 → 逐通道中位(避開單點白背景)
+  if(!srcData) return [150,110,60];
+  const q=faceSrc(name);   // [TL,TR,BR,BL]
+  const S=[];
+  for(let a=0.25;a<=0.75;a+=0.25) for(let b2=0.25;b2<=0.75;b2+=0.25){
+    const top=[q[0][0]+(q[1][0]-q[0][0])*a, q[0][1]+(q[1][1]-q[0][1])*a];  // TL→TR
+    const bot=[q[3][0]+(q[2][0]-q[3][0])*a, q[3][1]+(q[2][1]-q[3][1])*a];  // BL→BR
+    S.push(sample(srcData, top[0]+(bot[0]-top[0])*b2, top[1]+(bot[1]-top[1])*b2));
+  }
+  const med=k=>{ const v=S.map(c=>c[k]).sort((x,y)=>x-y); return v[v.length>>1]; };
+  return [med(0),med(1),med(2)];
+}
+function render(){
+  if(!srcData){ return; }
+  const L=+L_.value,D=+D_.value,H=+H_.value,res=+res_.value,SS=+ss_.value,bands=+bands_.value;
+  const HZ=TH;
+  // 目的地(小畫布,像素密度 res)
+  const sc=res; const ox=60*sc, oy=40*sc; const TWs=TW*sc, THs=TH*sc;
+  function g(c,r,z){ const[x,y]=[(c-r)*TWs/2,(c+r)*THs/2]; return [x+ox, y+oy - z*HZ*sc]; }
+  const G={t00:g(0,0,H),t10:g(L,0,H),t11:g(L,D,H),t01:g(0,D,H),b10:g(L,0,0),b11:g(L,D,0),b01:g(0,D,0)};
+  // 畫布尺寸(依所有點 bbox)
+  const all=Object.values(G); const minX=Math.min(...all.map(p=>p[0])), maxX=Math.max(...all.map(p=>p[0]));
+  const minY=Math.min(...all.map(p=>p[1])), maxY=Math.max(...all.map(p=>p[1]));
+  const pad=6; const OW=Math.ceil(maxX-minX+pad*2), OH=Math.ceil(maxY-minY+pad*2+ (wheels_.checked?10*sc:0));
+  const shift=[pad-minX, pad-minY];
+  for(const k in G){ G[k]=[G[k][0]+shift[0], G[k][1]+shift[1]]; }
+  // 超取樣畫布
+  const W=OW*SS, Hh=OH*SS;
+  const buf=outctx.createImageData(W,Hh); const bd=buf.data;
+  function setpx(x,y,c,a=255){ if(x<0||y<0||x>=W||y>=Hh)return; const o=(y*W+x)*4; bd[o]=c[0];bd[o+1]=c[1];bd[o+2]=c[2];bd[o+3]=a; }
+  // 依深度(遠→近):top, left/right 視角固定,順序 top→left→right 疊(凸盒不重疊)
+  const drawOrder=['top','left','right']; let degenerate=false;
+  for(const fname of drawOrder){
+    const dstF=faceDst(G,fname).map(p=>[p[0]*SS,p[1]*SS]);
+    const src=opts.faces[fname]==='photo'? faceSrc(fname):null;
+    const cf = src? coeffs(dstF, src.map(p=>[p[0],p[1]])) : null;
+    if(src && !cf){ degenerate=true; continue; }        // 退化面跳過,保住其他面
+    const ac = src? null : autoColor(fname);
+    const bx0=Math.max(0,Math.floor(Math.min(...dstF.map(p=>p[0])))), bx1=Math.min(W,Math.ceil(Math.max(...dstF.map(p=>p[0]))));
+    const by0=Math.max(0,Math.floor(Math.min(...dstF.map(p=>p[1])))), by1=Math.min(Hh,Math.ceil(Math.max(...dstF.map(p=>p[1]))));
+    // 自動面:依 y 做明暗漸層(頂亮)
+    for(let y=by0;y<by1;y++) for(let x=bx0;x<bx1;x++){
+      if(!inQuad(x,y,dstF)) continue;
+      let c;
+      if(cf){ const wv=cf[6]*x+cf[7]*y+1; if(Math.abs(wv)<1e-6) continue;
+              const sx=(cf[0]*x+cf[1]*y+cf[2])/wv, sy=(cf[3]*x+cf[4]*y+cf[5])/wv;
+              if(!Number.isFinite(sx)||!Number.isFinite(sy)) continue; c=sample(srcData,sx,sy); }
+      else { const f=(y-by0)/Math.max(1,by1-by0); const shade=fname==='right'?0.6:(fname==='left'?0.8:1.0);
+             c=[ac[0]*(shade-f*0.25),ac[1]*(shade-f*0.25),ac[2]*(shade-f*0.25)]; }
+      setpx(x,y,c);
+    }
+  }
+  // 降取樣到 OW×OH(平均 → 降噪)
+  const small=document.createElement('canvas'); small.width=W; small.height=Hh;
+  small.getContext('2d').putImageData(buf,0,0);
+  const fin=document.createElement('canvas'); fin.width=OW; fin.height=OH;
+  const fctx=fin.getContext('2d'); fctx.imageSmoothingEnabled=true; fctx.drawImage(small,0,0,OW,OH);
+  // 16色映射
+  let id=fctx.getImageData(0,0,OW,OH); const d=id.data;
+  for(let i=0;i<d.length;i+=4){ if(d[i+3]<40){d[i+3]=0;continue;} d[i+3]=255;
+    const c=[d[i],d[i+1],d[i+2]]; let o=c;
+    if(opts.mode==='nearest') o=nearestPal(c); else if(opts.mode==='ramp') o=rampSnap(c,bands);
+    d[i]=o[0];d[i+1]=o[1];d[i+2]=o[2]; }
+  fctx.putImageData(id,0,0);
+  // 描邊 + 轉向架(在 OW×OH 尺度)
+  if(outline_.checked){ fctx.strokeStyle='rgb(13,13,22)'; fctx.lineWidth=1;
+    fctx.beginPath(); FACE_EDGES.forEach(([a,b])=>{ fctx.moveTo(G[a][0]+.5,G[a][1]+.5); fctx.lineTo(G[b][0]+.5,G[b][1]+.5); }); fctx.stroke(); }
+  if(wheels_.checked){ drawWheels(fctx,G,sc); }
+  // 顯示(放大)
+  const view=4; outCanvas.width=OW*view; outCanvas.height=OH*view;
+  outctx.imageSmoothingEnabled=false; outctx.clearRect(0,0,outCanvas.width,outCanvas.height);
+  outctx.drawImage(fin,0,0,outCanvas.width,outCanvas.height);
+  if(degenerate){ outctx.fillStyle='rgba(234,106,112,.95)'; outctx.font='bold 15px system-ui,sans-serif';
+    outctx.textBaseline='top'; outctx.fillText('⚠ 錨點退化(共線/重疊),已跳過該面',10,10); }
+  window._finCanvas=fin;
+}
+function drawWheels(ctx,G,sc){
+  const b01=G.b01,b11=G.b11; ctx.fillStyle='rgb(34,32,52)';
+  function lerp(a,b,t){return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];}
+  [0.24,0.78].forEach(fc=>{ const cb=lerp(b01,b11,fc); const r=3.2;
+    ctx.fillStyle='rgb(34,32,52)'; ctx.fillRect(cb[0]-8,cb[1]-1,16,r*0.9);
+    [-5,5].forEach(dx=>{ const cx=cb[0]+dx,cy=cb[1]+r*0.3;
+      ctx.fillStyle='rgb(13,13,22)'; ctx.beginPath(); ctx.arc(cx,cy,r,0,7); ctx.fill();
+      ctx.fillStyle='rgb(94,90,120)'; ctx.beginPath(); ctx.arc(cx,cy,r-1.3,0,7); ctx.fill();
+      ctx.fillStyle='rgb(203,204,219)'; ctx.beginPath(); ctx.arc(cx,cy,1,0,7); ctx.fill(); });
+  });
+}
+
+// ── 控制項綁定 ──────────────────────────────────────────────
+const L_=document.getElementById('L'),D_=document.getElementById('D'),H_=document.getElementById('H'),
+      res_=document.getElementById('res'),ss_=document.getElementById('ss'),bands_=document.getElementById('bands'),
+      outline_=document.getElementById('outline'),wheels_=document.getElementById('wheels');
+[['L','Lv'],['D','Dv'],['H','Hv'],['res','resv'],['ss','ssv'],['bands','bandsv']].forEach(([id,vid])=>{
+  const el=document.getElementById(id); el.addEventListener('input',()=>{document.getElementById(vid).textContent=el.value; render();});
+});
+[outline_,wheels_].forEach(el=>el.addEventListener('change',render));
+document.getElementById('modeSeg').addEventListener('click',e=>{ if(e.target.dataset.m){
+  opts.mode=e.target.dataset.m; [...e.currentTarget.children].forEach(b=>b.classList.toggle('on',b===e.target)); render(); }});
+document.querySelectorAll('.faceseg').forEach(seg=>seg.addEventListener('click',e=>{ if(e.target.dataset.v){
+  opts.faces[seg.dataset.f]=e.target.dataset.v; [...seg.children].forEach(b=>b.classList.toggle('on',b===e.target)); render(); }}));
+document.getElementById('export').onclick=()=>{ if(!window._finCanvas)return;
+  // 匯出用 6x
+  const s=6,c=document.createElement('canvas'); c.width=_finCanvas.width*s; c.height=_finCanvas.height*s;
+  const cx=c.getContext('2d'); cx.imageSmoothingEnabled=false; cx.drawImage(_finCanvas,0,0,c.width,c.height);
+  const a=document.createElement('a'); a.download='iso_sprite.png'; a.href=c.toDataURL('image/png'); a.click(); };
+document.getElementById('copyState').onclick=()=>{ navigator.clipboard.writeText(JSON.stringify(P)); };
+
+// 測試 hook
+window.App={loadImage,P,render,opts,setFaces:(f)=>{Object.assign(opts.faces,f);render();},
+  setAnchors:(o)=>{Object.assign(P,o);drawOverlay();render();}};
+// 自動載入範例
+window.addEventListener('load',()=>{ const i=new Image(); i.onload=()=>loadImage(i); i.onerror=()=>{}; i.src='sample.png'; });
+</script>
+</body>
+</html>
