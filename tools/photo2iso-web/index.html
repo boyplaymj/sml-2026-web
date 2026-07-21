@@ -106,6 +106,10 @@
         <button data-o="rot">⟳ 旋轉90°</button>
         <button data-o="reset">重置</button>
       </div></div>
+    <div class="row"><label>吸管去背</label>
+      <button id="pick">🖉 吸取顏色→透明</button>
+      <button id="clearKnock">清除</button></div>
+    <small class="note">點「吸取顏色」後,到右邊輸出圖上點你要去掉的顏色(如背景/桌布),該色即透明。可連點多色。</small>
     <hr style="border-color:var(--line)">
     <h2>每面來源</h2>
     <div class="facegrid">
@@ -150,6 +154,9 @@ const P = {                             // 錨點(原圖座標)7 點
 };
 const opts = { mode:'ramp', faceRamp:true, grid:false, faces:{top:'photo',left:'photo',right:'photo'} };
 const orient = { flipH:false, flipV:false, rot:0 };      // 輸出翻轉/旋轉(rot=0..3,每步90°)
+opts.knockout = [];                                       // 吸管去背:被點掉的顏色 [[r,g,b],...](該色→透明)
+let picking = false;                                      // 吸管模式
+const KNOCK_TOL = 34*34;                                  // 去背容差(距離平方;量化後多半 exact,留點容差抓邊)
 function applyOrient(src){                                // 把翻轉/旋轉套到畫布,回新畫布(不變則原樣回傳)
   if(!orient.flipH && !orient.flipV && !orient.rot) return src;
   const odd=orient.rot%2===1, w=odd?src.height:src.width, h=odd?src.width:src.height;
@@ -421,14 +428,19 @@ function render(){
     }
     else if(isEdge){ o=[c[0]*0.4,c[1]*0.4,c[2]*0.4]; }        // 原色模式:結構線直接壓暗
     d[i]=o[0];d[i+1]=o[1];d[i+2]=o[2]; }
+  // 吸管去背:命中被點顏色的像素 → 透明
+  if(opts.knockout.length){ for(let i=0;i<d.length;i+=4){ if(d[i+3]<40) continue;
+    for(const kc of opts.knockout){ const dd=(d[i]-kc[0])**2+(d[i+1]-kc[1])**2+(d[i+2]-kc[2])**2;
+      if(dd<=KNOCK_TOL){ d[i+3]=0; break; } } } }
   fctx.putImageData(id,0,0);
   // 描邊 + 轉向架(在 OW×OH 尺度)
   if(outline_.checked){ fctx.strokeStyle='rgb(13,13,22)'; fctx.lineWidth=1;
     fctx.beginPath(); FACE_EDGES.forEach(([a,b])=>{ fctx.moveTo(G[a][0]+.5,G[a][1]+.5); fctx.lineTo(G[b][0]+.5,G[b][1]+.5); }); fctx.stroke(); }
   if(wheels_.checked){ drawWheels(fctx,G,sc); }
-  window._finCanvas=applyOrient(fin);                      // 匯出用(純 sprite + 翻轉,不含格線)
-  // 顯示(放大);可疊 iso 地板方格預覽(同一 screen(c,r) 投影 → 對齊遊戲格子)
-  const view=4; let showSrc=fin, sw=OW, sh=OH;
+  const oriented=applyOrient(fin);                         // 只翻物件本身(格子不翻)
+  window._finCanvas=oriented;                              // 匯出=純 sprite + 翻轉,不含格線
+  // 顯示(放大);可疊 iso 地板方格預覽(格子固定,只有物件被翻轉)
+  const view=4; let showSrc=oriented, sw=OW, sh=OH;
   if(opts.grid){
     const gs=(c,r)=>{ const p=g(c,r,0); return [p[0]+shift[0], p[1]+shift[1]]; };
     const cLo=Math.floor(-1.3), cHi=Math.ceil(L+1.3), rLo=Math.floor(-1.3), rHi=Math.ceil(D+1.3);
@@ -447,13 +459,12 @@ function render(){
     const fp=[gs(0,0),gs(L,0),gs(L,D),gs(0,D)];                                  // 物件足跡(綠)
     gx.fillStyle='rgba(108,214,158,.14)'; gx.strokeStyle='rgba(108,214,158,.9)'; gx.lineWidth=1.5;
     gx.beginPath(); fp.forEach((p,i)=> i?gx.lineTo(p[0],p[1]):gx.moveTo(p[0],p[1])); gx.closePath(); gx.fill(); gx.stroke();
-    gx.drawImage(fin,0,0);                                                       // 疊 sprite
+    gx.drawImage(oriented,(OW-oriented.width)/2,(OH-oriented.height)/2);         // 疊翻轉後的物件(格子維持原樣)
     showSrc=gc;
   }
-  const shown=applyOrient(showSrc);                        // 套翻轉/旋轉
-  outCanvas.width=shown.width*view; outCanvas.height=shown.height*view;
+  outCanvas.width=showSrc.width*view; outCanvas.height=showSrc.height*view;
   outctx.imageSmoothingEnabled=false; outctx.clearRect(0,0,outCanvas.width,outCanvas.height);
-  outctx.drawImage(shown,0,0,outCanvas.width,outCanvas.height);
+  outctx.drawImage(showSrc,0,0,outCanvas.width,outCanvas.height);
   if(degenerate){ outctx.fillStyle='rgba(234,106,112,.95)'; outctx.font='bold 15px system-ui,sans-serif';
     outctx.textBaseline='top'; outctx.fillText('⚠ 錨點退化(共線/重疊),已跳過該面',10,10); }
 }
@@ -481,6 +492,18 @@ const L_=document.getElementById('L'),D_=document.getElementById('D'),H_=documen
 });
 faceRamp_.addEventListener('change',()=>{ opts.faceRamp=faceRamp_.checked; requestRender(false); });
 document.getElementById('grid').addEventListener('change',e=>{ opts.grid=e.target.checked; requestRender(false); });
+// 吸管去背:點「吸取顏色」進入吸色模式,再到輸出圖上點顏色
+const pickBtn=document.getElementById('pick');
+pickBtn.addEventListener('click',()=>{ picking=!picking; pickBtn.classList.toggle('on',picking);
+  outCanvas.style.cursor = picking?'crosshair':''; });
+document.getElementById('clearKnock').addEventListener('click',()=>{ opts.knockout=[]; requestRender(false); });
+outCanvas.addEventListener('click',e=>{ if(!picking) return;
+  const r=outCanvas.getBoundingClientRect();
+  const cx=Math.floor((e.clientX-r.left)*outCanvas.width/r.width);
+  const cy=Math.floor((e.clientY-r.top)*outCanvas.height/r.height);
+  const p=outctx.getImageData(cx,cy,1,1).data;
+  if(p[3]<40) return;                                    // 透明處不吸
+  opts.knockout.push([p[0],p[1],p[2]]); requestRender(false); });
 document.getElementById('orientSeg').addEventListener('click',e=>{ const o=e.target.dataset.o; if(!o) return;
   if(o==='flipH') orient.flipH=!orient.flipH;
   else if(o==='flipV') orient.flipV=!orient.flipV;
