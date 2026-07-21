@@ -17,8 +17,11 @@
   #srcWrap{position:relative;line-height:0;background:#11141d;border-radius:6px;overflow:hidden}
   #srcCanvas{max-width:520px;touch-action:none;cursor:crosshair;display:block}
   #ovl{position:absolute;left:0;top:0;pointer-events:none}
-  #outCanvas{image-rendering:pixelated;background:
-      repeating-conic-gradient(#2b3040 0% 25%, #262b3a 0% 50%) 50%/20px 20px;border-radius:6px}
+  /* 固定尺寸預覽區:畫布內部解析度可變,但顯示縮放置中填進固定框 → 拖參數時排版不跳 */
+  #outWrap{width:460px;height:400px;display:flex;align-items:center;justify-content:center;
+      background:repeating-conic-gradient(#2b3040 0% 25%, #262b3a 0% 50%) 50%/20px 20px;
+      border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  #outCanvas{image-rendering:pixelated;max-width:100%;max-height:100%;display:block}
   .row{display:flex;align-items:center;gap:8px;margin:7px 0;font-size:13px}
   .row label{min-width:96px;color:var(--mut)}
   input[type=range]{flex:1}
@@ -64,7 +67,7 @@
   <!-- 輸出 -->
   <div class="col">
     <h2>② iso 16bit 輸出</h2>
-    <canvas id="outCanvas" width="360" height="330"></canvas>
+    <div id="outWrap"><canvas id="outCanvas" width="360" height="330"></canvas></div>
     <div class="row" style="margin-top:8px">
       <button class="primary" id="export">⬇ 匯出 PNG</button>
       <button id="copyState">複製錨點</button>
