@@ -55,6 +55,7 @@
 - **不用擴散生圖**:全程 deterministic(homography + 調色盤量化 + 程式擺像素),刻意不走 Bedrock,符合 pixel8/pixel16 鐵律。
 - **絕對路徑 `sys.path.insert('/opt/sml/repo/...')`**:本機出圖工具,非部署程式,暫可接受(如要 CI 化再改相對路徑)。
 - **產物 `out/`、`shot_*.png`、`sample.png`**:圖不入庫(pixel8/16 慣例 .gitignore),但 `sample.png` 是工具範例需隨檔走——請判斷該不該納入 git。
+- **裸目錄 403(已定案非問題)**:`/photo2iso/`、`/photo2iso/index.html` 中,**整個圖床(image.boyplaymj.link)都不支援裸目錄 index routing**(`/vproj/`、`/mahjong-tai/` 同樣 403)。全站慣例=連結一律用**完整檔名**;正式對外網址=`/photo2iso/index.html`。不改共用 CloudFront(加 index-routing function 會動到整個圖床、風險大)。此項 Codex 已重報兩輪,結論:**by design,毋須再報**。
 
 ---
 
@@ -86,7 +87,7 @@ cd tools/train-tycoon/pixel && python3 iso_cars16.py && python3 loco_iso16.py &&
 
 ### 6a. `9f2486d` 結構線(Sobel 邊緣抽取)
 把照片強邊扭正貼到 iso 面,畫成該材質最暗階=乾淨溝縫線(木紋/面板/楞紋變線條而非雜點)。
-- `computeEdges(img)`:Sobel 灰階梯度,**載圖時算一次快取**在 `srcEdge`(與 srcData 同尺寸)。請驗:大圖(如 1024×506≈50 萬像素)一次性成本可接受?即使結構線關著也會算(load 時無條件)——要不要延後到首次啟用?
+- `computeEdges(img)`:Sobel 灰階梯度,**載圖時算一次快取**在 `srcEdge`。✅ **已修(Codex #6a 建議)**:邊緣圖改在「邊長上限 1024」的降採樣版上跑 → 6-12MP 手機照 Sobel 成本封在 ~50ms;`sampleEdge` 用 `edgeScale` 把原圖座標換算到降採樣邊緣圖。請覆驗換算對位無偏移。
 - `sampleEdge(sx,sy)`:對 srcEdge 最近取樣;僅**照片面**(cf 分支)才取樣、標 `edgeBuf`。
 - 降取樣:`edgeBuf`(超取樣 W×Hh)→ `edgeSmall`(OW×OH)用 **max-pool**(區塊內有邊即邊,保細線)。驗 index 對位正確。
 - 門檻 `eTh = 150 - edgeSens*24`(結構線滑桿 0-5);量化時 `isEdge` → `rampArr[0]`(材質最暗階)。ramp/nearest/off 三模式都有處理。
