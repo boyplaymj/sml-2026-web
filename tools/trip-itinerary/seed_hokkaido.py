@@ -90,7 +90,7 @@ DAYS = [
      "photos":[PH+"d2-magistrate.jpg"],"caption":"ようこそ函館へ・箱館奉行所前"},
     {"time":"體驗","ttl":"奉行所前・新選組變裝拍照","desc":"奉行所前有付費變裝拍照，我們選了新選組；跟其他觀光地不一樣，這裡是用自己的手機或相機拍，想拍幾張都行","tag":"🎭",
      "photos":[PH+"d2-shinsengumi.jpg"],"caption":"扮成新選組，用自己的相機拍個夠"},
-    {"time":"園內","ttl":"五稜郭・紫藤花棚","desc":"初夏限定的紫藤花棚，一串串淡紫色花穗從棚架垂掛下來（五稜郭這處開得小小的），錄了段影片留念","tag":"🌸",
+    {"time":"園內","ttl":"五稜郭・紫藤花棚","desc":"初夏限定的紫藤花棚，一串串淡紫色花穗從棚架垂掛下來、開得正茂盛，走在棚下錄了段影片留念","tag":"🌸",
      "video":{"src":PH+"d2-fuji-wisteria.mp4","poster":PH+"d2-fuji-wisteria-poster.jpg"}},
     {"time":"傍晚","ttl":"函館公園・第三個寶可夢人孔蓋","desc":"離開五稜郭開到函館公園，收集函館的寶可夢人孔蓋，這天集滿三個","tag":"🕳️",
      "photos":[PH+"d2-hakodate-park-manhole.jpg"],"caption":"這天第三個寶可夢人孔蓋"},
