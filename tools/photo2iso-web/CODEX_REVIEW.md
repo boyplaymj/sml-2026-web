@@ -77,3 +77,27 @@ cd tools/train-tycoon/pixel && python3 iso_cars16.py && python3 loco_iso16.py &&
 ```
 
 回報格式:每項標 🔴/🟡/🟢 + 檔案:行號 + 具體修法建議。謝謝。
+
+---
+
+## 6. 第二批新功能待覆驗(範圍 `061f67c..9120887`,2 commit)
+
+> Codex 前已覆核到 `061f67c`(整面同材質+平滑;findings 已修/文件已改)。以下兩個新功能未驗,請覆核。
+
+### 6a. `9f2486d` 結構線(Sobel 邊緣抽取)
+把照片強邊扭正貼到 iso 面,畫成該材質最暗階=乾淨溝縫線(木紋/面板/楞紋變線條而非雜點)。
+- `computeEdges(img)`:Sobel 灰階梯度,**載圖時算一次快取**在 `srcEdge`(與 srcData 同尺寸)。請驗:大圖(如 1024×506≈50 萬像素)一次性成本可接受?即使結構線關著也會算(load 時無條件)——要不要延後到首次啟用?
+- `sampleEdge(sx,sy)`:對 srcEdge 最近取樣;僅**照片面**(cf 分支)才取樣、標 `edgeBuf`。
+- 降取樣:`edgeBuf`(超取樣 W×Hh)→ `edgeSmall`(OW×OH)用 **max-pool**(區塊內有邊即邊,保細線)。驗 index 對位正確。
+- 門檻 `eTh = 150 - edgeSens*24`(結構線滑桿 0-5);量化時 `isEdge` → `rampArr[0]`(材質最暗階)。ramp/nearest/off 三模式都有處理。
+- 已知限制(已在 commit message + UI 提示):太細紋理在小 sprite 會被降採樣吃掉,需結構夠明顯+像素密度夠高。實測 Sobel 圖正常(15064 邊緣像素、max 255)。
+- 拖曳預覽 `_fast` 時 edgeSens=0(省效能)。
+
+### 6b. `9120887` iso 地板方格(對齊預覽)
+輸出畫布疊 iso 地板網格 + 物件足跡綠框,判斷物件佔幾格/對齊/比例。
+- 網格用 `gs(c,r)=g(c,r,0)+shift`,**與 sprite 同一 `screen(c,r)` 投影**→ 對齊。請驗網格與 sprite 底面確實貼合。
+- 畫在**獨立合成畫布**(union bbox 擴出格線範圍,translate 對位);`window._finCanvas` 維持**純 sprite**→ 驗匯出 PNG 不含格線。
+- 每次 render 重建格線畫布(grid 開啟時);L/D 有界(≤6)故 bbox 有界。驗無裁切/爆量。
+- 足跡用**精確** L,D(非整數對齊),供人眼判斷是否落在格線上——intended,非 bug。
+
+跑法同 §5(需 http)。回報格式同上。
