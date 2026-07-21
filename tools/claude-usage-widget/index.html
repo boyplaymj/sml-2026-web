@@ -210,8 +210,8 @@ class Tank{
     ctx.strokeStyle=g.a; ctx.lineWidth=2; ctx.beginPath();
     ctx.moveTo(0,level); ctx.lineTo(w,level); ctx.stroke(); ctx.restore();
 
-    // 氣泡
-    if(this.cur>0.06 && Math.random()<dt*3){
+    // 氣泡(只在水位「正在變動」時才冒,到位後不再產生 → 讓動畫能靜下來)
+    if(Math.abs(this.target-this.cur)>0.008 && this.cur>0.06 && Math.random()<dt*6){
       this.bubbles.push({x:Math.random()*w, y:h-2, r:1+Math.random()*2.2, v:14+Math.random()*22});
     }
     ctx.fillStyle='rgba(255,255,255,.35)';
@@ -223,6 +223,8 @@ class Tank{
       return true;
     });
   }
+  // 是否仍在變化(水位未到位或還有氣泡)→ 決定動畫要不要繼續跑
+  active(){ return Math.abs(this.target-this.cur)>0.003 || this.bubbles.length>0; }
 }
 
 // ---- 版面建構 ------------------------------------------------------------
@@ -288,6 +290,7 @@ function apply(data){
   lastUpdated=data.updated||Math.floor(Date.now()/1000);
   document.getElementById('foot').textContent =
     (data.demo?'⚠ 示範資料(未連到採集器) · ':'') + '液面 = 已用額度 · 每 30 秒更新';
+  wake();  // 新數據可能改變水位 → 喚醒動畫播出過渡,到位後會再度自動凍結
 }
 
 // ---- 背景工作面板 --------------------------------------------------------
@@ -379,29 +382,42 @@ async function poll(){
 }
 let last=performance.now();
 let animOn=true;              // 分頁隱藏/視窗失焦時暫停波浪動畫,省 GPU
+let looping=false;            // rAF 迴圈是否正在跑(閒置凍結後為 false)
+let idleSince=0;              // 全部水位到位、氣泡散盡後開始計時
 const FRAME_MS=1000/30;       // 幀率上限 ~30fps(原為 60fps 無上限)
+const IDLE_FREEZE_MS=1600;    // 靜止這麼久就凍結動畫(靜水面,GPU/CPU 全歸零)
 function frame(t){
-  if(!animOn) return;                         // 暫停:停止遞迴,不再重畫
+  if(!animOn){ looping=false; return; }       // 失焦暫停:停止遞迴
   if((t-last)>=FRAME_MS){                      // 降幀:未到間隔就跳過重畫
     const dt=Math.min(.05,(t-last)/1000); last=t;
     tanks.forEach(o=>o.tank.step(dt));
+    // 閒置凍結:水位都到位且沒氣泡了,靜候一段後停掉整個迴圈,
+    // 畫面停在最後一幀(靜止水面),直到數據變動或復焦才喚醒。
+    const busy=tanks.some(o=>o.tank.active());
+    if(busy){ idleSince=0; }
+    else if(!idleSince){ idleSince=t; }
+    else if(t-idleSince>IDLE_FREEZE_MS){ looping=false; return; }
   }
   requestAnimationFrame(frame);
 }
+function wake(){                              // 喚醒:數據變動/復焦時重啟迴圈
+  idleSince=0;
+  if(!animOn||looping) return;
+  looping=true; last=performance.now(); requestAnimationFrame(frame);
+}
 function setAnim(on){
-  if(on===animOn) return;
   animOn=on;
-  if(on){ last=performance.now(); requestAnimationFrame(frame); }  // 復焦:重啟迴圈
+  if(on) wake();                             // 復焦:重啟迴圈
 }
 window.addEventListener('focus',()=>setAnim(true));
 window.addEventListener('blur',()=>setAnim(false));
 document.addEventListener('visibilitychange',()=>setAnim(!document.hidden));
-window.addEventListener('resize',()=>tanks.forEach(o=>o.tank.resize()));
+window.addEventListener('resize',()=>{ tanks.forEach(o=>o.tank.resize()); wake(); });
 apply(DEMO);                 // 先畫示範,避免白屏
 poll();                      // 立刻抓真資料
 setInterval(poll, POLL_MS);
 setInterval(tickLabels, 1000);
-requestAnimationFrame(frame);
+looping=true; requestAnimationFrame(frame);
 </script>
 </body>
 </html>

@@ -4,6 +4,12 @@ const { app, BrowserWindow, ipcMain, screen, Notification } = require('electron'
 const fs = require('fs');
 const path = require('path');
 
+// 關掉 GPU 硬體加速 —— 這是壓 GPU 佔用的關鍵一刀。
+// 透明+永遠最上層的 Electron 視窗每一幀都要 GPU 合成一次,對這種只有幾塊小 canvas
+// 的迷你掛件來說,改走 CPU 軟體渲染反而讓本進程 GPU 佔用→0,而 CPU 成本可忽略。
+// 必須在 app ready 之前呼叫。
+app.disableHardwareAcceleration();
+
 // Windows 通知要有 AppUserModelID 才會正確顯示來源/不被吞掉。
 if (process.platform === 'win32') app.setAppUserModelId('com.sml.claude-usage');
 
