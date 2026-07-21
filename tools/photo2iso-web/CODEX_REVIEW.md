@@ -32,9 +32,9 @@
 3. ✅ **`loadImage()` 的 `getImageData()` 包 try/catch**:taint 失敗時 `srcData=null` + `drawMsg()` 提示改用 file-input 或部署,不卡 UI。**驗:部署(http 同源)後正常、失敗路徑提示正確。**
 4. ✅ **`autoColor()` 改面內 3×3 多點取樣 → 逐通道中位**,避開單點白背景。**驗:側視照 top/right=auto 取色是否合理。**
 
-## 1b. 🟡 仍待查(Claude 未動)
+## 1b. ✅ #5 效能(已修於 2dfbed5,Codex 覆核通過)
 
-5. **效能**:每面對「超取樣後畫布」逐像素反扭正(SS=3 + 高像素密度 + 大盒)可能慢/卡。請量最壞情況互動延遲,必要時建議設上限或降級。
+5. ✅ **效能**:render 改 `requestAnimationFrame` 合併(一幀最多算一次);拖曳錨點/滑桿時 `_fast` 預覽把 `SS→1`、`res→≤1.0` 縮整條管線,`change`(放開)才排全品質。Codex 實測:20 個 input burst 合併成 1 次 fast render(~6ms),不再每個 input 同步阻塞;full quality 仍 ~119–172ms 但只在放開後跑一次。
 
 ---
 
