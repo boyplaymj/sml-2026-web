@@ -77,6 +77,11 @@
   <!-- 控制 -->
   <div class="col controls">
     <h2>③ 參數</h2>
+    <div class="row"><label>形狀</label>
+      <div class="seg" id="shapeSeg">
+        <button data-s="box" class="on">方盒</button>
+        <button data-s="cylinder">圓柱</button>
+      </div></div>
     <div class="row"><label>盒長 L</label><input type="range" id="L" min="1.5" max="6" step="0.1" value="4.4"><span class="val" id="Lv">4.4</span></div>
     <div class="row"><label>盒寬 D</label><input type="range" id="D" min="0.6" max="3" step="0.1" value="1.15"><span class="val" id="Dv">1.15</span></div>
     <div class="row"><label>盒高 H</label><input type="range" id="H" min="0.4" max="4" step="0.1" value="1.15"><span class="val" id="Hv">1.15</span></div>
@@ -156,7 +161,7 @@ const P = {                             // 錨點(原圖座標)7 點
   t00:[80,60], t10:[430,60], t11:[470,150], t01:[40,150],
   b10:[430,250], b11:[470,330], b01:[40,330]
 };
-const opts = { mode:'ramp', faceRamp:true, grid:false, faceCycle:0, faces:{top:'photo',left:'photo',right:'photo'} };
+const opts = { mode:'ramp', faceRamp:true, grid:false, faceCycle:0, shape:'box', faces:{top:'photo',left:'photo',right:'photo'} };
 const orient = { flipH:false, flipV:false, rot:0 };      // 輸出翻轉/旋轉(rot=0..3,每步90°)
 opts.knockout = [];                                       // 吸管去背:被點掉的顏色 [[r,g,b],...](該色→透明)
 let picking = false;                                      // 吸管模式
@@ -379,7 +384,28 @@ function render(){
   function setpx(x,y,c,fidx,a=255){ if(x<0||y<0||x>=W||y>=Hh)return; const o=(y*W+x)*4; bd[o]=c[0];bd[o+1]=c[1];bd[o+2]=c[2];bd[o+3]=a; faceBuf[y*W+x]=fidx; }
   // 依深度(遠→近):top, left/right 視角固定,順序 top→left→right 疊(凸盒不重疊)
   const drawOrder=['top','left','right']; let degenerate=false;
-  for(const fname of drawOrder){
+  if(opts.shape==='cylinder'){
+    // 直立圓柱:前半圓柱曲面(照片前面角度重映射+邊緣明暗)+ 頂橢圓(照片頂區)
+    const S=v=>[G[v][0]*SS,G[v][1]*SS];
+    const t00=S('t00'),t10=S('t10'),t11=S('t11'),t01=S('t01'),b11=S('b11');
+    const Cx=(t00[0]+t10[0]+t11[0]+t01[0])/4, Cy=(t00[1]+t10[1]+t11[1]+t01[1])/4;
+    const rx=(t10[0]-t01[0])/2, ry=(t11[1]-t00[1])/2, wallH=b11[1]-t11[1];
+    const topSrc=srcQuad('top'), frontSrc=srcQuad('left');
+    const bilin=(quad,u,v)=>{ const a=[quad[0][0]+(quad[1][0]-quad[0][0])*u, quad[0][1]+(quad[1][1]-quad[0][1])*u];
+      const b=[quad[3][0]+(quad[2][0]-quad[3][0])*u, quad[3][1]+(quad[2][1]-quad[3][1])*u];
+      return sample(srcData, a[0]+(b[0]-a[0])*v, a[1]+(b[1]-a[1])*v); };
+    // 側壁:前半圈 θ∈[0,π],每角度一條垂直線(邊緣暗中間亮=圓柱體積)
+    const NST=Math.max(80,Math.round(rx*3));
+    for(let i=0;i<=NST;i++){ const th=Math.PI*i/NST;
+      const px=Cx+rx*Math.cos(th), py=Cy+ry*Math.sin(th), u=i/NST, shade=0.5+0.5*Math.sin(th);
+      for(let yy=0;yy<=wallH;yy++){ const v=yy/wallH; let c=bilin(frontSrc,u,v);
+        setpx(Math.round(px),Math.round(py+yy),[c[0]*shade,c[1]*shade,c[2]*shade],2); } }
+    // 頂橢圓(照片頂區;略提亮)
+    for(let y=Math.floor(Cy-ry);y<=Math.ceil(Cy+ry);y++) for(let x=Math.floor(Cx-rx);x<=Math.ceil(Cx+rx);x++){
+      const nx=(x-Cx)/rx, ny=(y-Cy)/ry; if(nx*nx+ny*ny>1) continue;
+      const c=bilin(topSrc,(nx+1)/2,(ny+1)/2); setpx(x,y,c,1); }
+  }
+  else for(const fname of drawOrder){
     const fidx=drawOrder.indexOf(fname)+1;
     const dstF=faceDst(G,fname).map(p=>[p[0]*SS,p[1]*SS]);
     const src=opts.faces[fname]==='photo'? faceSrc(fname):null;
@@ -446,8 +472,17 @@ function render(){
   fctx.putImageData(id,0,0);
   // 描邊 + 轉向架(在 OW×OH 尺度)
   if(outline_.checked){ fctx.strokeStyle='rgb(13,13,22)'; fctx.lineWidth=1;
-    fctx.beginPath(); FACE_EDGES.forEach(([a,b])=>{ fctx.moveTo(G[a][0]+.5,G[a][1]+.5); fctx.lineTo(G[b][0]+.5,G[b][1]+.5); }); fctx.stroke(); }
-  if(wheels_.checked){ drawWheels(fctx,G,sc); }
+    if(opts.shape==='cylinder'){
+      const Cx=(G.t00[0]+G.t10[0]+G.t11[0]+G.t01[0])/4, Cy=(G.t00[1]+G.t10[1]+G.t11[1]+G.t01[1])/4;
+      const rx=(G.t10[0]-G.t01[0])/2, ry=(G.t11[1]-G.t00[1])/2, wallH=G.b11[1]-G.t11[1];
+      fctx.beginPath(); fctx.ellipse(Cx,Cy,rx,ry,0,0,Math.PI*2); fctx.stroke();           // 頂橢圓
+      fctx.beginPath(); fctx.ellipse(Cx,Cy+wallH,rx,ry,0,0,Math.PI); fctx.stroke();        // 前底弧
+      fctx.beginPath(); fctx.moveTo(Cx-rx,Cy); fctx.lineTo(Cx-rx,Cy+wallH);
+      fctx.moveTo(Cx+rx,Cy); fctx.lineTo(Cx+rx,Cy+wallH); fctx.stroke();                    // 兩側邊
+    } else {
+      fctx.beginPath(); FACE_EDGES.forEach(([a,b])=>{ fctx.moveTo(G[a][0]+.5,G[a][1]+.5); fctx.lineTo(G[b][0]+.5,G[b][1]+.5); }); fctx.stroke(); }
+  }
+  if(wheels_.checked && opts.shape==='box'){ drawWheels(fctx,G,sc); }
   const oriented=applyOrient(fin);                         // 只翻物件本身(格子不翻)
   window._finCanvas=oriented;                              // 匯出=純 sprite + 翻轉,不含格線
   // 顯示(放大);可疊 iso 地板方格預覽(格子固定,只有物件被翻轉)
@@ -508,6 +543,8 @@ const pickBtn=document.getElementById('pick');
 pickBtn.addEventListener('click',()=>{ picking=!picking; pickBtn.classList.toggle('on',picking);
   outCanvas.style.cursor = picking?'crosshair':''; });
 document.getElementById('clearKnock').addEventListener('click',()=>{ opts.knockout=[]; requestRender(false); });
+document.getElementById('shapeSeg').addEventListener('click',e=>{ if(e.target.dataset.s){
+  opts.shape=e.target.dataset.s; [...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x===e.target)); requestRender(false); }});
 document.getElementById('cycleFace').addEventListener('click',()=>{ opts.faceCycle=(opts.faceCycle+1)%3;
   document.getElementById('cycleTag').textContent='位置 '+opts.faceCycle; requestRender(false); });
 outCanvas.addEventListener('click',e=>{ if(!picking) return;
