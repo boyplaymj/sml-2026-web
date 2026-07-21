@@ -105,7 +105,11 @@
         <button data-o="flipV">↕ 上下翻</button>
         <button data-o="reset">重置</button>
       </div></div>
-    <small class="note">鏡射/上下翻是有效的 iso 翻轉(仍貼在格子上)。<b>物件要「轉到不同朝向坐在格子上」= 靠錨點:4 綠點放你要當「頂面」的那一面的四角</b>,不是靠轉圖。</small>
+    <small class="note">鏡射/上下翻是有效的 iso 翻轉(仍貼在格子上)。</small>
+    <div class="row"><label>換面(頂/左/右循環)</label>
+      <button id="cycleFace">↻ 換面(逆時針)</button>
+      <span class="tag" id="cycleTag">位置 0</span></div>
+    <small class="note">把 3 個面在「頂/左/右」三個位置<b>循環對調</b>(如右面→頂面)。看起來像旋轉、但永遠貼在格子上——這才是 iso 正確的「轉向」。</small>
     <div class="row"><label>吸管去背</label>
       <button id="pick">🖉 吸取顏色→透明</button>
       <button id="clearKnock">清除</button></div>
@@ -152,7 +156,7 @@ const P = {                             // 錨點(原圖座標)7 點
   t00:[80,60], t10:[430,60], t11:[470,150], t01:[40,150],
   b10:[430,250], b11:[470,330], b01:[40,330]
 };
-const opts = { mode:'ramp', faceRamp:true, grid:false, faces:{top:'photo',left:'photo',right:'photo'} };
+const opts = { mode:'ramp', faceRamp:true, grid:false, faceCycle:0, faces:{top:'photo',left:'photo',right:'photo'} };
 const orient = { flipH:false, flipV:false, rot:0 };      // 輸出翻轉/旋轉(rot=0..3,每步90°)
 opts.knockout = [];                                       // 吸管去背:被點掉的顏色 [[r,g,b],...](該色→透明)
 let picking = false;                                      // 吸管模式
@@ -326,11 +330,18 @@ function faceDst(g,name){
   if(name==='left') return [t01,t11,b11,b01];
   if(name==='right')return [t10,t11,b11,b10];
 }
-function faceSrc(name){
-  if(name==='top')  return [P.t00,P.t10,P.t11,P.t01];
-  if(name==='left') return [P.t01,P.t11,P.b11,P.b01];
-  if(name==='right')return [P.t10,P.t11,P.b11,P.b10];
+function srcQuad(which){
+  if(which==='top')  return [P.t00,P.t10,P.t11,P.t01];
+  if(which==='left') return [P.t01,P.t11,P.b11,P.b01];
+  if(which==='right')return [P.t10,P.t11,P.b11,P.b10];
 }
+// 換面循環:3 個已有的面(照片資料)在「頂/左/右」三個位置上循環對調 → 看起來像旋轉、但永遠在格子上
+const FACE_CYCLE = [
+  {top:'top',   left:'left',  right:'right'},   // 0 原本
+  {top:'right', left:'top',   right:'left'},    // 1 逆時針:右面→頂,頂面→左,左面→右
+  {top:'left',  left:'right', right:'top'}      // 2 再逆一格
+];
+function faceSrc(name){ return srcQuad(FACE_CYCLE[opts.faceCycle][name]); }
 function autoColor(name){ // 自動面基色:面內 3x3 多點取樣 → 逐通道中位(避開單點白背景)
   if(!srcData) return [150,110,60];
   const q=faceSrc(name);   // [TL,TR,BR,BL]
@@ -497,6 +508,8 @@ const pickBtn=document.getElementById('pick');
 pickBtn.addEventListener('click',()=>{ picking=!picking; pickBtn.classList.toggle('on',picking);
   outCanvas.style.cursor = picking?'crosshair':''; });
 document.getElementById('clearKnock').addEventListener('click',()=>{ opts.knockout=[]; requestRender(false); });
+document.getElementById('cycleFace').addEventListener('click',()=>{ opts.faceCycle=(opts.faceCycle+1)%3;
+  document.getElementById('cycleTag').textContent='位置 '+opts.faceCycle; requestRender(false); });
 outCanvas.addEventListener('click',e=>{ if(!picking) return;
   const r=outCanvas.getBoundingClientRect();
   const cx=Math.floor((e.clientX-r.left)*outCanvas.width/r.width);
