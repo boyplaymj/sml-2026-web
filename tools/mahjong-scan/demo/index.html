@@ -58,6 +58,14 @@
   .live .lwaits{display:flex; gap:6px; overflow-x:auto}
   .live .lwaits .wt{flex:0 0 auto; width:34px}
   .live .lwaits .wt .tile{border-radius:5px; box-shadow:0 0 0 2px var(--good); filter:none}
+  /* 掃描框比例切換列 */
+  .live .lframes{display:flex; gap:6px; margin-bottom:10px; overflow-x:auto; padding-bottom:1px}
+  .live .lframes button{flex:0 0 auto; display:flex; align-items:center; gap:5px; color:var(--sub);
+    background:var(--panel2); border:1px solid var(--line); border-radius:10px;
+    padding:5px 11px; font-size:12.5px; font-weight:600; white-space:nowrap}
+  .live .lframes button.on{color:#04222e; border-color:transparent; background:linear-gradient(180deg,#5fd0ff,#38bdf8)}
+  .live .lframes button:active{transform:scale(.95)}
+  .live .lframes .r{font-size:10px; opacity:.7; font-weight:500}
 
   /* 牌圖（2:3） */
   .tile{display:block; width:100%; height:auto; aspect-ratio:311/468; border-radius:6px;
@@ -128,6 +136,7 @@
   <div class="lstatus" id="lstatus">開啟相機中…</div>
   <button class="lclose" id="lclose">✕ 關閉</button>
   <div class="lresult" id="lresult">
+    <div class="lframes" id="lframes"></div>
     <div class="lhead" id="lhead">把整排牌排進框內、拿穩</div>
     <div class="lwaits" id="lwaits"></div>
   </div>
@@ -314,14 +323,42 @@
   var liveBtn=document.getElementById('liveBtn'), liveEl=document.getElementById('live'),
       cam=document.getElementById('cam'), frameEl=document.getElementById('frame'),
       lstatus=document.getElementById('lstatus'), lclose=document.getElementById('lclose'),
-      lhead=document.getElementById('lhead'), lwaits=document.getElementById('lwaits');
+      lhead=document.getElementById('lhead'), lwaits=document.getElementById('lwaits'),
+      lframes=document.getElementById('lframes');
   var liveOn=false, stream=null, grab=document.createElement('canvas'), gctx=grab.getContext('2d');
   var lastKey='', stableN=0, LIVE_STABLE=2; // 連續 3 次一致才鎖定
+
+  // 掃描框比例預設（L/R/T/B＝距四邊 %；判讀區域=框，切框即改判讀範圍）
+  var FRAMES=[
+    {k:'wide',   name:'寬排', hint:'16張平放', L:4,  R:4,  T:40, B:40},
+    {k:'rack',   name:'立牌', hint:'牌架整手', L:5,  R:5,  T:30, B:30},
+    {k:'square', name:'方框', hint:'湊近幾張', L:22, R:22, T:30, B:30},
+    {k:'tall',   name:'直框', hint:'直向/橫拿', L:31, R:31, T:15, B:15}
+  ];
+  var curFrame=(function(){ try{ return localStorage.getItem('mjscan_frame'); }catch(e){ return null; } })() || 'rack';
+  function applyFrame(k){
+    var f=FRAMES.filter(function(x){return x.k===k;})[0] || FRAMES[1];
+    curFrame=f.k; try{ localStorage.setItem('mjscan_frame', f.k); }catch(e){}
+    frameEl.style.left=f.L+'%'; frameEl.style.right=f.R+'%';
+    frameEl.style.top=f.T+'%'; frameEl.style.bottom=f.B+'%'; frameEl.style.height='auto';
+    lastKey=''; stableN=0; frameEl.classList.remove('locked');   // 換框重置鎖定，重新判讀新範圍
+    buildFrameChips();
+  }
+  function buildFrameChips(){
+    lframes.innerHTML='';
+    FRAMES.forEach(function(f){
+      var b=document.createElement('button'); if(f.k===curFrame) b.className='on';
+      b.innerHTML=f.name+' <span class="r">'+f.hint+'</span>';
+      b.addEventListener('click', function(){ applyFrame(f.k); });
+      lframes.appendChild(b);
+    });
+  }
 
   async function startLive(){
     liveEl.classList.add('on'); lstatus.textContent='開啟相機中…';
     lhead.className='lhead'; lhead.textContent='把整排牌排進框內、拿穩'; lwaits.innerHTML='';
     lastKey=''; stableN=0; frameEl.classList.remove('locked');
+    applyFrame(curFrame);                                    // 套用上次選的框比例
     try{
       stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});
       cam.srcObject=stream; await cam.play();
