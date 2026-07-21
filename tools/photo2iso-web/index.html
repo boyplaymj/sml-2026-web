@@ -99,6 +99,13 @@
       <label style="min-width:auto"><input type="checkbox" id="wheels"> 轉向架</label></div>
     <div class="row"><label><input type="checkbox" id="grid"> 地板方格</label>
       <span class="tag">預覽格子對齊(不進匯出)</span></div>
+    <div class="row"><label>翻轉/旋轉</label>
+      <div class="seg" id="orientSeg">
+        <button data-o="flipH">↔ 鏡射</button>
+        <button data-o="flipV">↕ 上下翻</button>
+        <button data-o="rot">⟳ 旋轉90°</button>
+        <button data-o="reset">重置</button>
+      </div></div>
     <hr style="border-color:var(--line)">
     <h2>每面來源</h2>
     <div class="facegrid">
@@ -142,6 +149,15 @@ const P = {                             // 錨點(原圖座標)7 點
   b10:[430,250], b11:[470,330], b01:[40,330]
 };
 const opts = { mode:'ramp', faceRamp:true, grid:false, faces:{top:'photo',left:'photo',right:'photo'} };
+const orient = { flipH:false, flipV:false, rot:0 };      // 輸出翻轉/旋轉(rot=0..3,每步90°)
+function applyOrient(src){                                // 把翻轉/旋轉套到畫布,回新畫布(不變則原樣回傳)
+  if(!orient.flipH && !orient.flipV && !orient.rot) return src;
+  const odd=orient.rot%2===1, w=odd?src.height:src.width, h=odd?src.width:src.height;
+  const c=document.createElement('canvas'); c.width=w; c.height=h; const x=c.getContext('2d');
+  x.imageSmoothingEnabled=false; x.translate(w/2,h/2); x.rotate(orient.rot*Math.PI/2);
+  x.scale(orient.flipH?-1:1, orient.flipV?-1:1); x.drawImage(src, -src.width/2, -src.height/2);
+  return c;
+}
 
 // ── 載入圖片 ────────────────────────────────────────────────
 function loadImage(img){
@@ -410,7 +426,7 @@ function render(){
   if(outline_.checked){ fctx.strokeStyle='rgb(13,13,22)'; fctx.lineWidth=1;
     fctx.beginPath(); FACE_EDGES.forEach(([a,b])=>{ fctx.moveTo(G[a][0]+.5,G[a][1]+.5); fctx.lineTo(G[b][0]+.5,G[b][1]+.5); }); fctx.stroke(); }
   if(wheels_.checked){ drawWheels(fctx,G,sc); }
-  window._finCanvas=fin;                                   // 匯出用(純 sprite,不含格線)
+  window._finCanvas=applyOrient(fin);                      // 匯出用(純 sprite + 翻轉,不含格線)
   // 顯示(放大);可疊 iso 地板方格預覽(同一 screen(c,r) 投影 → 對齊遊戲格子)
   const view=4; let showSrc=fin, sw=OW, sh=OH;
   if(opts.grid){
@@ -434,9 +450,10 @@ function render(){
     gx.drawImage(fin,0,0);                                                       // 疊 sprite
     showSrc=gc;
   }
-  outCanvas.width=sw*view; outCanvas.height=sh*view;
+  const shown=applyOrient(showSrc);                        // 套翻轉/旋轉
+  outCanvas.width=shown.width*view; outCanvas.height=shown.height*view;
   outctx.imageSmoothingEnabled=false; outctx.clearRect(0,0,outCanvas.width,outCanvas.height);
-  outctx.drawImage(showSrc,0,0,outCanvas.width,outCanvas.height);
+  outctx.drawImage(shown,0,0,outCanvas.width,outCanvas.height);
   if(degenerate){ outctx.fillStyle='rgba(234,106,112,.95)'; outctx.font='bold 15px system-ui,sans-serif';
     outctx.textBaseline='top'; outctx.fillText('⚠ 錨點退化(共線/重疊),已跳過該面',10,10); }
 }
@@ -464,6 +481,15 @@ const L_=document.getElementById('L'),D_=document.getElementById('D'),H_=documen
 });
 faceRamp_.addEventListener('change',()=>{ opts.faceRamp=faceRamp_.checked; requestRender(false); });
 document.getElementById('grid').addEventListener('change',e=>{ opts.grid=e.target.checked; requestRender(false); });
+document.getElementById('orientSeg').addEventListener('click',e=>{ const o=e.target.dataset.o; if(!o) return;
+  if(o==='flipH') orient.flipH=!orient.flipH;
+  else if(o==='flipV') orient.flipV=!orient.flipV;
+  else if(o==='rot') orient.rot=(orient.rot+1)%4;
+  else if(o==='reset'){ orient.flipH=orient.flipV=false; orient.rot=0; }
+  // 高亮目前啟用的
+  [...e.currentTarget.children].forEach(btn=>{ const k=btn.dataset.o;
+    btn.classList.toggle('on', (k==='flipH'&&orient.flipH)||(k==='flipV'&&orient.flipV)||(k==='rot'&&orient.rot>0)); });
+  requestRender(false); });
 [outline_,wheels_].forEach(el=>el.addEventListener('change',()=>requestRender(false)));
 document.getElementById('modeSeg').addEventListener('click',e=>{ if(e.target.dataset.m){
   opts.mode=e.target.dataset.m; [...e.currentTarget.children].forEach(b=>b.classList.toggle('on',b===e.target)); requestRender(false); }});
