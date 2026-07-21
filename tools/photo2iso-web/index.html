@@ -103,9 +103,9 @@
       <div class="seg" id="orientSeg">
         <button data-o="flipH">↔ 鏡射</button>
         <button data-o="flipV">↕ 上下翻</button>
-        <button data-o="rot">⟳ 旋轉90°</button>
         <button data-o="reset">重置</button>
       </div></div>
+    <small class="note">鏡射/上下翻是有效的 iso 翻轉(仍貼在格子上)。<b>物件要「轉到不同朝向坐在格子上」= 靠錨點:4 綠點放你要當「頂面」的那一面的四角</b>,不是靠轉圖。</small>
     <div class="row"><label>吸管去背</label>
       <button id="pick">🖉 吸取顏色→透明</button>
       <button id="clearKnock">清除</button></div>
@@ -507,11 +507,10 @@ outCanvas.addEventListener('click',e=>{ if(!picking) return;
 document.getElementById('orientSeg').addEventListener('click',e=>{ const o=e.target.dataset.o; if(!o) return;
   if(o==='flipH') orient.flipH=!orient.flipH;
   else if(o==='flipV') orient.flipV=!orient.flipV;
-  else if(o==='rot') orient.rot=(orient.rot+1)%4;
   else if(o==='reset'){ orient.flipH=orient.flipV=false; orient.rot=0; }
   // 高亮目前啟用的
   [...e.currentTarget.children].forEach(btn=>{ const k=btn.dataset.o;
-    btn.classList.toggle('on', (k==='flipH'&&orient.flipH)||(k==='flipV'&&orient.flipV)||(k==='rot'&&orient.rot>0)); });
+    btn.classList.toggle('on', (k==='flipH'&&orient.flipH)||(k==='flipV'&&orient.flipV)); });
   requestRender(false); });
 [outline_,wheels_].forEach(el=>el.addEventListener('change',()=>requestRender(false)));
 document.getElementById('modeSeg').addEventListener('click',e=>{ if(e.target.dataset.m){
