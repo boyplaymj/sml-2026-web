@@ -281,8 +281,11 @@ DAYS = [
   {"no":8,"date":"5/31","wd":"日","theme":"滿載而歸・平安返台",
    "kicker":"Day 8 · 5/31 週日",
    "intro":"最後一天一大早起床，PORTOM 下樓走幾步就到國際線 check in，臨走前補寄了明信片。搭著便宜、但椅子硬到屁股痛的泰越捷 VZ571，帶著滿滿戰利品與一家四口的回憶，平安返台。","items":[
-    {"time":"一大早","ttl":"PORTOM 直達國際線 Check-in","desc":"最後一天一大早起床，PORTOM 的好處這時候完全展現——下樓走幾步就直接到國際線 check in，拉著大包小包也超省力","tag":"🧳"},
-    {"time":"出發前","ttl":"補寄明信片・找郵筒","desc":"想起明信片還沒寄，臨行前在機場找了一下郵筒，把旅途的心情補寄出去","tag":"📮"},
+    {"time":"起床","ttl":"PORTOM 房間巡禮・窗外就是機場","desc":"最後一天在 PORTOM 醒來，房間又大又舒服，落地窗外正對新千歲機場，看著飛機起降","tag":"🛏️",
+     "video":{"src":PH+"d8-portom-room.mp4","poster":PH+"d8-portom-room-poster.jpg"}},
+    {"time":"一大早","ttl":"PORTOM 直達國際線 Check-in","desc":"PORTOM 的好處這時候完全展現——下樓走幾步就直接到國際線 check in，拉著大包小包也超省力","tag":"🧳"},
+    {"time":"出發前","ttl":"補寄明信片・找郵筒","desc":"想起明信片還沒寄，臨行前在機場找了一下郵筒（新千歲機場店），把旅途的心情補寄出去","tag":"📮",
+     "video":{"src":PH+"d8-postbox.mp4","poster":PH+"d8-postbox-poster.jpg"}},
     {"time":"09:00","ttl":"泰越捷 VZ571・平安返台","desc":"泰越捷的優點是非常便宜，缺點是座椅好硬——飛北海道這段航程，屁股真的好痛啊！不過帶著滿滿的戰利品與一家四口無可取代的回憶，還是心滿意足地平安返台","tag":"✈️",
      "photos":[PH+"d8-vietjet-wing.jpg"],"caption":"機窗外的 VietJet 小翼・再見北海道"},
   ]},
