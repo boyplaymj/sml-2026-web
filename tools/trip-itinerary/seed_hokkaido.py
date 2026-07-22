@@ -26,13 +26,14 @@ STOPS = [
     {"no": 1, "name": "新千歲機場",     "ll": [Decimal("42.775"), Decimal("141.692")]},
     {"no": 2, "name": "洞爺湖",         "ll": [Decimal("42.593"), Decimal("140.855")]},
     {"no": 3, "name": "函館",           "ll": [Decimal("41.768"), Decimal("140.729")]},
-    {"no": 4, "name": "登別",           "ll": [Decimal("42.413"), Decimal("141.107")]},
-    {"no": 5, "name": "札幌",           "ll": [Decimal("43.062"), Decimal("141.354")]},
-    {"no": 6, "name": "小樽",           "ll": [Decimal("43.190"), Decimal("140.994")]},
-    {"no": 7, "name": "新千歲・PORTOM", "ll": [Decimal("42.790"), Decimal("141.665")]},
+    {"no": 4, "name": "札幌",           "ll": [Decimal("43.062"), Decimal("141.354")]},
+    {"no": 5, "name": "小樽",           "ll": [Decimal("43.190"), Decimal("140.994")]},
+    {"no": 6, "name": "富良野",         "ll": [Decimal("43.342"), Decimal("142.383")]},
+    {"no": 7, "name": "登別",           "ll": [Decimal("42.413"), Decimal("141.107")]},
+    {"no": 8, "name": "新千歲・PORTOM", "ll": [Decimal("42.790"), Decimal("141.665")]},
 ]
 # OSRM 編碼 polyline（precision 5，實際行車路線；抄 preview.html ROUTE）
-POLYLINE = "cjadGslx_ZfjJ_xB`yFdhFljC|wKoaShe_@jqCjdR`uD~bFooBfkHzoClg\\~{Ll}NvuGpCnxBjgb@wj@huGttAfqHktGhdQxPfne@jkZbsWz}\\reKbeKoaCzxE_mT~aX}_e@jiTeoIjhLjqAtnR}uOtsEa`@msE|_@wnRrvOqhL}qAkiTdoI_bX|_e@_uE`fTsbCv~ByhLgYyzR{`G_k_@}sZ}d@yzRzrAc~DkkAqqCxvAqhPvoNioPvcGmlOxgRohIxrDq`RgcMcfNanXwzm@{nCdpBi_BcbNgqI_oP{hHsz\\eoIwSwxOv_Fy}EdzI_wJh~Ac{Zjjd@ssFvw@jcAvsMk`EftEkmLjfn@hmLwgn@|~DaqEyxAewRxaBsjGdoUw}JjbLwgNnoBqhI~gDdc@ruI{}M`~DoMouA`]"
+POLYLINE = "cjadGslx_ZfjJ_xB`yFdhFljC|wKoaShe_@jqCjdR`uD~bFooBfkHzoClg\\~{Ll}NvuGpCnxBjgb@wj@huGttAfqHktGhdQxPfne@jkZbsWz}\\reKbeKoaCzxE_mT~aX}_e@jiTeoIjhLjqAtnR}uOtsEa`@msE|_@wnRrvOqhL}qAkiTdoI_bX|_e@_uE`fTe`Cb}B{`\\aoEeqc@k~\\_Qcle@`lBcsLizG~l@saD_`CiuHk_VqmEyuBaxBcoHmnFsnAwa@e`I}cHoyE`Jm~IkuDkvK}eDdnDcpDiEicEmwFma@eq`@}mQ_nCssFvw@jcAvsMk`EftEkmLjfn@hmLwgn@|~DaqEsxAe`SxpDgqH}qBa}J|zA_`KmhU_jq@kuHabDwuBo|YjqB}hIoyDwgCubIcbUcrIeyCdPg}F~dFacIyjE}eNbeEiuE`sVxXrk@ytDbiG_dBjoNtpBiEp{Af{Uy_CfvCpyRuRpxKvgFpvIsvBdsQrXrfIxeD`~EaoAtiIfaDtiZhkUwpBrtSp{W_mAhxC~hJ~`PduIt}d@f_^pww@k~]ysw@wuIq`e@cnFuvLkeJ}hHchLz~E"
 OVERVIEW = {
     "lead": "八天環道路線 · 點圖釘看每一天",
     "stops": STOPS,
@@ -40,8 +41,8 @@ OVERVIEW = {
     "stats": [
         {"v": "8",    "label": "天 7 夜"},
         {"v": "4",    "label": "一家人"},
-        {"v": "~700", "label": "公里自駕"},
-        {"v": "6",    "label": "座城市"},
+        {"v": "~970", "label": "公里自駕"},
+        {"v": "9",    "label": "個寶可夢人孔蓋"},
     ],
 }
 
