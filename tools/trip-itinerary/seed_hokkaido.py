@@ -52,8 +52,7 @@ DAYS = [
    "interlude":{"img":PH+"d1-pilot-pikachu.jpg","cap":"Day 1 · 從機場一路玩到洞爺湖畔"},
    "items":[
     {"time":"07:35","ttl":"抵達新千歲機場（班機提早到）","desc":"飛機比預定早抵達，先不急著取車，走去國內線機場逛尋寶","tag":"✈️"},
-    {"time":"一到","ttl":"新千歲機場・寶可夢商店","desc":"入手新千歲機場限定的『機長皮卡丘＆空姐皮卡丘』娃娃（門口還有一尊機長皮卡丘大公仔）；反而是札幌寶可夢中心沒有自家的中心限定娃，機場先買先贏","tag":"⚡","photos":[PH+"d1-pilot-pikachu.jpg"],
-     "gallery":[PH+"d1-pilot-pikachu.jpg",PH+"d1-kamaei.png",PH+"d1-times-bear-board.jpg",PH+"d1-mahjong.jpg"]},
+    {"time":"一到","ttl":"新千歲機場・寶可夢商店","desc":"入手新千歲機場限定的『機長皮卡丘＆空姐皮卡丘』娃娃（門口還有一尊機長皮卡丘大公仔）；反而是札幌寶可夢中心沒有自家的中心限定娃，機場先買先贏","tag":"⚡","photos":[PH+"d1-pilot-pikachu.jpg"],"caption":"機場限定・機長皮卡丘大公仔"},
     {"time":"一到","ttl":"機場・吉伊卡哇掃貨","desc":"北海道限定吉伊卡哇鐵牌、薰衣草款夢奇奇","tag":"🩷","photos":[PH+"d1-lavender-monchhichi.jpg"],
      "portrait":True,"caption":"HOKKAIDO 限定・薰衣草夢奇奇"},
     {"time":"墊肚","ttl":"かま栄＋飯糰","desc":"機場買炸魚板かま栄配飯糰先墊肚","tag":"🍢","photos":[PH+"d1-kamaei.png"]},
@@ -62,10 +61,8 @@ DAYS = [
     {"time":"~16:00","ttl":"洞爺湖萬世閣・Check-in","desc":"大雨作罷，約下午四點直接進飯店","tag":"🏨"},
     {"time":"傍晚","ttl":"泡湯（兩個池都泡到）","desc":"西館8樓＆中央館地下一樓，早上男女湯位置會互換；推薦8樓看得到洞爺湖景，兩館內部設施也略不同。帶了泳衣但泡完湯就差不多要吃晚餐，泳池沒玩到","tag":"♨️"},
     {"time":"晚餐","ttl":"和食會席膳・哥哥 9 歲生日","desc":"特別訂和食會席膳幫壽星慶生","tag":"🎂"},
-    {"time":"20:45","ttl":"洞爺湖浪漫煙火","desc":"訂房時可特別指定看得到煙火的房型，晚上在房間就欣賞到了","tag":"🎆",
-     "reel":"https://www.instagram.com/reel/"},  # reel 佔位：換成真 reel 連結即內嵌 9:16
-    {"time":"宵夜局","ttl":"飯店租麻將開一桌","desc":"萬世閣可租借麻將桌／麻將，回房打幾圈","tag":"🀄","photos":[PH+"d1-mahjong.jpg"],
-     "video":{"src":"","poster":PH+"d1-mahjong.jpg"}},  # video 佔位：src 補上傳影片網址即可播
+    {"time":"20:45","ttl":"洞爺湖浪漫煙火","desc":"訂房時可特別指定看得到煙火的房型，晚上在房間就欣賞到了","tag":"🎆"},
+    {"time":"宵夜局","ttl":"飯店租麻將開一桌","desc":"萬世閣可租借麻將桌／麻將，回房打幾圈","tag":"🀄","photos":[PH+"d1-mahjong.jpg"],"caption":"回房開一桌，小朋友也上桌"},
     {"time":"住宿","ttl":"洞爺湖萬世閣 湖畔露台飯店","desc":"面湖和洋室","tag":"🛏️","stay":True,"addr":"北海道虻田郡洞爺湖町洞爺湖温泉21","parking":True},
   ]},
   {"no":2,"date":"5/25","wd":"一","theme":"人孔蓋巡禮、新選組變裝與百萬夜景",
