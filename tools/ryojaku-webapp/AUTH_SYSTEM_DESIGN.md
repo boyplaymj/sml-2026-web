@@ -101,6 +101,8 @@
 ### 4.3 `Users` 加欄位
 - `pwChangedAt`（timestamp）：改密碼/重設後更新 → JWT 帶 `iat`，登入驗證時**拒絕 `iat < pwChangedAt` 的舊 token** = 「登出其他裝置」。
 - `googleSub`（可選鏡像，方便後台看）；權威仍在 `AuthIdentities`。
+- `identityCount`（number）：該帳號綁的鑰匙數。**孤兒守衛靠它做原子交易**——`BindIdentity` 在同一 `TransactWriteItems` 內 `ADD identityCount 1`、`UnbindIdentity` 條件 `identityCount > 1` 才准刪（見 shared/identities.go）。新帳號由 Bind 自動起算（缺值 ADD 視為 0）。
+  - ⚠️ **遷移 backfill 必辦**：13k 既有用戶要一次性把 `identityCount` 設成其實際鑰匙數（LINE/email 各算一把），否則缺值時 `> 1` 條件恆假 → 會誤擋合法解綁（fail-safe 但體驗錯）。列入 [MIGRATION_PLAN.md] 資料遷移步驟。
 
 ### 成本
 2 張小表全 **PAY_PER_REQUEST**（AuthTokens 有 TTL 自清、幾乎不長）。SES 寄信 ~$0.10/千封 = 可忽略。無 LLM、無付費 API → 不觸發 `COST_CONTROL.md` 四件套（那是給燒 LLM 的）。唯一前置：SES 網域驗證 + 申請移出 sandbox。
