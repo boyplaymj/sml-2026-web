@@ -146,9 +146,9 @@ DAYS = [
    "intro":"一早的獵人一番賞從第一天找到最後一天還是槓龜，索性玩娃娃機、扭皮克敏；到北海道神宮參拜、吃六花亭現烤判官さま，再把握好天氣殺去小樽——收人孔蓋、若鶏時代炸半雞、運河搭船、LeTAO 冰吃好吃滿。晚上回札幌登電視塔掃テレビ父さん周邊，最後在飯店旁卡拉OK體驗寶可夢30週年聯名的日K。","items":[
     {"time":"一早","ttl":"東急・一番賞專賣店（獵人槓龜）","desc":"一早先衝東急的一番賞專賣店，想抽獵人×獵人的一番賞——結果又賣光了。從到北海道第一天就開始找，整趟旅程硬是沒讓我們遇上","tag":"🎯",
      "photos":[PH+"d4-ichiban-case.jpg"],"caption":"櫃裡滿滿動漫景品，就是抽不到獵人一番賞"},
-    {"time":"順手","ttl":"娃娃機・夾寶可夢","desc":"沒抽到一番賞，就在旁邊娃娃機玩了一下，機台裡滿滿快龍、迷你龍","tag":"🎰",
+    {"time":"順手","ttl":"娃娃機・夾寶可夢","desc":"沒抽到一番賞，就在旁邊娃娃機玩了一下，機台裡滿滿快龍、瑪力露","tag":"🎰",
      "video":{"src":PH+"d4-clawmachine.mp4","poster":PH+"d4-clawmachine-poster.jpg"}},
-    {"time":"順手","ttl":"皮克敏扭蛋","desc":"還扭了皮克敏扭蛋，藍、紫、黑一整手玻璃吊飾","tag":"🎡",
+    {"time":"順手","ttl":"皮克敏扭蛋","desc":"還扭了皮克敏扭蛋，藍、紫、黑一整手吊飾","tag":"🎡",
      "video":{"src":PH+"d4-pikmin-gacha.mp4","poster":PH+"d4-pikmin-gacha-poster.jpg"}},
     {"time":"同棟","ttl":"東急 hands 逛逛","desc":"在同一棟的 hands 逛了一圈，還看到寶可夢 30 周年的娃娃（阿羅拉六尾）","tag":"🛒",
      "video":{"src":PH+"d4-pokemon-plush.mp4","poster":PH+"d4-pokemon-plush-poster.jpg"}},
