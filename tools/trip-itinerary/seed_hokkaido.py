@@ -216,8 +216,8 @@ DAYS = [
    "intro":"一早用 app 搶預約麥當勞吉伊卡哇二彈、yodobashi 取餐、7-11 抽 sunsun 一番賞，回飯店把麥當勞當早餐。好天氣的行程前幾天都跑完了，這天就應壽星許願一路蒐集寶可夢人孔蓋——當別『北歐の風』、富良野日之出公園、砂川六尾＆胖甜妮，中途被 hobby off 的戰鬥陀螺吸進去、順逛 Royce 工廠掃限定伴手禮，晚餐意外吃到緯來日本台拍過的富良野くまげら。","items":[
     {"time":"一早","ttl":"手機預約麥當勞・吉伊卡哇第二彈","desc":"一早起床先用手機 app 預約麥當勞快樂兒童餐的吉伊卡哇第二彈（第2弾 5/29–6/11）——這次為了防黃牛，開賣首日要用公式 app 預約才能購買","tag":"🍟",
      "video":{"src":PH+"d6-mcd-chiikawa.mp4","poster":PH+"d6-mcd-chiikawa-poster.jpg"}},
-    {"time":"取餐","ttl":"yodobashi 內麥當勞取餐＋玩具樓層","desc":"走去飯店附近 yodobashi（ヨドバシカメラ）裡的麥當勞取餐，順便逛了玩具樓層，戰鬥陀螺 BEYBLADE X 一整排","tag":"🛗",
-     "photos":[PH+"d6-beyblade-shelf.jpg"],"caption":"yodobashi 玩具樓層・戰鬥陀螺 BEYBLADE X"},
+    {"time":"取餐","ttl":"yodobashi 內麥當勞取餐＋玩具樓層","desc":"走去飯店附近 yodobashi（ヨドバシカメラ）裡的麥當勞取餐，順便逛了玩具樓層，逆転バリバリバース 一整排","tag":"🛗",
+     "photos":[PH+"d6-beyblade-shelf.jpg"],"caption":"yodobashi 玩具樓層・逆転バリバリバース"},
     {"time":"順路","ttl":"7-11・sunsun 一番賞新發售","desc":"這天剛好是 sunsun 一番賞的新發售日，在旁邊的 7-11 也抽了一波","tag":"🎯",
      "photos":[PH+"d6-sunsun.jpg"],"caption":"7-11・SUNSUN 一番賞新發售"},
     {"time":"早餐","ttl":"回飯店吃麥當勞","desc":"帶回飯店把麥當勞當早餐吃","tag":"🍔",
