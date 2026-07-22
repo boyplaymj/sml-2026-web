@@ -23,9 +23,13 @@
       border:1px solid var(--line);border-radius:8px;overflow:hidden}
   #outCanvas{image-rendering:pixelated;max-width:100%;max-height:100%;display:block}
   .row{display:flex;align-items:center;gap:8px;margin:7px 0;font-size:13px}
-  .row label{min-width:96px;color:var(--mut)}
-  input[type=range]{flex:1}
+  .row label{min-width:88px;color:var(--mut)}
+  input[type=range]{flex:1;min-width:0}
   .val{min-width:34px;text-align:right;color:var(--acc)}
+  input.val.numin{width:48px;flex:0 0 auto;background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:3px 5px;font-size:12px;font-variant-numeric:tabular-nums}
+  input.val.numin:focus{outline:none;border-color:var(--acc)}
+  /* 隱藏 number 的上下微調箭頭(桌面版佔位),保留鍵盤輸入 */
+  input.val.numin::-webkit-outer-spin-button,input.val.numin::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   button{background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:7px;padding:7px 12px;font-size:13px;cursor:pointer}
   button:hover{border-color:var(--acc)}
   button.primary{background:var(--acc);color:#0f1a14;border-color:var(--acc);font-weight:700}
@@ -83,10 +87,10 @@
         <button data-s="cylinder">圓柱</button>
         <button data-s="pyramid">三角錐</button>
       </div></div>
-    <div class="row"><label>盒長 L</label><input type="range" id="L" min="1.5" max="6" step="0.1" value="4.4"><span class="val" id="Lv">4.4</span></div>
-    <div class="row"><label>盒寬 D</label><input type="range" id="D" min="0.6" max="3" step="0.1" value="1.15"><span class="val" id="Dv">1.15</span></div>
-    <div class="row"><label>盒高 H</label><input type="range" id="H" min="0.4" max="4" step="0.1" value="1.15"><span class="val" id="Hv">1.15</span></div>
-    <div class="row"><label>像素密度</label><input type="range" id="res" min="0.6" max="2.2" step="0.1" value="1.3"><span class="val" id="resv">1.3</span></div>
+    <div class="row"><label>盒長 L</label><input type="range" id="L" min="1.5" max="6" step="0.1" value="4.4"><input class="val numin" id="Lv" type="number" min="1.5" max="6" step="0.1" value="4.4"></div>
+    <div class="row"><label>盒寬 D</label><input type="range" id="D" min="0.6" max="3" step="0.1" value="1.15"><input class="val numin" id="Dv" type="number" min="0.6" max="3" step="0.1" value="1.15"></div>
+    <div class="row"><label>盒高 H</label><input type="range" id="H" min="0.4" max="4" step="0.1" value="1.15"><input class="val numin" id="Hv" type="number" min="0.4" max="4" step="0.1" value="1.15"></div>
+    <div class="row"><label>像素密度</label><input type="range" id="res" min="0.6" max="2.2" step="0.1" value="1.3"><input class="val numin" id="resv" type="number" min="0.6" max="2.2" step="0.1" value="1.3"></div>
     <hr style="border-color:var(--line)">
     <div class="row"><label>16色風格</label>
       <div class="seg" id="modeSeg">
@@ -95,16 +99,17 @@
         <button data-m="off">原色</button>
       </div>
     </div>
-    <div class="row"><label>色階段數</label><input type="range" id="bands" min="3" max="6" step="1" value="5"><span class="val" id="bandsv">5</span></div>
-    <div class="row"><label>降噪(超取樣)</label><input type="range" id="ss" min="1" max="3" step="1" value="2"><span class="val" id="ssv">2</span></div>
-    <div class="row"><label>平滑(去雜點)</label><input type="range" id="smooth" min="0" max="3" step="1" value="1"><span class="val" id="smoothv">1</span></div>
-    <div class="row"><label>結構線(邊緣)</label><input type="range" id="edge" min="0" max="5" step="1" value="2"><span class="val" id="edgev">2</span></div>
+    <div class="row"><label>色階段數</label><input type="range" id="bands" min="3" max="6" step="1" value="5"><input class="val numin" id="bandsv" type="number" min="3" max="6" step="1" value="5"></div>
+    <div class="row"><label>降噪(超取樣)</label><input type="range" id="ss" min="1" max="3" step="1" value="2"><input class="val numin" id="ssv" type="number" min="1" max="3" step="1" value="2"></div>
+    <div class="row"><label>平滑(去雜點)</label><input type="range" id="smooth" min="0" max="3" step="1" value="1"><input class="val numin" id="smoothv" type="number" min="0" max="3" step="1" value="1"></div>
+    <div class="row"><label>結構線(邊緣)</label><input type="range" id="edge" min="0" max="5" step="1" value="2"><input class="val numin" id="edgev" type="number" min="0" max="5" step="1" value="2"></div>
     <div class="row"><label><input type="checkbox" id="faceRamp" checked> 整面同材質</label>
       <span class="tag">乾淨光影,推薦</span></div>
     <div class="row"><label><input type="checkbox" id="outline" checked> 描邊</label>
       <label style="min-width:auto"><input type="checkbox" id="wheels"> 轉向架</label></div>
     <div class="row"><label><input type="checkbox" id="grid"> 地板方格</label>
-      <span class="tag">預覽格子對齊(不進匯出)</span></div>
+      <label style="min-width:auto"><input type="checkbox" id="human"> 人物參考</label></div>
+    <small class="note">人物參考:在物件旁擺一個 ~1.7m 的人形當比例尺(假設 <b>1 格 ≈ 0.5m</b>)。僅預覽,不進匯出。</small>
     <div class="row"><label>翻轉/旋轉</label>
       <div class="seg" id="orientSeg">
         <button data-o="flipH">↔ 鏡射</button>
@@ -162,7 +167,7 @@ const P = {                             // 錨點(原圖座標)7 點
   t00:[80,60], t10:[430,60], t11:[470,150], t01:[40,150],
   b10:[430,250], b11:[470,330], b01:[40,330]
 };
-const opts = { mode:'ramp', faceRamp:true, grid:false, faceCycle:0, shape:'box', faces:{top:'photo',left:'photo',right:'photo'} };
+const opts = { mode:'ramp', faceRamp:true, grid:false, human:false, faceCycle:0, shape:'box', faces:{top:'photo',left:'photo',right:'photo'} };
 const orient = { flipH:false, flipV:false, rot:0 };      // 輸出翻轉/旋轉(rot=0..3,每步90°)
 opts.knockout = [];                                       // 吸管去背:被點掉的顏色 [[r,g,b],...](該色→透明)
 let picking = false;                                      // 吸管模式
@@ -533,25 +538,31 @@ function render(){
   window._finCanvas=oriented;                              // 匯出=純 sprite + 翻轉,不含格線
   // 顯示(放大);可疊 iso 地板方格預覽(格子固定,只有物件被翻轉)
   const view=4; let showSrc=oriented, sw=OW, sh=OH;
-  if(opts.grid){
+  if(opts.grid || opts.human){
     const gs=(c,r)=>{ const p=g(c,r,0); return [p[0]+shift[0], p[1]+shift[1]]; };
     const cLo=Math.floor(-1.3), cHi=Math.ceil(L+1.3), rLo=Math.floor(-1.3), rHi=Math.ceil(D+1.3);
     let pts=[[0,0],[OW,OH]];
-    for(let c=cLo;c<=cHi;c++){ pts.push(gs(c,rLo),gs(c,rHi)); }
-    for(let r=rLo;r<=rHi;r++){ pts.push(gs(cLo,r),gs(cHi,r)); }
+    if(opts.grid) for(let c=cLo;c<=cHi;c++){ pts.push(gs(c,rLo),gs(c,rHi)); }
+    if(opts.grid) for(let r=rLo;r<=rHi;r++){ pts.push(gs(cLo,r),gs(cHi,r)); }
+    // 人物參考:站在物件左側地面(z=0),高度 3.4 格 ≈ 1.7m(1 格≈0.5m),與物件共用 HZ*sc 垂直比例
+    const unitPx=HZ*sc, PH=3.4*unitPx, foot=gs(-1.6,D/2), fx=foot[0], fy=foot[1], sHalf=PH*0.13;
+    if(opts.human) pts.push([fx-sHalf-PH*0.06, fy-PH-PH*0.05],[fx+sHalf+PH*0.06, fy+2]);
     let mnX=1e9,mnY=1e9,mxX=-1e9,mxY=-1e9;
     for(const p of pts){ mnX=Math.min(mnX,p[0]);mnY=Math.min(mnY,p[1]);mxX=Math.max(mxX,p[0]);mxY=Math.max(mxY,p[1]); }
     mnX=Math.floor(mnX)-2;mnY=Math.floor(mnY)-2;mxX=Math.ceil(mxX)+2;mxY=Math.ceil(mxY)+2;
     sw=mxX-mnX; sh=mxY-mnY;
     const gc=document.createElement('canvas'); gc.width=sw; gc.height=sh; const gx=gc.getContext('2d');
     gx.translate(-mnX,-mnY);
-    gx.strokeStyle='rgba(150,168,196,.45)'; gx.lineWidth=1;                     // 地板格線
-    for(let c=cLo;c<=cHi;c++){ const a=gs(c,rLo),b=gs(c,rHi); gx.beginPath(); gx.moveTo(a[0],a[1]); gx.lineTo(b[0],b[1]); gx.stroke(); }
-    for(let r=rLo;r<=rHi;r++){ const a=gs(cLo,r),b=gs(cHi,r); gx.beginPath(); gx.moveTo(a[0],a[1]); gx.lineTo(b[0],b[1]); gx.stroke(); }
-    const fp=[gs(0,0),gs(L,0),gs(L,D),gs(0,D)];                                  // 物件足跡(綠)
-    gx.fillStyle='rgba(108,214,158,.14)'; gx.strokeStyle='rgba(108,214,158,.9)'; gx.lineWidth=1.5;
-    gx.beginPath(); fp.forEach((p,i)=> i?gx.lineTo(p[0],p[1]):gx.moveTo(p[0],p[1])); gx.closePath(); gx.fill(); gx.stroke();
-    gx.drawImage(oriented,(OW-oriented.width)/2,(OH-oriented.height)/2);         // 疊翻轉後的物件(格子維持原樣)
+    if(opts.grid){
+      gx.strokeStyle='rgba(150,168,196,.45)'; gx.lineWidth=1;                     // 地板格線
+      for(let c=cLo;c<=cHi;c++){ const a=gs(c,rLo),b=gs(c,rHi); gx.beginPath(); gx.moveTo(a[0],a[1]); gx.lineTo(b[0],b[1]); gx.stroke(); }
+      for(let r=rLo;r<=rHi;r++){ const a=gs(cLo,r),b=gs(cHi,r); gx.beginPath(); gx.moveTo(a[0],a[1]); gx.lineTo(b[0],b[1]); gx.stroke(); }
+      const fp=[gs(0,0),gs(L,0),gs(L,D),gs(0,D)];                                  // 物件足跡(綠)
+      gx.fillStyle='rgba(108,214,158,.14)'; gx.strokeStyle='rgba(108,214,158,.9)'; gx.lineWidth=1.5;
+      gx.beginPath(); fp.forEach((p,i)=> i?gx.lineTo(p[0],p[1]):gx.moveTo(p[0],p[1])); gx.closePath(); gx.fill(); gx.stroke();
+    }
+    if(opts.human) drawHumanRef(gx,fx,fy,PH);                                      // 比例人形(在物件之下先畫,才不遮物件)
+    gx.drawImage(oriented,(OW-oriented.width)/2,(OH-oriented.height)/2);           // 疊翻轉後的物件(格子維持原樣)
     showSrc=gc;
   }
   outCanvas.width=showSrc.width*view; outCanvas.height=showSrc.height*view;
@@ -559,6 +570,23 @@ function render(){
   outctx.drawImage(showSrc,0,0,outCanvas.width,outCanvas.height);
   if(degenerate){ outctx.fillStyle='rgba(234,106,112,.95)'; outctx.font='bold 15px system-ui,sans-serif';
     outctx.textBaseline='top'; outctx.fillText('⚠ 錨點退化(共線/重疊),已跳過該面',10,10); }
+}
+function drawHumanRef(gx,fx,fy,PH){   // 比例人形剪影:雙腳站 (fx,fy),總高 PH
+  const headR=PH*0.075, headCy=fy-PH+headR;
+  const shoulderY=headCy+headR*1.5, hipY=fy-PH*0.44;
+  const sHalf=PH*0.115, armW=PH*0.05, legHalf=PH*0.052;
+  const rr=(x,y,w,h,r)=>{ r=Math.min(r,w/2,Math.abs(h)/2); gx.beginPath();
+    gx.moveTo(x+r,y); gx.arcTo(x+w,y,x+w,y+h,r); gx.arcTo(x+w,y+h,x,y+h,r);
+    gx.arcTo(x,y+h,x,y,r); gx.arcTo(x,y,x+w,y,r); gx.closePath(); };
+  gx.save();
+  gx.fillStyle='rgba(70,80,110,.82)'; gx.strokeStyle='rgba(224,230,242,.85)'; gx.lineWidth=Math.max(1,PH*0.012);
+  rr(fx-sHalf-armW*0.4, shoulderY, armW, hipY-shoulderY+PH*0.02, armW*0.5); gx.fill();   // 左臂
+  rr(fx+sHalf-armW*0.6, shoulderY, armW, hipY-shoulderY+PH*0.02, armW*0.5); gx.fill();   // 右臂
+  rr(fx-legHalf-PH*0.012, hipY, legHalf, fy-hipY, legHalf*0.45); gx.fill();              // 左腿
+  rr(fx+PH*0.012, hipY, legHalf, fy-hipY, legHalf*0.45); gx.fill();                      // 右腿
+  rr(fx-sHalf, shoulderY, sHalf*2, hipY-shoulderY+PH*0.02, sHalf*0.55); gx.fill(); gx.stroke();  // 軀幹
+  gx.beginPath(); gx.arc(fx,headCy,headR,0,Math.PI*2); gx.fill(); gx.stroke();           // 頭
+  gx.restore();
 }
 function drawWheels(ctx,G,sc){
   const b01=G.b01,b11=G.b11; ctx.fillStyle='rgb(34,32,52)';
@@ -578,12 +606,17 @@ const L_=document.getElementById('L'),D_=document.getElementById('D'),H_=documen
       smooth_=document.getElementById('smooth'),edge_=document.getElementById('edge'),faceRamp_=document.getElementById('faceRamp'),
       outline_=document.getElementById('outline'),wheels_=document.getElementById('wheels');
 [['L','Lv'],['D','Dv'],['H','Hv'],['res','resv'],['ss','ssv'],['bands','bandsv'],['smooth','smoothv'],['edge','edgev']].forEach(([id,vid])=>{
-  const el=document.getElementById(id);
-  el.addEventListener('input',()=>{document.getElementById(vid).textContent=el.value; requestRender(true);});  // 拖動=預覽
-  el.addEventListener('change',()=>requestRender(false));                                                        // 放開=全品質
+  const el=document.getElementById(id), out=document.getElementById(vid);  // out 現為 <input type=number>
+  el.addEventListener('input',()=>{ out.value=el.value; requestRender(true); });  // 拖動滑桿=預覽 + 同步數字框
+  el.addEventListener('change',()=>requestRender(false));                          // 放開=全品質
+  // 數字框自填 → 夾到滑桿範圍 → 回寫滑桿 → 重算
+  const sync=fast=>{ let v=parseFloat(out.value); if(!isFinite(v)) return; v=Math.max(+el.min,Math.min(+el.max,v)); el.value=v; requestRender(fast); };
+  out.addEventListener('input',()=>sync(true));    // 邊打邊預覽
+  out.addEventListener('change',()=>{ sync(false); out.value=el.value; });  // 離開/Enter=全品質 + 修正越界顯示
 });
 faceRamp_.addEventListener('change',()=>{ opts.faceRamp=faceRamp_.checked; requestRender(false); });
 document.getElementById('grid').addEventListener('change',e=>{ opts.grid=e.target.checked; requestRender(false); });
+document.getElementById('human').addEventListener('change',e=>{ opts.human=e.target.checked; requestRender(false); });
 // 吸管去背:點「吸取顏色」進入吸色模式,再到輸出圖上點顏色
 const pickBtn=document.getElementById('pick');
 pickBtn.addEventListener('click',()=>{ picking=!picking; pickBtn.classList.toggle('on',picking);
