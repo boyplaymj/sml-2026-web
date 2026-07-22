@@ -411,16 +411,23 @@ function render(){
     const bilin=(quad,u,v)=>{ const a=[quad[0][0]+(quad[1][0]-quad[0][0])*u, quad[0][1]+(quad[1][1]-quad[0][1])*u];
       const b=[quad[3][0]+(quad[2][0]-quad[3][0])*u, quad[3][1]+(quad[2][1]-quad[3][1])*u];
       return sample(srcData, a[0]+(b[0]-a[0])*v, a[1]+(b[1]-a[1])*v); };
-    // 側壁:前半圈 θ∈[0,π],每角度一條垂直線(邊緣暗中間亮=圓柱體積)
-    const NST=Math.max(80,Math.round(rx*3));
-    for(let i=0;i<=NST;i++){ const th=Math.PI*i/NST;
-      const px=Cx+rx*Math.cos(th), py=Cy+ry*Math.sin(th), u=i/NST, shade=0.5+0.5*Math.sin(th);
-      for(let yy=0;yy<=wallH;yy++){ const v=yy/wallH; let c=bilin(frontSrc,u,v);
-        setpx(Math.round(px),Math.round(py+yy),[c[0]*shade,c[1]*shade,c[2]*shade],2); } }
-    // 頂橢圓(照片頂區;略提亮)
+    // 側壁:逐螢幕列(每個 x 必填→無縫)。θ=acos(nx) 把照片橫向依圓周弧長重映射(邊緣壓縮=前縮),
+    //       shade 邊暗中亮=體積;頂緣暗環接縫;上→下微暗=落地感。
+    const xL=Math.ceil(Cx-rx), xR=Math.floor(Cx+rx);
+    for(let x=xL;x<=xR;x++){ const nx=Math.max(-1,Math.min(1,(x-Cx)/rx)), s=Math.sqrt(1-nx*nx);
+      const th=Math.acos(nx), u=th/Math.PI, yTop=Cy+ry*s;                 // 該列牆頂落在頂橢圓前緣弧上
+      const shade=0.5+0.5*s;                                             // 圓周法線→蘭伯特近似(邊暗中亮)
+      for(let yy=0;yy<=wallH;yy++){ const v=yy/wallH; const c=bilin(frontSrc,u,v);
+        const rim=yy<2?0.72:(yy<4?0.88:1);                              // 頂 2px 暗環=頂/身接縫
+        const grad=1-0.08*v;                                            // 上亮下暗=體積落地(輕,免翻量化投票)
+        const k=shade*rim*grad;
+        setpx(x,Math.round(yTop+yy),[c[0]*k,c[1]*k,c[2]*k],2); } }
+    // 頂橢圓(照片頂區,iso 下頂面均勻朝上=平面取樣;僅前緣壓一道薄暗環坐住牆)
     for(let y=Math.floor(Cy-ry);y<=Math.ceil(Cy+ry);y++) for(let x=Math.floor(Cx-rx);x<=Math.ceil(Cx+rx);x++){
-      const nx=(x-Cx)/rx, ny=(y-Cy)/ry; if(nx*nx+ny*ny>1) continue;
-      const c=bilin(topSrc,(nx+1)/2,(ny+1)/2); setpx(x,y,c,1); }
+      const nx=(x-Cx)/rx, ny=(y-Cy)/ry, rr=nx*nx+ny*ny; if(rr>1) continue;
+      const c=bilin(topSrc,(nx+1)/2,(ny+1)/2);
+      const lip=(ny>0 && rr>0.86)?0.8:1;                                // 前緣(下半、近邊)薄暗環
+      setpx(x,y,[c[0]*lip,c[1]*lip,c[2]*lip],1); }
   }
   else if(opts.shape==='pyramid'){
     // 三角錐:2 個可見三角面(頂點→前底兩邊)。iso 正交投影 → 每面 affine 精確貼片。
