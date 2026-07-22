@@ -81,6 +81,7 @@
       <div class="seg" id="shapeSeg">
         <button data-s="box" class="on">方盒</button>
         <button data-s="cylinder">圓柱</button>
+        <button data-s="pyramid">三角錐</button>
       </div></div>
     <div class="row"><label>盒長 L</label><input type="range" id="L" min="1.5" max="6" step="0.1" value="4.4"><span class="val" id="Lv">4.4</span></div>
     <div class="row"><label>盒寬 D</label><input type="range" id="D" min="0.6" max="3" step="0.1" value="1.15"><span class="val" id="Dv">1.15</span></div>
@@ -264,6 +265,22 @@ function inQuad(x,y,q){ // 凸四邊形內
     const cr=(b[0]-a[0])*(y-a[1])-(b[1]-a[1])*(x-a[0]); const sg=cr>0?1:-1;
     if(i===0)s=sg; else if(sg!==s) return false; } return true;
 }
+function inTri(x,y,t){ // 三角形內(重心 sign)
+  const d=(a,b,c)=>(a[0]-c[0])*(b[1]-c[1])-(b[0]-c[0])*(a[1]-c[1]);
+  const p=[x,y], d1=d(p,t[0],t[1]), d2=d(p,t[1],t[2]), d3=d(p,t[2],t[0]);
+  const neg=(d1<0)||(d2<0)||(d3<0), pos=(d1>0)||(d2>0)||(d3>0); return !(neg&&pos);
+}
+function solve3(M,r){ // 解 M·[a,b,c]=r(3x3);奇異回 null
+  const det=A=>A[0][0]*(A[1][1]*A[2][2]-A[1][2]*A[2][1])-A[0][1]*(A[1][0]*A[2][2]-A[1][2]*A[2][0])+A[0][2]*(A[1][0]*A[2][1]-A[1][1]*A[2][0]);
+  const D=det(M); if(Math.abs(D)<1e-9) return null;
+  const col=i=>{ const A=M.map(row=>row.slice()); for(let k=0;k<3;k++)A[k][i]=r[k]; return det(A)/D; };
+  return [col(0),col(1),col(2)];
+}
+function affine(dst,src){ // dst 3點 → src 3點的仿射係數 [a,b,c,d,e,f](iso 正交投影下精確)
+  const M=dst.map(p=>[p[0],p[1],1]);
+  const X=solve3(M,src.map(p=>p[0])), Y=solve3(M,src.map(p=>p[1]));
+  return (X&&Y)? [...X,...Y] : null;
+}
 function sample(sd,x,y){ // 雙線性
   x=Math.max(0,Math.min(sd.width-1.001,x)); y=Math.max(0,Math.min(sd.height-1.001,y));
   const x0=x|0,y0=y|0,fx=x-x0,fy=y-y0, d=sd.data, w=sd.width;
@@ -405,6 +422,21 @@ function render(){
       const nx=(x-Cx)/rx, ny=(y-Cy)/ry; if(nx*nx+ny*ny>1) continue;
       const c=bilin(topSrc,(nx+1)/2,(ny+1)/2); setpx(x,y,c,1); }
   }
+  else if(opts.shape==='pyramid'){
+    // 三角錐:2 個可見三角面(頂點→前底兩邊)。iso 正交投影 → 每面 affine 精確貼片。
+    const apex0=g(L/2,D/2,H); const apex=[(apex0[0]+shift[0])*SS,(apex0[1]+shift[1])*SS];
+    const b10=[G.b10[0]*SS,G.b10[1]*SS], b11=[G.b11[0]*SS,G.b11[1]*SS], b01=[G.b01[0]*SS,G.b01[1]*SS];
+    const apexSrc=[(P.t00[0]+P.t10[0]+P.t11[0]+P.t01[0])/4,(P.t00[1]+P.t10[1]+P.t11[1]+P.t01[1])/4];
+    const drawTri=(dt,st,shade,fid)=>{ const A=affine(dt,st); if(!A) return;
+      const bx0=Math.max(0,Math.floor(Math.min(dt[0][0],dt[1][0],dt[2][0]))), bx1=Math.min(W,Math.ceil(Math.max(dt[0][0],dt[1][0],dt[2][0])));
+      const by0=Math.max(0,Math.floor(Math.min(dt[0][1],dt[1][1],dt[2][1]))), by1=Math.min(Hh,Math.ceil(Math.max(dt[0][1],dt[1][1],dt[2][1])));
+      for(let y=by0;y<by1;y++) for(let x=bx0;x<bx1;x++){ if(!inTri(x,y,dt)) continue;
+        const sx=A[0]*x+A[1]*y+A[2], sy=A[3]*x+A[4]*y+A[5];
+        if(!Number.isFinite(sx)||!Number.isFinite(sy)) continue; const c=sample(srcData,sx,sy);
+        setpx(x,y,[c[0]*shade,c[1]*shade,c[2]*shade],fid); } };
+    drawTri([apex,b10,b11],[apexSrc,P.b10,P.b11],0.7,3);   // 右前面(較暗)
+    drawTri([apex,b01,b11],[apexSrc,P.b01,P.b11],0.9,2);   // 左前面(較亮)
+  }
   else for(const fname of drawOrder){
     const fidx=drawOrder.indexOf(fname)+1;
     const dstF=faceDst(G,fname).map(p=>[p[0]*SS,p[1]*SS]);
@@ -479,6 +511,13 @@ function render(){
       fctx.beginPath(); fctx.ellipse(Cx,Cy+wallH,rx,ry,0,0,Math.PI); fctx.stroke();        // 前底弧
       fctx.beginPath(); fctx.moveTo(Cx-rx,Cy); fctx.lineTo(Cx-rx,Cy+wallH);
       fctx.moveTo(Cx+rx,Cy); fctx.lineTo(Cx+rx,Cy+wallH); fctx.stroke();                    // 兩側邊
+    } else if(opts.shape==='pyramid'){
+      const ap0=g(L/2,D/2,H), ap=[ap0[0]+shift[0]+.5, ap0[1]+shift[1]+.5];                   // 頂點(OW×OH 尺度)
+      const seg=(a,b)=>{ fctx.moveTo(a[0]+.5,a[1]+.5); fctx.lineTo(b[0]+.5,b[1]+.5); };
+      fctx.beginPath();
+      seg(ap,G.b10); seg(ap,G.b11); seg(ap,G.b01);                                           // 三條稜線(頂→可見底角)
+      seg(G.b10,G.b11); seg(G.b11,G.b01);                                                     // 兩條前底邊
+      fctx.stroke();
     } else {
       fctx.beginPath(); FACE_EDGES.forEach(([a,b])=>{ fctx.moveTo(G[a][0]+.5,G[a][1]+.5); fctx.lineTo(G[b][0]+.5,G[b][1]+.5); }); fctx.stroke(); }
   }
